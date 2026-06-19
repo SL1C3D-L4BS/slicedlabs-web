@@ -2,7 +2,6 @@
 // SlicedLabs · studio · © 2026 SlicedLabs — Home
 import Base from "../layouts/Base.astro";
 import Newsletter from "../components/Newsletter.astro";
-import Mark from "../components/Mark.astro";
 
 const pillars = [
   { k: "Food", t: "the empire", d: "The truck, then the lot, the venue, an owned commissary, the homestead. It makes the money — and the content.", tag: "make" },
@@ -78,7 +77,7 @@ const climb = ["Brand + media engine", "One truck", "The first lot", "Venue + ow
   <div class="wrap"><Newsletter /></div>
 
   <section class="wrap" style="text-align:center; padding-block:3rem 1rem;">
-    <Mark size={56} />
-    <p class="mono" style="margin-top:1rem;">build it in public · show the math</p>
+    <hr class="spectrum-rule" style="max-width:10rem; margin:0 auto 1rem;" />
+    <p class="mono">build it in public · show the math</p>
   </section>
 </Base>

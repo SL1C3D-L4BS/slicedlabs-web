@@ -24,3 +24,8 @@ npm run build      # → dist/  (deploy to Vercel / Cloudflare Pages, free)
 - Drop the exact Drive chevron art over `public/favicon.svg` if you want pixel-identity.
 
 Own your slice. Build it in public. Show the math.
+
+## Your logo (operator-provided)
+The repo intentionally ships **no logo artwork**. Drop your chevron SVG at `public/slicedlabs-mark.svg`
+(favicon already points there) and, if you want it in the nav/hero, add an `<img src="/slicedlabs-mark.svg">`.
+Until then the brand shows as the **SlicedLabs** wordmark (Geist Mono). Claude will not generate marks.

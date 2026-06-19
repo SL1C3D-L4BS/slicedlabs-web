@@ -1,7 +1,6 @@
 ---
 // SlicedLabs · studio · © 2026 SlicedLabs
 import "../styles/global.css";
-import Mark from "../components/Mark.astro";
 interface Props { title?: string; description?: string; temp?: "dark" | "warm"; }
 const {
   title = "SlicedLabs — own your slice",
@@ -26,7 +25,8 @@ const nav = [
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
     <meta name="theme-color" content="#1E1E1E" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- favicon: drop your chevron at public/slicedlabs-mark.svg -->
+    <link rel="icon" type="image/svg+xml" href="/slicedlabs-mark.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300..800&family=Inter:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap" rel="stylesheet" />
@@ -35,8 +35,7 @@ const nav = [
     <a href="#main" class="skip">Skip to content</a>
     <header class="wrap" style="display:flex; align-items:center; justify-content:space-between; padding-block:1.1rem; position:sticky; top:0; z-index:10;">
       <a href="/" style="display:flex; align-items:center; gap:.6rem; text-decoration:none;">
-        <Mark size={34} />
-        <span style="font-family:var(--font-display); font-weight:800; letter-spacing:-.02em;">SlicedLabs</span>
+        <span style="font-family:var(--font-display); font-weight:800; letter-spacing:-.02em; font-size:1.2rem;">SlicedLabs</span>
       </a>
       <nav style="display:flex; align-items:center; gap:1.1rem;">
         {nav.map((n) => <a href={n.href} style="text-decoration:none; color:var(--muted); font-size:.95rem;">{n.label}</a>)}
