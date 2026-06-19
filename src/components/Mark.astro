@@ -1,0 +1,24 @@
+---
+// SlicedLabs · studio · © 2026 SlicedLabs
+// The chevron "sliced S" mark — inline + tokenized (fill rides --mark). Mirrors
+// ~/.dotfiles/system/brand-assets/logo/slicedlabs-mark.svg.tmpl.
+interface Props { size?: number; disc?: boolean; }
+const { size = 40, disc = true } = Astro.props;
+---
+<svg width={size} height={size} viewBox="0 0 375 375" role="img" aria-label="SlicedLabs" class="mark">
+  <defs>
+    <clipPath id="m-disc"><circle cx="187.5" cy="187.5" r="187.5" /></clipPath>
+    <mask id="m-slices">
+      <rect x="0" y="0" width="375" height="375" fill="#fff" />
+      <g fill="#000">
+        <rect x="0" y="120" width="375" height="9" /><rect x="0" y="156" width="375" height="9" />
+        <rect x="0" y="192" width="375" height="9" /><rect x="0" y="228" width="375" height="9" />
+      </g>
+    </mask>
+  </defs>
+  <g clip-path={disc ? "url(#m-disc)" : undefined}>
+    {disc && <rect x="0" y="0" width="375" height="375" fill="#0B0B0F" />}
+    <text x="187.5" y="263" text-anchor="middle" font-family="Geist Mono, monospace"
+          font-size="290" font-weight="800" fill="var(--mark)" mask="url(#m-slices)">S</text>
+  </g>
+</svg>

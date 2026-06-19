@@ -1,0 +1,32 @@
+---
+// SlicedLabs · studio · © 2026 SlicedLabs — Watch (YouTube hub)
+import Base from "../layouts/Base.astro";
+const pillars = [
+  ["the build", "Every rung climbed in public — the truck, the lot, the first sale."],
+  ["the food", "The chaos-menu drops, the cooks, the sourcing."],
+  ["the local", "The farms and breweries behind the food."],
+  ["the philosophy", "Own your slice — the principles, lived."],
+  ["behind-the-scenes", "The systems, the failures, the real days."],
+];
+---
+<Base title="Watch — SlicedLabs" description="YouTube is home base. The build documentary, by pillar.">
+  <section class="wrap" style="padding-block:3rem;">
+    <p class="mono">home base</p>
+    <h1 style="font-size:clamp(2.2rem,7vw,4rem); margin:.3rem 0 1rem;"><span class="spectrum-text">Watch the build</span></h1>
+    <p style="color:var(--muted); max-width:42rem;">
+      YouTube is where the journey accumulates — searchable, evergreen, receipts and all.
+      The channel launches with Episode 0. Subscribe to catch the climb from the start.
+    </p>
+    <div style="margin:1.4rem 0 2.4rem;"><a class="btn" href="https://youtube.com/@slicedlabs">Subscribe on YouTube →</a></div>
+
+    <h2 class="mono" style="color:var(--muted); margin-bottom:1rem;">the five pillars</h2>
+    <div class="bento">
+      {pillars.map(([k, d]) => (
+        <article class="glass island col-2">
+          <h3 style="font-size:1.3rem; margin:0 0 .3rem;"><span class="spectrum-text">{k}</span></h3>
+          <p style="color:var(--muted); margin:0;">{d}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+</Base>

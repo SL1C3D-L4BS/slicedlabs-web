@@ -1,0 +1,84 @@
+---
+// SlicedLabs · studio · © 2026 SlicedLabs — Home
+import Base from "../layouts/Base.astro";
+import Newsletter from "../components/Newsletter.astro";
+import Mark from "../components/Mark.astro";
+
+const pillars = [
+  { k: "Food", t: "the empire", d: "The truck, then the lot, the venue, an owned commissary, the homestead. It makes the money — and the content.", tag: "make" },
+  { k: "Media", t: "the proof", d: "YouTube is home base. The build documentary, repurposed across every surface, with the real numbers shown.", tag: "show" },
+  { k: "Marketing", t: "the leverage", d: "The funnel and the offer ladder — the Atomise Machine, Own The List, Sell Without Sleaze — sold by living them.", tag: "compound" },
+];
+const principles = [
+  ["Trust math, not promises.", "Everyone sells the dream. We show the machine — the ~$85k budget, the permit list, the real failures."],
+  ["Buy the commodity, build only the edge.", "Rent the editor, scheduler, store, CRM. Build the one thing no subscription gives you: your own pipeline."],
+  ["Ship one thing, all the way.", "Huge dreams diffuse into nothing unless the first thing reaches a real sale. Focus is how the vision gets built."],
+  ["Sequence, don't scatter.", "Truck → first lot → property + commissary → homestead → skills center. Don't start phase N+1 until N throws off cash."],
+];
+const climb = ["Brand + media engine", "One truck", "The first lot", "Venue + owned commissary", "The homestead", "The skills center"];
+---
+<Base>
+  <!-- HERO — the words are the design -->
+  <section class="wrap" style="padding-block: clamp(3rem,9vw,7rem) 2rem; text-align:center;">
+    <p class="mono" style="margin-bottom:1.2rem;">food · media · marketing — built in public</p>
+    <h1 class="kinetic"><span class="spectrum-text">own your slice.</span></h1>
+    <p style="font-size:clamp(1.1rem,2.4vw,1.5rem); color:var(--muted); max-width:46rem; margin:1.4rem auto 0;">
+      We're building a real food empire from the ground up — on camera, with the actual numbers shown.
+      Watch the climb, and learn to build your own.
+    </p>
+    <div style="display:flex; gap:.8rem; justify-content:center; flex-wrap:wrap; margin-top:2rem;">
+      <a class="btn" href="/watch">Watch the build →</a>
+      <a class="btn btn-ghost" href="/build">Read the receipts</a>
+    </div>
+    <hr class="spectrum-rule" style="max-width:34rem; margin:3rem auto 0;" />
+  </section>
+
+  <!-- THREE PILLARS — bento of glass islands -->
+  <section class="wrap" aria-labelledby="pillars" style="padding-block:2rem;">
+    <h2 id="pillars" class="mono" style="color:var(--muted); margin-bottom:1rem;">one company, three limbs</h2>
+    <div class="bento">
+      {pillars.map((p) => (
+        <article class="glass island col-2">
+          <span class="tag">{p.tag}</span>
+          <h3 style="font-size:1.9rem; margin:.8rem 0 .1rem;"><span class="spectrum-text">{p.k}</span></h3>
+          <p class="mono" style="margin:0 0 .6rem;">{p.t}</p>
+          <p style="color:var(--muted); margin:0;">{p.d}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <!-- PRINCIPLES — the depth (what the books taught, lived) -->
+  <section class="wrap" aria-labelledby="principles" style="padding-block:3rem;">
+    <h2 id="principles" style="font-size:clamp(1.8rem,5vw,3rem); margin-bottom:.4rem;">The principles we actually run.</h2>
+    <p style="color:var(--muted); max-width:42rem; margin:0 0 1.6rem;">Not theory. The operating laws behind every decision — earned, then lived on camera.</p>
+    <div class="bento">
+      {principles.map(([h, d]) => (
+        <article class="glass island col-3">
+          <h3 style="font-size:1.25rem; margin:0 0 .4rem;">{h}</h3>
+          <p style="color:var(--muted); margin:0;">{d}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <!-- THE CLIMB — the sequence -->
+  <section class="wrap" aria-labelledby="climb" style="padding-block:2rem;">
+    <h2 id="climb" class="mono" style="color:var(--muted); margin-bottom:1rem;">the climb (you are here → phase 0)</h2>
+    <ol style="list-style:none; padding:0; margin:0; display:flex; gap:.6rem; flex-wrap:wrap;">
+      {climb.map((c, i) => (
+        <li class="glass" style="padding:.7rem 1rem; display:flex; gap:.6rem; align-items:center;">
+          <span class="spectrum-text" style="font-family:var(--font-display); font-weight:800;">{String(i).padStart(2, "0")}</span>
+          <span>{c}</span>
+        </li>
+      ))}
+    </ol>
+  </section>
+
+  <div class="wrap"><Newsletter /></div>
+
+  <section class="wrap" style="text-align:center; padding-block:3rem 1rem;">
+    <Mark size={56} />
+    <p class="mono" style="margin-top:1rem;">build it in public · show the math</p>
+  </section>
+</Base>

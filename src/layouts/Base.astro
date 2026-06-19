@@ -1,0 +1,68 @@
+---
+// SlicedLabs · studio · © 2026 SlicedLabs
+import "../styles/global.css";
+import Mark from "../components/Mark.astro";
+interface Props { title?: string; description?: string; temp?: "dark" | "warm"; }
+const {
+  title = "SlicedLabs — own your slice",
+  description = "A food · media · marketing company building a real food empire in public. Trust math, not promises.",
+  temp = "dark",
+} = Astro.props;
+const nav = [
+  { href: "/", label: "Home" },
+  { href: "/build", label: "The Build" },
+  { href: "/watch", label: "Watch" },
+  { href: "/about", label: "Manifesto" },
+];
+---
+<!doctype html>
+<html lang="en" data-temp={temp}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta name="theme-color" content="#1E1E1E" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300..800&family=Inter:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <a href="#main" class="skip">Skip to content</a>
+    <header class="wrap" style="display:flex; align-items:center; justify-content:space-between; padding-block:1.1rem; position:sticky; top:0; z-index:10;">
+      <a href="/" style="display:flex; align-items:center; gap:.6rem; text-decoration:none;">
+        <Mark size={34} />
+        <span style="font-family:var(--font-display); font-weight:800; letter-spacing:-.02em;">SlicedLabs</span>
+      </a>
+      <nav style="display:flex; align-items:center; gap:1.1rem;">
+        {nav.map((n) => <a href={n.href} style="text-decoration:none; color:var(--muted); font-size:.95rem;">{n.label}</a>)}
+        <button id="temp" class="tag" aria-label="Toggle warm/dark theme" title="warm ↔ dark">◑</button>
+      </nav>
+    </header>
+
+    <main id="main">
+      <slot />
+    </main>
+
+    <footer class="wrap" style="border-top:1px solid var(--stroke); margin-top:4rem; padding-block:2rem; color:var(--muted); display:flex; gap:1rem; flex-wrap:wrap; justify-content:space-between; align-items:center;">
+      <span class="mono">own your slice · build it in public · show the math</span>
+      <span class="mono">© 2026 SlicedLabs</span>
+    </footer>
+
+    <script is:inline>
+      // dark ↔ warm temperature (the two-temperature system). Persists; respects no-shimmer.
+      const root = document.documentElement;
+      const saved = localStorage.getItem("sl-temp");
+      if (saved) root.setAttribute("data-temp", saved);
+      document.getElementById("temp")?.addEventListener("click", () => {
+        const next = root.getAttribute("data-temp") === "warm" ? "dark" : "warm";
+        root.setAttribute("data-temp", next);
+        localStorage.setItem("sl-temp", next);
+      });
+    </script>
+  </body>
+</html>
