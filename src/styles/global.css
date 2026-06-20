@@ -251,7 +251,7 @@ a { color: inherit; text-decoration-color: color-mix(in oklab, var(--mark) 60%, 
   height:34px; padding:0 .72rem; border-radius:999px;
   text-decoration:none; border:1px solid transparent; background:transparent; cursor:pointer; white-space:nowrap;
   font: inherit; -webkit-appearance:none; appearance:none;
-  margin-block:0; margin-inline: calc((var(--mag) - 1) * 9px);   /* dock spread — chips push apart */
+  margin-block:0; margin-inline: calc((var(--mag) - 1) * 13px);  /* dock spread — chips push apart */
   transform: scale(var(--mag)); transform-origin:center bottom;
   transition: transform 80ms linear, margin-inline 80ms linear, background-color 150ms, border-color 150ms;
 }
@@ -272,8 +272,18 @@ a { color: inherit; text-decoration-color: color-mix(in oklab, var(--mark) 60%, 
 [data-temp="warm"] .pb-toggle [data-ico-sun] { display:inline-flex; }
 [data-temp="warm"] .pb-toggle [data-ico-moon] { display:none; }
 
-@media (max-width: 660px) { .pb-word, .pb-label { display:none; } .pb-chip { padding:0 .55rem; } .pb-brand { padding-right:.2rem; } }
-@media (prefers-reduced-motion: reduce) { .pb-chip { transform:none !important; } }
+/* responsive — tablet keeps labels (tighter); phone becomes an icon-only dock */
+@media (max-width: 860px) { .pb-nav { gap:4px; } .pb-chip { padding:0 .58rem; } }
+@media (max-width: 720px) { .pb-word { display:none; } .pb-brand { padding-right:.15rem; } }
+@media (max-width: 560px) {
+  .pillbar { gap:6px; padding:0 6px; }
+  .pb-label { display:none; }
+  .pb-chip { padding:0 .5rem; }
+  .pb-ico { width:20px; height:20px; }
+  .pb-sep { height:16px; }
+}
+@media (pointer: coarse) { .pb-chip { height:38px; } }   /* comfortable tap targets on touch */
+@media (prefers-reduced-motion: reduce) { .pb-chip { transform:none !important; margin-inline:0 !important; } }
 
 /* ── entrance choreography — plays ONCE, reduced-motion gated ────────────── */
 [data-reveal] {
