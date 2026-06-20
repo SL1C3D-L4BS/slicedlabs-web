@@ -89,6 +89,33 @@ export const POST: APIRoute = async ({ request }) => {
     ok = res.ok;
   } catch { ok = false; }
 
+  // HubSpot CRM — upsert the contact (best-effort, gated on a private-app token in
+  // env: HUBSPOT_TOKEN). Create; on 409 (exists) PATCH by the id HubSpot returns.
+  const hsToken = process.env.HUBSPOT_TOKEN || import.meta.env.HUBSPOT_TOKEN;
+  if (hsToken) {
+    const props: Record<string, string> = { email, hs_lead_status: "NEW" };
+    if (fields.Name) {
+      const [fn, ...ln] = String(fields.Name).split(" ");
+      if (fn) props.firstname = fn;
+      if (ln.length) props.lastname = ln.join(" ");
+    }
+    if (fields.Message) props.message = String(fields.Message);
+    const hs = (method: string, path: string) =>
+      fetch(`https://api.hubapi.com/crm/v3/objects/contacts${path}`, {
+        method,
+        headers: { authorization: `Bearer ${hsToken}`, "content-type": "application/json" },
+        body: JSON.stringify({ properties: props }),
+      });
+    try {
+      const r = await hs("POST", "");
+      if (r.status === 409) {
+        const b = (await r.json().catch(() => ({}))) as { message?: string };
+        const id = b.message?.match(/Existing ID:\s*(\d+)/)?.[1];
+        if (id) await hs("PATCH", `/${id}`);
+      }
+    } catch { /* non-fatal — never blocks the lead */ }
+  }
+
   // live inbox for real inquiries — best-effort, never blocks the visitor
   const hook = process.env.DISCORD_WEBHOOK_URL || import.meta.env.DISCORD_WEBHOOK_URL;
   if (meta.inquiry && hook) {
