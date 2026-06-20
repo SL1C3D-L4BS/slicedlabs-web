@@ -5,13 +5,14 @@ import Base from "../../layouts/Base.astro";
 const posts = (await getCollection("build")).sort((a, b) => +b.data.date - +a.data.date);
 ---
 <Base title="The Build — SlicedLabs" description="The build-in-public journal. Real numbers, real failures, the receipts.">
-  <section class="wrap" style="padding-block:3rem;">
-    <p class="mono">the build-in-public journal</p>
-    <h1 style="font-size:clamp(2.2rem,7vw,4rem); margin:.3rem 0 1.6rem;"><span class="spectrum-text">The Build</span></h1>
-    {posts.length === 0 && <p style="color:var(--muted);">First entry lands this week. Watch this space.</p>}
+  <section class="wrap" style="padding-block:clamp(2.5rem,7vw,4rem);">
+    <p class="mono" data-reveal>the build-in-public journal</p>
+    <h1 data-reveal style="--i:1; font-size:clamp(2.2rem,7vw,4rem); margin:.3rem 0 0;"><span class="spectrum-text">The Build</span></h1>
+    <hr class="blade" data-reveal style="--i:2; max-width:16rem; margin:1.4rem 0 1.8rem;" />
+    {posts.length === 0 && <p data-reveal style="color:var(--muted);">First entry lands this week. Watch this space.</p>}
     <div class="bento">
-      {posts.map((p) => (
-        <a href={`/build/${p.id}`} class="glass island col-3" style="text-decoration:none; display:block;">
+      {posts.map((p, i) => (
+        <a href={`/build/${p.id}`} class="glass island col-3" data-reveal style={`--i:${i}; text-decoration:none; display:block;`}>
           <p class="mono">{p.data.date.toISOString().slice(0, 10)}</p>
           <h2 style="font-size:1.3rem; margin:.3rem 0 .4rem;">{p.data.title}</h2>
           <p style="color:var(--muted); margin:0;">{p.data.summary}</p>

@@ -3,38 +3,43 @@
 import Base from "../layouts/Base.astro";
 ---
 <Base title="Manifesto — SlicedLabs" description="Own your slice. A food · media · marketing company building in public.">
-  <section class="wrap" style="max-width:48rem; padding-block:3rem;">
-    <p class="mono">the manifesto</p>
-    <h1 class="kinetic" style="font-size:clamp(2.4rem,8vw,5rem);"><span class="spectrum-text">Own your slice.</span></h1>
+  <section class="wrap" style="max-width:48rem; padding-block:clamp(2.5rem,7vw,4rem);">
+    <p class="mono" data-reveal>the manifesto</p>
+    <h1 class="kinetic" data-reveal style="--i:1; font-size:clamp(2.4rem,8vw,5rem);"><span class="spectrum-text">Own your slice.</span></h1>
+    <hr class="blade" data-reveal style="--i:2; max-width:18rem; margin:1.6rem 0 0;" />
 
-    <p style="font-size:1.25rem; color:var(--muted); margin-top:1.4rem;">
+    <p data-reveal style="--i:3; font-size:1.25rem; color:var(--muted); margin-top:1.8rem;">
       SlicedLabs is one company: a <strong style="color:var(--ink);">food · media · marketing</strong> brand
       building a real food empire in public — and proving anyone can own their slice by showing exactly how,
       receipts and all.
     </p>
 
-    <h2 style="margin-top:2.5rem;">What "own your slice" means</h2>
-    <p style="color:var(--muted);">
-      A slice is something you control end to end — your stack, your audience, your income, your time, your supply.
-      We own the audience instead of renting attention. We become the landlord instead of renting the lot.
-      We source local now and grow our own later. The same move, repeated at every layer.
+    <div class="prose" style="margin-top:1.5rem;">
+      <h2 data-reveal>What "own your slice" means</h2>
+      <p data-reveal style="color:var(--muted);">
+        A slice is something you control end to end — your stack, your audience, your income, your time, your supply.
+        We own the audience instead of renting attention. We become the landlord instead of renting the lot.
+        We source local now and grow our own later. The same move, repeated at every layer.
+      </p>
+
+      <h2 data-reveal>The depth behind it</h2>
+      <p data-reveal style="color:var(--muted);">
+        This didn't come from nowhere. It's the distilled discipline of the operators and builders we studied for
+        years — value creation, lean systems, selling without sleaze, buying back your time, compounding ownership.
+        We don't quote the playbooks; we <em>run</em> them, on camera, and let the receipts make the argument.
+      </p>
+    </div>
+
+    <blockquote class="glass glass-ultra island" data-reveal style="margin:2.4rem 0; font-family:var(--font-display); font-size:clamp(1.4rem,4vw,2rem); font-weight:700; line-height:1.18;">
+      We never claim a future as a present.<br /><span class="spectrum-text">Trust math, not promises.</span>
+    </blockquote>
+
+    <p data-reveal style="color:var(--muted);">
+      The homestead and the skills center are where this is going — they aren't here yet, and we'll say so every time.
     </p>
 
-    <h2 style="margin-top:2rem;">The depth behind it</h2>
-    <p style="color:var(--muted);">
-      This didn't come from nowhere. It's the distilled discipline of the operators and builders we studied for
-      years — value creation, lean systems, selling without sleaze, buying back your time, compounding ownership.
-      We don't quote the playbooks; we <em>run</em> them, on camera, and let the receipts make the argument.
-    </p>
-
-    <h2 style="margin-top:2rem;">The honest line</h2>
-    <p style="color:var(--muted);">
-      We never claim a future as a present. The homestead and the skills center are where this is going — they
-      aren't here yet, and we'll say so every time. <strong style="color:var(--ink);">Trust math, not promises.</strong>
-    </p>
-
-    <div style="margin-top:3rem; text-align:center;">
-      <hr class="spectrum-rule" style="max-width:10rem; margin:0 auto 1rem;" />
+    <div data-reveal style="margin-top:3rem; text-align:center;">
+      <hr class="blade center" style="max-width:10rem; margin:0 auto 1rem;" />
       <p class="mono">build it in public · show the math</p>
     </div>
   </section>
