@@ -12,4 +12,16 @@ const build = defineCollection({
   }),
 });
 
-export const collections = { build };
+const recipes = defineCollection({
+  loader: glob({ pattern: "**/*.md", base: "./src/content/recipes" }),
+  schema: z.object({
+    title: z.string(),
+    date: z.coerce.date(),
+    summary: z.string(),
+    time: z.string().optional(),
+    serves: z.string().optional(),
+    tags: z.array(z.string()).optional(),
+  }),
+});
+
+export const collections = { build, recipes };

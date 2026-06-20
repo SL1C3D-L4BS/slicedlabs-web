@@ -1,0 +1,21 @@
+---
+// SlicedLabs · studio · © 2026 SlicedLabs
+// Get-in-touch → /api/lead (source=contact): adds to the list + Discord ping.
+---
+<form action="/api/lead" method="post" style="display:grid; gap:.8rem; text-align:left;">
+  <input type="hidden" name="source" value="contact" />
+  <input type="hidden" name="anchor" value="contact" />
+  <input type="hidden" name="redirect" value={Astro.url.pathname} />
+  <div class="row2">
+    <input name="name" placeholder="Your name" autocomplete="name" class="fld" />
+    <input name="email" type="email" required placeholder="you@email.com" autocomplete="email" class="fld" />
+  </div>
+  <select name="topic" aria-label="Topic" class="fld">
+    <option value="">What's this about?</option>
+    <option>Catering</option><option>Press / media</option><option>Partnership</option>
+    <option>Brewery / market collab</option><option>Just saying hi</option>
+  </select>
+  <textarea name="message" rows="4" required placeholder="Your message…" class="fld"></textarea>
+  <button class="btn" type="submit" style="justify-self:start;">Send →</button>
+  <p data-lead-status data-src="contact" role="status" aria-live="polite" class="mono" hidden style="margin:.2rem 0 0;"></p>
+</form>

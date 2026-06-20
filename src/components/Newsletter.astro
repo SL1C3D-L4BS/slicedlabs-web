@@ -1,8 +1,8 @@
 ---
 // SlicedLabs · studio · © 2026 SlicedLabs
-// Newsletter capture — SlicedLabs Weekly (the owned list). The native <form> posts
-// same-origin to /api/subscribe (serverless), which calls the beehiiv API with a
-// server-only key — so nothing secret reaches the client. Works without JS.
+// Newsletter capture — SlicedLabs Weekly (the owned list). Posts to /api/lead
+// (source=newsletter); the global lead-status script in Base shows the result.
+import LeadForm from "./LeadForm.astro";
 ---
 <section id="newsletter" class="glass glass-ultra island" aria-labelledby="nl" data-reveal style="text-align:center; margin-block: 2rem;">
   <p class="mono">the owned list — the algorithm can't throttle it</p>
@@ -10,33 +10,5 @@
   <p style="color:var(--muted); max-width:40rem; margin:0 auto 1.2rem;">
     The real numbers, the real build — the budget, the permit filed, the first sale. Receipts, weekly.
   </p>
-  <form action="/api/subscribe" method="post"
-        style="display:flex; gap:.6rem; flex-wrap:wrap; justify-content:center;">
-    <label class="skip" for="email">Email address</label>
-    <input id="email" name="email" type="email" required placeholder="you@email.com" autocomplete="email"
-      style="flex:1; min-width:16rem; padding:.8rem 1rem; border-radius:999px; border:1px solid var(--stroke); background:var(--bg); color:var(--ink);" />
-    <input type="hidden" name="utm_source" value="slicedlabs" />
-    <button class="btn" type="submit">Get the receipts →</button>
-  </form>
-  <p id="nl-msg" role="status" aria-live="polite" class="mono" hidden style="margin:.9rem 0 0;"></p>
+  <LeadForm source="newsletter" anchor="newsletter" cta="Get the receipts →" />
 </section>
-
-<script is:inline>
-  // Reveal the result after the server redirect (?subscribe=success|invalid|error). Near-zero JS.
-  (function () {
-    var p = new URLSearchParams(location.search).get("subscribe");
-    if (!p) return;
-    var el = document.getElementById("nl-msg");
-    if (!el) return;
-    var msg = {
-      success: "You're in — check your inbox to confirm. The receipts are coming.",
-      invalid: "That email didn't look right. Mind trying again?",
-      error: "Something hiccupped on our end. Try again in a moment.",
-    }[p];
-    if (!msg) return;
-    el.textContent = msg;
-    el.style.color = p === "success" ? "var(--ink)" : "var(--muted)";
-    el.hidden = false;
-    history.replaceState({}, "", location.pathname + location.hash);
-  })();
-</script>

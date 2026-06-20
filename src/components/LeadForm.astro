@@ -1,0 +1,18 @@
+---
+// SlicedLabs · studio · © 2026 SlicedLabs
+// Reusable email capture → /api/lead (tagged by `source`). Works without JS
+// (303 redirect back); the global lead-status script in Base shows the result.
+interface Props { source: string; cta?: string; placeholder?: string; anchor?: string; }
+const { source, cta = "Get the receipts →", placeholder = "you@email.com", anchor = source } = Astro.props;
+const id = `em-${source}`;
+---
+<form action="/api/lead" method="post" style="display:flex; gap:.6rem; flex-wrap:wrap; justify-content:center;">
+  <input type="hidden" name="source" value={source} />
+  <input type="hidden" name="anchor" value={anchor} />
+  <input type="hidden" name="redirect" value={Astro.url.pathname} />
+  <label class="skip" for={id}>Email address</label>
+  <input id={id} name="email" type="email" required placeholder={placeholder} autocomplete="email"
+    style="flex:1; min-width:15rem; padding:.8rem 1rem; border-radius:999px; border:1px solid var(--stroke); background:var(--bg); color:var(--ink);" />
+  <button class="btn" type="submit">{cta}</button>
+  <p data-lead-status data-src={source} role="status" aria-live="polite" class="mono" hidden style="flex-basis:100%; margin:.7rem 0 0; text-align:center;"></p>
+</form>

@@ -1,0 +1,32 @@
+---
+// SlicedLabs · studio · © 2026 SlicedLabs — a single recipe
+import { getCollection, render } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import LeadForm from "../../components/LeadForm.astro";
+
+export async function getStaticPaths() {
+  const recipes = await getCollection("recipes");
+  return recipes.map((r) => ({ params: { slug: r.id }, props: { r } }));
+}
+
+const { r } = Astro.props;
+const { Content } = await render(r);
+const meta = [r.data.time && `⏱ ${r.data.time}`, r.data.serves && `🍽 ${r.data.serves}`].filter(Boolean).join("   ·   ");
+---
+<Base title={`${r.data.title} — SlicedLabs Kitchen`} description={r.data.summary}>
+  <article class="wrap" style="max-width:46rem; padding-block:clamp(2.5rem,7vw,4rem);">
+    <a href="/kitchen" class="mono" style="text-decoration:none;">← the kitchen</a>
+    <p class="mono" data-reveal style="margin-top:1.2rem;">{r.data.date.toISOString().slice(0, 10)}</p>
+    <h1 data-reveal style="--i:1; font-size:clamp(2rem,6vw,3.4rem); margin:.3rem 0 .2rem;">{r.data.title}</h1>
+    {meta && <p data-reveal style="--i:2; color:var(--muted); font-family:var(--font-mono); margin:.3rem 0 0;">{meta}</p>}
+    <hr class="blade" data-reveal style="--i:3; max-width:8rem; margin:1.2rem 0 2rem;" />
+    <div class="prose"><Content /></div>
+    <div style="margin-top:2.4rem;">
+      <article class="glass glass-focal island" style="text-align:center;">
+        <p class="mono">free, every month</p>
+        <h2 style="font-size:1.4rem; margin:.3rem 0 .8rem;">Want next month's drop?</h2>
+        <LeadForm source="recipe" anchor="more" cta="Send me the recipes →" />
+      </article>
+    </div>
+  </article>
+</Base>

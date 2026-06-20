@@ -2,6 +2,7 @@
 // SlicedLabs · studio · © 2026 SlicedLabs — The Truck
 import Base from "../layouts/Base.astro";
 import Newsletter from "../components/Newsletter.astro";
+import CateringForm from "../components/CateringForm.astro";
 const menu = [
   { k: "The rotating drop", d: "A chaos menu — a tight set that changes with what's good and local that week. Scarcity by design." },
   { k: "Sourced local-first", d: "The farms and breweries behind the food, named on the board. Buy the commodity, build the relationship." },
@@ -62,11 +63,11 @@ const steps = [
   </section>
 
   <section id="catering" class="wrap" style="padding-block:2rem;">
-    <article class="glass glass-focal island" data-reveal style="text-align:center;">
-      <p class="mono">the catering lever</p>
-      <h2 style="font-size:clamp(1.5rem,4vw,2.2rem); margin:.3rem 0 .4rem;">Book the truck for your event.</h2>
-      <p style="color:var(--muted); max-width:40rem; margin:0 auto 1.2rem;">Breweries, markets, private events — catering is how the truck earns between services. Bookings open to the list first; get on it and we'll reach out the moment we're rolling.</p>
-      <a class="btn" href="#newsletter">Get first access →</a>
+    <article class="glass glass-focal island" data-reveal>
+      <p class="mono" style="text-align:center;">the catering lever</p>
+      <h2 style="font-size:clamp(1.5rem,4vw,2.2rem); margin:.3rem 0 .4rem; text-align:center;">Book the truck for your event.</h2>
+      <p style="color:var(--muted); max-width:40rem; margin:0 auto 1.4rem; text-align:center;">Breweries, markets, private events — catering is how the truck earns between services. Tell us the date; we'll send the build status and a quote the moment we're rolling.</p>
+      <div style="max-width:34rem; margin:0 auto;"><CateringForm /></div>
     </article>
   </section>
 

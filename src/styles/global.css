@@ -223,6 +223,25 @@ a { color: inherit; text-decoration-color: color-mix(in oklab, var(--mark) 60%, 
 .tag { font-family: var(--font-mono); font-size: .72rem; letter-spacing: .06em; text-transform: uppercase;
        color: var(--muted); border: 1px solid var(--stroke); border-radius: 999px; padding: .2rem .6rem; }
 
+/* ── form fields (intakes) ──────────────────────────────────────────────── */
+.fld { width:100%; padding:.7rem .9rem; border-radius:12px; border:1px solid var(--stroke); background:var(--bg); color:var(--ink); font:inherit; font-size:.95rem; }
+.fld::placeholder { color: color-mix(in oklab, var(--muted) 75%, transparent); }
+.fld:focus-visible { outline:2px solid var(--mark); outline-offset:1px; }
+select.fld { appearance:none; -webkit-appearance:none; cursor:pointer; }
+textarea.fld { resize:vertical; min-height:5rem; }
+.row2 { display:grid; gap:.8rem; grid-template-columns:1fr 1fr; }
+@media (max-width:520px){ .row2 { grid-template-columns:1fr; } }
+
+/* ── exit-intent gate — value-exchange, dismissible (native <dialog>) ────── */
+dialog.gate { border:0; padding:0; background:transparent; color:var(--ink); max-width:30rem; width:calc(100vw - 2rem); inset:0; margin:auto; height:fit-content; }
+dialog.gate::backdrop { background: rgba(0,0,0,.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+.gate-inner { position:relative; background:var(--panel); backdrop-filter:blur(24px) saturate(1.5); -webkit-backdrop-filter:blur(24px) saturate(1.5);
+  border:1px solid var(--stroke); border-radius:var(--radius-lg); padding:1.9rem 1.6rem 1.5rem; text-align:center;
+  box-shadow: inset 0 1px 0 var(--rim), 0 32px 90px rgba(0,0,0,.5); }
+.gate-x { position:absolute; top:.6rem; right:.8rem; background:transparent; border:0; color:var(--muted); font-size:1.05rem; cursor:pointer; line-height:1; }
+.gate-x:hover { color:var(--ink); }
+.gate-skip { display:block; margin:1rem auto 0; background:transparent; border:0; color:var(--muted); font-family:var(--font-mono); font-size:.76rem; cursor:pointer; text-decoration:underline; }
+
 /* ── cockpit pill bar — the Quickshell bar, ported to the web ───────────── */
 .pillbar-wrap { position: sticky; top: 0; z-index: 50; display: flex; justify-content: center; padding: 10px 1rem 0; pointer-events: none; }
 .pillbar {

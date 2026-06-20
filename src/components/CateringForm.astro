@@ -1,0 +1,26 @@
+---
+// SlicedLabs · studio · © 2026 SlicedLabs
+// Catering inquiry → /api/lead (source=catering): beehiiv custom fields + a live
+// Discord ping for the operator. Works without JS.
+---
+<form action="/api/lead" method="post" style="display:grid; gap:.8rem; text-align:left;">
+  <input type="hidden" name="source" value="catering" />
+  <input type="hidden" name="anchor" value="catering" />
+  <input type="hidden" name="redirect" value={Astro.url.pathname} />
+  <div class="row2">
+    <input name="name" placeholder="Your name" autocomplete="name" class="fld" />
+    <input name="email" type="email" required placeholder="you@email.com" autocomplete="email" class="fld" />
+  </div>
+  <div class="row2">
+    <input name="eventDate" type="date" aria-label="Event date" class="fld" />
+    <select name="eventType" aria-label="Event type" class="fld">
+      <option value="">Event type…</option>
+      <option>Brewery</option><option>Market</option><option>Private event</option>
+      <option>Corporate</option><option>Wedding</option><option>Other</option>
+    </select>
+  </div>
+  <input name="headcount" type="number" min="1" placeholder="Approx. headcount" aria-label="Approximate headcount" class="fld" />
+  <textarea name="message" rows="3" placeholder="Tell us about the event — vibe, location, anything." class="fld"></textarea>
+  <button class="btn" type="submit" style="justify-self:start;">Send the inquiry →</button>
+  <p data-lead-status data-src="catering" role="status" aria-live="polite" class="mono" hidden style="margin:.2rem 0 0;"></p>
+</form>

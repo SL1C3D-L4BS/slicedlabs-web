@@ -3,6 +3,7 @@
 import "../styles/global.css";
 import Analytics from "@vercel/analytics/astro";
 import { MARK_PATH, OG_PATH } from "../lib/brand";
+import LeadForm from "../components/LeadForm.astro";
 interface Props { title?: string; description?: string; temp?: "dark" | "warm"; }
 const {
   title = "SlicedLabs — own your slice",
@@ -89,10 +90,28 @@ const isActive = (href: string) => (href === "/" ? path === "/" : path === href 
       <slot />
     </main>
 
-    <footer class="wrap" style="border-top:1px solid var(--stroke); margin-top:4rem; padding-block:2rem; color:var(--muted); display:flex; gap:1rem; flex-wrap:wrap; justify-content:space-between; align-items:center;">
-      <span class="mono">own your slice · build it in public · show the math</span>
-      <span class="mono">© 2026 SlicedLabs</span>
+    <footer class="wrap" style="border-top:1px solid var(--stroke); margin-top:4rem; padding-block:2rem; color:var(--muted);">
+      <nav aria-label="Footer" style="display:flex; gap:1.2rem; flex-wrap:wrap; margin-bottom:1.1rem;">
+        {[["/truck","Truck"],["/shop","Shop"],["/kitchen","Kitchen"],["/build","The Build"],["/watch","Watch"],["/about","Manifesto"],["/contact","Contact"],["/free","Free Drops"]].map(([h,l]) => (
+          <a href={h} style="color:var(--muted); text-decoration:none; font-size:.9rem;">{l}</a>
+        ))}
+      </nav>
+      <div style="display:flex; gap:1rem; flex-wrap:wrap; justify-content:space-between; align-items:center;">
+        <span class="mono">own your slice · build it in public · show the math</span>
+        <span class="mono">© 2026 SlicedLabs</span>
+      </div>
     </footer>
+
+    <dialog id="exit-gate" class="gate" aria-label="Free drops from SlicedLabs">
+      <div class="gate-inner">
+        <button class="gate-x" aria-label="Close" data-gate-close>✕</button>
+        <p class="mono">before you go</p>
+        <h2 class="spectrum-text" style="font-family:var(--font-display); font-weight:800; font-size:clamp(1.5rem,5vw,2rem); line-height:1.05; margin:.2rem 0 .5rem;">Take the receipts.</h2>
+        <p style="color:var(--muted); margin:0 auto 1.1rem; max-width:26rem;">The real $85k truck budget, the Atomise Machine, and the running build numbers — free. We mail them and get out of your way.</p>
+        <LeadForm source="vault" anchor="" cta="Send me the drops →" />
+        <button class="gate-skip" data-gate-close>No thanks, I'll keep browsing</button>
+      </div>
+    </dialog>
 
     <Analytics />
 
@@ -127,6 +146,62 @@ const isActive = (href: string) => (href === "/" ? path === "/" : path === href 
         nav.addEventListener("pointerleave", function () {
           for (var i = 0; i < chips.length; i++) chips[i].style.setProperty("--mag", "1");
         });
+      })();
+    </script>
+
+    <script is:inline>
+      // Lead-capture status — shows the result after the /api/lead redirect (?lead=&src=).
+      (function () {
+        var p = new URLSearchParams(location.search);
+        var st = p.get("lead"); if (!st) return;
+        var src = p.get("src") || "";
+        var el = document.querySelector('[data-lead-status][data-src="' + src + '"]') || document.querySelector("[data-lead-status]");
+        var msg = {
+          success: "You're in — check your inbox to confirm. The receipts are coming.",
+          invalid: "That email didn't look right. Mind trying again?",
+          error: "Something hiccupped on our end. Try again in a moment.",
+        }[st];
+        if (el && msg) {
+          el.textContent = msg;
+          el.style.color = st === "success" ? "var(--ink)" : "var(--muted)";
+          el.hidden = false;
+          el.scrollIntoView({ block: "center", behavior: "smooth" });
+        }
+        history.replaceState({}, "", location.pathname + location.hash);
+      })();
+    </script>
+
+    <script is:inline>
+      // Lead forms → AJAX submit (no reload, inline confirm; graceful no-JS fallback)
+      // + the exit-intent value-exchange gate (dismissible, shown once per visitor).
+      (function () {
+        document.querySelectorAll('form[action="/api/lead"]').forEach(function (form) {
+          form.addEventListener("submit", function (e) {
+            if (!window.fetch) return; // no JS / old browser → normal redirect submit
+            e.preventDefault();
+            var s = form.querySelector("[data-lead-status]");
+            var btn = form.querySelector("button[type=submit]");
+            if (btn) btn.disabled = true;
+            fetch("/api/lead", { method: "POST", body: new FormData(form), headers: { accept: "application/json" } })
+              .then(function (r) { return r.json().catch(function () { return { ok: false }; }); })
+              .then(function (j) {
+                if (s) { s.textContent = j.ok ? "You're in — check your inbox to confirm. The receipts are coming." : "Something hiccupped — try again in a moment."; s.style.color = j.ok ? "var(--ink)" : "var(--muted)"; s.hidden = false; }
+                if (j.ok) form.reset();
+                if (btn) btn.disabled = false;
+              })
+              .catch(function () { if (s) { s.textContent = "Something hiccupped — try again."; s.hidden = false; } if (btn) btn.disabled = false; });
+          });
+        });
+        var d = document.getElementById("exit-gate");
+        if (d) {
+          var KEY = "sl-gate-v1";
+          var open = function () { if (localStorage.getItem(KEY)) return; try { d.showModal(); } catch (e) {} localStorage.setItem(KEY, "1"); };
+          document.addEventListener("mouseout", function (e) { if (!e.relatedTarget && e.clientY <= 0) open(); });
+          setTimeout(function () { if (window.scrollY > 700) open(); }, 45000);
+          d.querySelectorAll("[data-gate-close]").forEach(function (b) { b.addEventListener("click", function () { d.close(); }); });
+          d.addEventListener("click", function (e) { if (e.target === d) d.close(); });
+          d.addEventListener("submit", function () { setTimeout(function () { try { d.close(); } catch (e) {} }, 2400); });
+        }
       })();
     </script>
 

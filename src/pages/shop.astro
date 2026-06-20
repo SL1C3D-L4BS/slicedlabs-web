@@ -2,6 +2,7 @@
 // SlicedLabs · studio · © 2026 SlicedLabs — Shop
 import Base from "../layouts/Base.astro";
 import Newsletter from "../components/Newsletter.astro";
+import LeadForm from "../components/LeadForm.astro";
 const food = [
   { k: "The chaos menu", d: "The truck's rotating drop — preview the concept, order when we're live.", tag: "phase 1" },
   { k: "Pre-orders", d: "Reserve a plate from the first service. Opens with the truck.", tag: "soon" },
@@ -42,6 +43,7 @@ const playbooks = [
         </article>
       ))}
     </div>
+    <div data-reveal style="max-width:30rem; margin:1.4rem auto 0;"><LeadForm source="food-preorder" anchor="food" cta="Notify me when food drops →" /></div>
   </section>
 
   <section class="wrap" aria-labelledby="merch" style="padding-block:1.5rem;">
@@ -58,6 +60,7 @@ const playbooks = [
         </article>
       ))}
     </div>
+    <div data-reveal style="max-width:30rem; margin:1.4rem auto 0;"><LeadForm source="merch-waitlist" anchor="merch" cta="Join the merch waitlist →" /></div>
   </section>
 
   <section class="wrap" aria-labelledby="play" style="padding-block:1.5rem;">
@@ -74,6 +77,7 @@ const playbooks = [
         </article>
       ))}
     </div>
+    <div data-reveal style="max-width:30rem; margin:1.4rem auto 0;"><LeadForm source="playbooks-waitlist" anchor="play" cta="Get the playbooks first →" /></div>
   </section>
 
   <div class="wrap"><Newsletter /></div>
