@@ -19,13 +19,13 @@ npm run build      # → dist/  (deploy to Vercel / Cloudflare Pages, free)
 ```
 
 ## Operator last-mile
-- Wire the **beehiiv** embed in `src/components/Newsletter.astro` (the owned list).
+- The **beehiiv** embed is wired in `src/components/Newsletter.astro` (public pub id) — swap the id if the publication changes.
 - Point the domain `slicedlabs.com`; deploy on Vercel/Cloudflare.
-- Drop the exact Drive chevron art over `public/favicon.svg` if you want pixel-identity.
 
 Own your slice. Build it in public. Show the math.
 
 ## Your logo (operator-provided)
-The repo intentionally ships **no logo artwork**. Drop your chevron SVG at `public/slicedlabs-mark.svg`
-(favicon already points there) and, if you want it in the nav/hero, add an `<img src="/slicedlabs-mark.svg">`.
+The repo intentionally ships **no logo artwork**. Drop your chevron SVG at `public/slicedlabs-mark.svg`,
+then re-add the favicon `<link rel="icon" type="image/svg+xml" href="/slicedlabs-mark.svg" />` in `src/layouts/Base.astro`;
+if you want it in the nav/hero, add an `<img src="/slicedlabs-mark.svg">`.
 Until then the brand shows as the **SlicedLabs** wordmark (Geist Mono). Claude will not generate marks.
