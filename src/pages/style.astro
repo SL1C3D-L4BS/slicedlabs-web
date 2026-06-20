@@ -1,0 +1,257 @@
+---
+// SlicedLabs · studio · © 2026 SlicedLabs
+// /style — the living design system. Renders the REAL tokens + components from
+// global.css (the web mirror of ~/.dotfiles/system/tokens.toml). Proof, not a
+// pitch: this is the system, on the page. noindex — internal reference surface.
+import Base from "../layouts/Base.astro";
+import SocialRow from "../components/SocialRow.astro";
+
+const swatches = [
+  { v: "--bg", note: "charcoal base", val: "#1E1E1E" },
+  { v: "--bg-alt", note: "panel / surface", val: "#2B2B2B" },
+  { v: "--ink", note: "primary text", val: "#F7F6F2" },
+  { v: "--muted", note: "weathered sand", val: "#B8A789" },
+  { v: "--mark", note: "the mark blue", val: "#38B6FF" },
+  { v: "--ok", note: "success", val: "#C7D42B" },
+  { v: "--warn", note: "caution", val: "#D9892B" },
+  { v: "--danger", note: "danger", val: "#D95C5C" },
+];
+
+const steps = [
+  { s: "--step-5", l: "display · hero" },
+  { s: "--step-4", l: "page title" },
+  { s: "--step-3", l: "section head" },
+  { s: "--step-2", l: "subhead" },
+  { s: "--step-1", l: "lead" },
+  { s: "--step-0", l: "body" },
+  { s: "--step--1", l: "fine print" },
+];
+
+const weights = [
+  { w: 300, l: "Light" },
+  { w: 400, l: "Regular" },
+  { w: 500, l: "Medium" },
+  { w: 600, l: "SemiBold" },
+  { w: 700, l: "Bold" },
+  { w: 800, l: "Black" },
+];
+
+const motion = [
+  { v: "--t-quick", ms: "120ms", use: "hover · click flash" },
+  { v: "--t-normal", ms: "200ms", use: "state · recolor" },
+  { v: "--t-slow", ms: "380ms", use: "reveal · scene" },
+];
+---
+
+<Base
+  title="The System — SlicedLabs Design System"
+  description="The SlicedLabs design system, rendered from the real tokens. We don't pitch. We prove."
+  noindex
+>
+  <!-- hero -->
+  <section class="wrap" style="padding-block: 3.5rem 1.5rem;">
+    <p class="mono" data-reveal>design system · liquid retina, on the web</p>
+    <h1 class="blend-text" style="font-size: var(--step-5); margin: .3rem 0 .6rem; --i: 1;" data-reveal>The System</h1>
+    <hr class="blade" />
+    <p style="max-width: 46rem; color: var(--muted); font-size: var(--step-1); margin-top: 1.2rem;" data-reveal>
+      One source of truth — <code class="sg-code">tokens.toml</code> — re-skins the desktop and this site. Below is the live thing:
+      every color, type step, material, and motion is the actual token, not a screenshot.
+      Hit the <strong style="color: var(--ink);">☀ / ☾</strong> in the nav to watch it flip to the warm food temperature.
+    </p>
+  </section>
+
+  <!-- 01 foundations -->
+  <section class="wrap sg-sec" data-reveal>
+    <h2 class="sg-h">01 · Foundations</h2>
+    <p class="sg-sub">Status ≠ identity. The base layers carry the page; the spectrum carries the brand.</p>
+    <div class="sg-swatches">
+      {swatches.map((c) => (
+        <div class="sg-sw">
+          <span class="sg-chip" style={`background: var(${c.v});`}></span>
+          <span class="sg-sw-name mono">{c.v}</span>
+          <span class="sg-sw-note">{c.note}</span>
+        </div>
+      ))}
+    </div>
+    <div class="sg-spectrum" aria-label="the signature spectrum blend"></div>
+    <p class="sg-sub" style="margin-top: .7rem;">
+      The blend — coral → orange → teal → blue — the mark's own gradient. It clips into text
+      (<span class="blend-text" style="font-weight:700;">like this</span>), draws the blade, and fills the primary button.
+    </p>
+  </section>
+
+  <!-- 02 type -->
+  <section class="wrap sg-sec" data-reveal>
+    <h2 class="sg-h">02 · Type</h2>
+    <p class="sg-sub">Display is Geist Mono; body is Inter; labels are JetBrains Mono. Hierarchy rides <em>weight</em>, not color. Fluid clamp scale.</p>
+    <div class="sg-type">
+      {steps.map((t) => (
+        <div class="sg-type-row">
+          <span class="sg-type-tag mono">{t.s}</span>
+          <span class="sg-type-spec" style={`font-size: var(${t.s});`}>Own your slice.</span>
+          <span class="sg-type-use">{t.l}</span>
+        </div>
+      ))}
+    </div>
+    <div class="sg-weights">
+      {weights.map((w) => (
+        <span class="sg-weight" style={`font-weight: ${w.w};`}>{w.w}<small>{w.l}</small></span>
+      ))}
+    </div>
+  </section>
+
+  <!-- 03 material -->
+  <section class="wrap sg-sec" data-reveal>
+    <h2 class="sg-h">03 · Material — Liquid Glass</h2>
+    <p class="sg-sub">Three tiers over a real backdrop blur. Static specular + chromatic rim, squircle corners. No animated shimmer — that's the law.</p>
+    <div class="sg-glass-grid">
+      <div class="glass sg-card">
+        <span class="tag">base</span>
+        <p class="sg-card-t">Chrome &amp; cards</p>
+        <p class="sg-sub" style="margin:0;">The everyday surface — pills, cards, panels.</p>
+      </div>
+      <div class="glass glass-focal sg-card">
+        <span class="tag">focal</span>
+        <p class="sg-card-t">Menus &amp; panels</p>
+        <p class="sg-sub" style="margin:0;">Stronger lensing for secondary surfaces.</p>
+      </div>
+      <div class="glass glass-ultra sg-card">
+        <span class="tag">ultra</span>
+        <p class="sg-card-t">Showpiece</p>
+        <p class="sg-sub" style="margin:0;">Deepest lens + a faint chromatic edge.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 components -->
+  <section class="wrap sg-sec" data-reveal>
+    <h2 class="sg-h">04 · Components</h2>
+    <p class="sg-sub">Buttons, tags, islands, the bento grid, fields. All token-driven; all in <code class="sg-code">global.css</code>.</p>
+
+    <div class="sg-block">
+      <span class="sg-label mono">buttons</span>
+      <div class="sg-inline">
+        <a class="btn" href="#" onclick="return false">Primary action →</a>
+        <a class="btn btn-ghost" href="#" onclick="return false">Ghost</a>
+      </div>
+    </div>
+
+    <div class="sg-block">
+      <span class="sg-label mono">tags</span>
+      <div class="sg-inline">
+        <span class="tag">build-in-public</span>
+        <span class="tag">food · craft</span>
+        <span class="tag">dropping soon</span>
+      </div>
+    </div>
+
+    <div class="sg-block">
+      <span class="sg-label mono">islands · bento</span>
+      <div class="bento">
+        <div class="glass island col-3"><p class="sg-card-t">Film once</p><p class="sg-sub" style="margin:0;">One shoot, six cuts. The Atomise Machine.</p></div>
+        <div class="glass island col-3"><p class="sg-card-t">Show the math</p><p class="sg-sub" style="margin:0;">Real numbers, in public. Proof over promise.</p></div>
+        <div class="glass island col-2"><p class="sg-card-t">Own the list</p><p class="sg-sub" style="margin:0;">The newsletter can't be throttled.</p></div>
+        <div class="glass island col-4"><p class="sg-card-t">Build the empire in public</p><p class="sg-sub" style="margin:0;">Every step documented — the channel is the moat.</p></div>
+      </div>
+    </div>
+
+    <div class="sg-block">
+      <span class="sg-label mono">fields</span>
+      <div class="row2" style="max-width: 34rem;">
+        <input class="fld" type="text" placeholder="Your name" aria-label="Your name (sample)" />
+        <input class="fld" type="email" placeholder="you@kitchen.com" aria-label="Email (sample)" />
+      </div>
+    </div>
+  </section>
+
+  <!-- 05 motion -->
+  <section class="wrap sg-sec" data-reveal>
+    <h2 class="sg-h">05 · Motion</h2>
+    <p class="sg-sub">Three tiers, one easing curve — <code class="sg-code">cubic-bezier(.2,.8,.2,1)</code>. Reveals play <em>once</em>; reduced-motion freezes everything.</p>
+    <div class="sg-motion">
+      {motion.map((m) => (
+        <div class="glass sg-card sg-motion-card">
+          <span class="sg-card-t" style="font-size: var(--step-2);">{m.ms}</span>
+          <span class="sg-sw-name mono">{m.v}</span>
+          <span class="sg-sub" style="margin:0;">{m.use}</span>
+        </div>
+      ))}
+    </div>
+    <p class="sg-sub" style="margin-top: 1.1rem;">
+      Count-up demo (tabular figures, eases to target once on scroll):
+      <span class="count" data-count-to="85000" data-count-prefix="$" style="color: var(--ink); font-family: var(--font-display); font-weight: 800; font-size: var(--step-2);">$0</span>
+    </p>
+  </section>
+
+  <!-- 06 a11y -->
+  <section class="wrap sg-sec" data-reveal>
+    <h2 class="sg-h">06 · Access</h2>
+    <p class="sg-sub">The showpiece never beats access. Visible focus rings, a skip link, and two media gates the whole system honors.</p>
+    <ul class="sg-a11y">
+      <li><strong>Focus:</strong> 2px <code class="sg-code">--mark</code> ring, 2px offset, on every interactive element. <a href="#" onclick="return false" class="sg-focus-demo">Tab to me.</a></li>
+      <li><strong>Reduced motion:</strong> reveals, the blade, and the dock magnify all stop; transitions go to zero.</li>
+      <li><strong>Reduced transparency:</strong> glass falls back to a solid <code class="sg-code">--bg-alt</code> frost — text contrast holds the 4.5 floor.</li>
+    </ul>
+  </section>
+
+  <!-- 07 handles -->
+  <section class="wrap sg-sec" data-reveal style="padding-bottom: 1rem;">
+    <h2 class="sg-h">07 · Handles</h2>
+    <p class="sg-sub">One handle, everywhere — <strong style="color: var(--ink);">@slicedlabs</strong> (YouTube is <strong style="color: var(--ink);">@slicedlaboratories</strong>). Lead with the owned list; the rest are reach.</p>
+    <div style="margin: 1rem 0 1.2rem;"><SocialRow /></div>
+    <div class="sg-handles">
+      <span class="mono">YouTube · @slicedlaboratories</span>
+      <span class="mono">Instagram · @slicedlabs</span>
+      <span class="mono">TikTok · @slicedlabs</span>
+      <span class="mono">X · @slicedlabs</span>
+      <span class="mono">Pinterest · @slicedlabs</span>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .sg-sec { padding-block: 2.6rem; border-top: 1px solid var(--stroke); }
+  .sg-h { font-size: var(--step-3); margin: 0 0 .4rem; }
+  .sg-sub { color: var(--muted); max-width: 48rem; margin: 0 0 1.2rem; line-height: 1.6; }
+  .sg-code { font-family: var(--font-mono); font-size: .85em; background: var(--bg-alt); padding: .1em .4em; border-radius: 6px; }
+
+  /* swatches */
+  .sg-swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr)); gap: .8rem; }
+  .sg-sw { display: flex; flex-direction: column; gap: .25rem; }
+  .sg-chip { height: 3.2rem; border-radius: 12px; border: 1px solid var(--stroke); box-shadow: inset 0 1px 0 var(--rim); }
+  @supports (corner-shape: superellipse(4)) { .sg-chip { corner-shape: superellipse(4); } }
+  .sg-sw-name { font-size: .72rem; text-transform: none; letter-spacing: .02em; }
+  .sg-sw-note { font-size: .78rem; color: var(--muted); }
+  .sg-spectrum { height: 14px; border-radius: 999px; margin-top: 1.4rem; background: var(--blend); box-shadow: 0 0 24px color-mix(in oklab, var(--teal) 24%, transparent); }
+
+  /* type */
+  .sg-type { display: flex; flex-direction: column; gap: .55rem; }
+  .sg-type-row { display: grid; grid-template-columns: 5.5rem 1fr auto; align-items: baseline; gap: 1rem; }
+  .sg-type-tag { font-size: .72rem; text-transform: none; color: var(--muted); }
+  .sg-type-spec { font-family: var(--font-display); font-weight: 800; line-height: 1.02; letter-spacing: -.02em; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sg-type-use { font-size: .78rem; color: var(--muted); white-space: nowrap; }
+  .sg-weights { display: flex; flex-wrap: wrap; gap: 1.1rem; margin-top: 1.6rem; align-items: baseline; }
+  .sg-weight { font-family: var(--font-display); font-size: var(--step-2); color: var(--ink); display: inline-flex; align-items: baseline; gap: .35rem; }
+  .sg-weight small { font-family: var(--font-mono); font-size: .62rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  @media (max-width: 560px) { .sg-type-row { grid-template-columns: 4rem 1fr; } .sg-type-use { display: none; } }
+
+  /* glass + cards */
+  .sg-glass-grid, .sg-motion { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 1rem; }
+  .sg-card { padding: 1.4rem; display: flex; flex-direction: column; gap: .4rem; align-items: flex-start; }
+  .sg-card-t { font-family: var(--font-display); font-weight: 700; font-size: var(--step-1); color: var(--ink); margin: .2rem 0 0; }
+  .sg-motion-card { align-items: flex-start; gap: .3rem; }
+
+  /* components */
+  .sg-block { margin-top: 1.6rem; }
+  .sg-label { display: block; font-size: .7rem; margin-bottom: .6rem; }
+  .sg-inline { display: flex; flex-wrap: wrap; gap: .7rem; align-items: center; }
+
+  /* a11y */
+  .sg-a11y { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: .7rem; color: var(--muted); max-width: 50rem; }
+  .sg-a11y strong { color: var(--ink); }
+  .sg-focus-demo { color: var(--mark); text-decoration: underline; text-underline-offset: 3px; }
+
+  /* handles */
+  .sg-handles { display: flex; flex-wrap: wrap; gap: .5rem 1.4rem; }
+  .sg-handles .mono { text-transform: none; letter-spacing: .01em; }
+</style>

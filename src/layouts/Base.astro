@@ -4,15 +4,20 @@ import "../styles/global.css";
 import Analytics from "@vercel/analytics/astro";
 import { MARK_PATH, OG_PATH } from "../lib/brand";
 import LeadForm from "../components/LeadForm.astro";
-interface Props { title?: string; description?: string; temp?: "dark" | "warm"; }
+import SocialRow from "../components/SocialRow.astro";
+interface Props { title?: string; description?: string; temp?: "dark" | "warm"; noindex?: boolean; }
 const {
   title = "SlicedLabs — own your slice",
   description = "A food · media · marketing company building a real food empire in public. We don't pitch. We prove.",
   temp = "dark",
+  noindex = false,
 } = Astro.props;
 const _op = (Astro.url.pathname.replace(/\/+$/, "") || "/");
 const ogRoute = _op === "/" ? "index" : _op.replace(/^\//, "");
-const ogUrl = Astro.site ? new URL(`/og/${ogRoute}.png`, Astro.site).href : `/og/${ogRoute}.png`;
+// noindex surfaces (e.g. /style) have no per-route OG card — fall back to the brand default.
+const ogUrl = noindex
+  ? (Astro.site ? new URL(OG_PATH, Astro.site).href : OG_PATH)
+  : (Astro.site ? new URL(`/og/${ogRoute}.png`, Astro.site).href : `/og/${ogRoute}.png`);
 const path = (Astro.url.pathname.replace(/\/+$/, "") || "/");
 const ic = {
   home: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.3 2.45a1 1 0 0 1 1.4 0l8.63 7.63A1 1 0 0 1 20.66 11.8H19.5V20a1 1 0 0 1-1 1H14.6v-5.6H9.4V21H5.5a1 1 0 0 1-1-1v-8.2H3.34A1 1 0 0 1 2.67 10.08l8.63-7.63Z"/></svg>`,
@@ -45,6 +50,7 @@ const isActive = (href: string) => (href === "/" ? path === "/" : path === href 
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex, follow" />}
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
@@ -100,6 +106,10 @@ const isActive = (href: string) => (href === "/" ? path === "/" : path === href 
           <a href={h} style="color:var(--muted); text-decoration:none; font-size:.9rem;">{l}</a>
         ))}
       </nav>
+      <div style="display:flex; gap:1rem 1.4rem; flex-wrap:wrap; justify-content:space-between; align-items:center; margin-bottom:1.2rem;">
+        <SocialRow />
+        <span class="mono">one handle · @slicedlabs everywhere</span>
+      </div>
       <div style="display:flex; gap:1rem; flex-wrap:wrap; justify-content:space-between; align-items:center;">
         <span class="mono">own your slice · build it in public · show the math</span>
         <span class="mono">© 2026 SlicedLabs</span>

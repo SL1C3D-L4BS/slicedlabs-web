@@ -62,6 +62,17 @@
   --font-mono:    "JetBrains Mono", ui-monospace, monospace; /* metadata / labels */
 
   --maxw: 72rem;
+
+  /* fluid type scale — perfect-fifth feel, clamped (min → max across viewport).
+   * Tokenized so new surfaces size on ONE scale; /style renders the specimen. */
+  --step--1: clamp(0.80rem, 0.77rem + 0.15vw, 0.89rem);
+  --step-0:  clamp(1.00rem, 0.96rem + 0.20vw, 1.13rem);
+  --step-1:  clamp(1.20rem, 1.10rem + 0.45vw, 1.50rem);
+  --step-2:  clamp(1.50rem, 1.32rem + 0.85vw, 2.10rem);
+  --step-3:  clamp(1.90rem, 1.58rem + 1.55vw, 2.95rem);
+  --step-4:  clamp(2.40rem, 1.85rem + 2.65vw, 4.15rem);
+  --step-5:  clamp(3.00rem, 2.00rem + 5.00vw, 6.00rem);
+
   color-scheme: dark;
 }
 
