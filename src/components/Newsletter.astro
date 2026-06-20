@@ -1,16 +1,16 @@
 ---
 // SlicedLabs · studio · © 2026 SlicedLabs
-// Newsletter capture — SlicedLabs Weekly (the owned list). Posts to beehiiv's public
-// subscribe endpoint with our own (Liquid Retina) styling. Publication ID is public.
-const BEEHIIV_PUB = "pub_fa6993a4-fd60-443d-9ef1-816f77aa3c05";
+// Newsletter capture — SlicedLabs Weekly (the owned list). The native <form> posts
+// same-origin to /api/subscribe (serverless), which calls the beehiiv API with a
+// server-only key — so nothing secret reaches the client. Works without JS.
 ---
-<section class="glass glass-focal island" aria-labelledby="nl" style="text-align:center; margin-block: 2rem;">
+<section id="newsletter" class="glass glass-focal island" aria-labelledby="nl" style="text-align:center; margin-block: 2rem;">
   <p class="mono">the owned list — the algorithm can't throttle it</p>
   <h2 id="nl" style="font-size: clamp(1.6rem, 4vw, 2.4rem); margin:.3rem 0 .6rem;">SlicedLabs Weekly</h2>
   <p style="color:var(--muted); max-width:40rem; margin:0 auto 1.2rem;">
     The real numbers, the real build — the budget, the permit filed, the first sale. Receipts, weekly.
   </p>
-  <form action={`https://embeds.beehiiv.com/${BEEHIIV_PUB}/subscribe`} method="post" target="_blank" rel="noopener"
+  <form action="/api/subscribe" method="post"
         style="display:flex; gap:.6rem; flex-wrap:wrap; justify-content:center;">
     <label class="skip" for="email">Email address</label>
     <input id="email" name="email" type="email" required placeholder="you@email.com" autocomplete="email"
@@ -18,4 +18,25 @@ const BEEHIIV_PUB = "pub_fa6993a4-fd60-443d-9ef1-816f77aa3c05";
     <input type="hidden" name="utm_source" value="slicedlabs.com" />
     <button class="btn" type="submit">Get the receipts →</button>
   </form>
+  <p id="nl-msg" role="status" aria-live="polite" class="mono" hidden style="margin:.9rem 0 0;"></p>
 </section>
+
+<script is:inline>
+  // Reveal the result after the server redirect (?subscribe=success|invalid|error). Near-zero JS.
+  (function () {
+    var p = new URLSearchParams(location.search).get("subscribe");
+    if (!p) return;
+    var el = document.getElementById("nl-msg");
+    if (!el) return;
+    var msg = {
+      success: "You're in — check your inbox to confirm. The receipts are coming.",
+      invalid: "That email didn't look right. Mind trying again?",
+      error: "Something hiccupped on our end. Try again in a moment.",
+    }[p];
+    if (!msg) return;
+    el.textContent = msg;
+    el.style.color = p === "success" ? "var(--ink)" : "var(--muted)";
+    el.hidden = false;
+    history.replaceState({}, "", location.pathname + location.hash);
+  })();
+</script>
