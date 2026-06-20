@@ -1,0 +1,80 @@
+---
+// SlicedLabs · studio · © 2026 SlicedLabs — Shop
+import Base from "../layouts/Base.astro";
+import Newsletter from "../components/Newsletter.astro";
+const food = [
+  { k: "The chaos menu", d: "The truck's rotating drop — preview the concept, order when we're live.", tag: "phase 1" },
+  { k: "Pre-orders", d: "Reserve a plate from the first service. Opens with the truck.", tag: "soon" },
+];
+const merch = [
+  { k: "Tees", d: "The mark and the spectrum. Wear the build.", tag: "dropping soon" },
+  { k: "Caps", d: "Low-key, on-brand, sharp.", tag: "dropping soon" },
+  { k: "Stickers", d: "Slap the chevron everywhere.", tag: "dropping soon" },
+];
+const playbooks = [
+  { k: "The Atomise Machine", d: "Film once, publish six. The repurposing system that feeds every surface." },
+  { k: "Own The List", d: "Build the audience the algorithm can't throttle." },
+  { k: "Sell Without Sleaze", d: "Offers that convert because they're true, not pushy." },
+  { k: "Buy Back Your Time", d: "The delegation + systems stack that returns your hours." },
+];
+---
+<Base title="Shop — SlicedLabs" description="Food, merch, and the playbooks. Most of it's coming — here's what, and how to be first.">
+  <section class="wrap" style="padding-block:clamp(2.5rem,7vw,4rem);">
+    <p class="mono" data-reveal>everything we make</p>
+    <h1 data-reveal style="--i:1; font-size:clamp(2.4rem,8vw,4.6rem);"><span class="spectrum-text">Shop</span></h1>
+    <hr class="blade" data-reveal style="--i:2; max-width:14rem; margin:1.4rem 0 0;" />
+    <p data-reveal style="--i:3; font-size:clamp(1.1rem,2.4vw,1.4rem); color:var(--muted); max-width:46rem; margin-top:1.4rem;">
+      The food, the merch, and the playbooks we run. Most of it isn't live yet — that's the honest part. Here's what's coming, and how to be first in line.
+    </p>
+  </section>
+
+  <section class="wrap" aria-labelledby="food" style="padding-block:1.5rem;">
+    <div data-reveal style="display:flex; align-items:baseline; gap:.8rem; margin-bottom:1rem; flex-wrap:wrap;">
+      <h2 id="food" style="font-size:clamp(1.4rem,4vw,2rem); margin:0;">Food</h2>
+      <span class="tag">from the truck</span>
+    </div>
+    <div class="bento">
+      {food.map((f, i) => (
+        <article class="glass island col-3" data-reveal style={`--i:${i}`}>
+          <span class="tag">{f.tag}</span>
+          <h3 style="font-size:1.3rem; margin:.6rem 0 .3rem;"><span class="spectrum-text">{f.k}</span></h3>
+          <p style="color:var(--muted); margin:0;">{f.d}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section class="wrap" aria-labelledby="merch" style="padding-block:1.5rem;">
+    <div data-reveal style="display:flex; align-items:baseline; gap:.8rem; margin-bottom:1rem; flex-wrap:wrap;">
+      <h2 id="merch" style="font-size:clamp(1.4rem,4vw,2rem); margin:0;">Merch</h2>
+      <span class="tag">wear the build</span>
+    </div>
+    <div class="bento">
+      {merch.map((m, i) => (
+        <article class="glass island col-2" data-reveal style={`--i:${i}`}>
+          <span class="tag">{m.tag}</span>
+          <h3 style="font-size:1.25rem; margin:.6rem 0 .3rem;">{m.k}</h3>
+          <p style="color:var(--muted); margin:0;">{m.d}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section class="wrap" aria-labelledby="play" style="padding-block:1.5rem;">
+    <div data-reveal style="display:flex; align-items:baseline; gap:.8rem; margin-bottom:.3rem; flex-wrap:wrap;">
+      <h2 id="play" style="font-size:clamp(1.4rem,4vw,2rem); margin:0;">The Playbooks</h2>
+      <span class="tag">coming</span>
+    </div>
+    <p data-reveal style="color:var(--muted); max-width:42rem; margin:0 0 1.4rem;">The systems we run the business on — packaged once they've earned it on camera. Not theory; the actual machine.</p>
+    <div class="bento">
+      {playbooks.map((p, i) => (
+        <article class="glass island col-3" data-reveal style={`--i:${i}`}>
+          <h3 style="font-size:1.2rem; margin:0 0 .3rem;"><span class="spectrum-text">{p.k}</span></h3>
+          <p style="color:var(--muted); margin:0;">{p.d}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <div class="wrap"><Newsletter /></div>
+</Base>
