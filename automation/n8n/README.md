@@ -4,19 +4,25 @@ Self-hosted n8n that glues the lead engine together: website/beehiiv leads → H
 and **Apollo/Clay** outbound prospecting → HubSpot → your alerts. Loopback-only by
 default (sovereign — nothing public until you choose).
 
-## Quick start
+## You already run n8n (use it)
+n8n lives in your **ai-stack** as the `ai-n8n` container (Mem0 + Langfuse + Phoenix
++ n8n; defined in `~/.dotfiles/podman-compose/ai-stack.yaml`). It's off by default
+(lean login). Start it on YOUR machine (not from a sandboxed shell — the bridge
+network can't be created there):
 ```bash
-cd automation/n8n
-cp .env.example .env
-openssl rand -hex 24            # paste into N8N_ENCRYPTION_KEY in .env
-podman compose up -d            # or: docker compose up -d
-# open http://localhost:5678  → create your owner account
+systemctl --user start ai-stack        # brings up the AI mesh incl. n8n
+# open http://localhost:5678  → your n8n
 ```
+The two workflows are **already copied** into the n8n workflows mount
+(`~/.config/n8n/workflows/`), so they're ready to import.
 
 ## Import the workflows
-In n8n: **Workflows → ⋯ → Import from File** → pick each file in `workflows/`:
+In n8n: **Workflows → ⋯ → Import from File** → pick each from `~/.config/n8n/workflows/`:
 - **01-lead-to-hubspot** — inbound: a lead → HubSpot contact + Discord ping.
 - **02-apollo-prospect-to-hubspot** — outbound: Apollo finds Spokane prospects → HubSpot company + alert.
+
+> The `compose.yml` here is a **standalone fallback** only — for running n8n off the
+> ai mesh. Your ai-stack n8n is the primary instance.
 
 ## Credentials (set in the n8n UI, never in the repo)
 - **HubSpot** — create a HubSpot *private app* token (Settings → Integrations →

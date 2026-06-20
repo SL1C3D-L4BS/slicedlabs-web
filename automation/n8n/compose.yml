@@ -1,10 +1,14 @@
 # SlicedLabs · automation · © 2026 SlicedLabs
-# Self-hosted n8n — the automation spine. Loopback-only by default (sovereign:
-# nothing public until you add a tunnel/reverse-proxy). Run with podman or docker
-# compose. Data persists in the named volume. Secrets come from .env (gitignored).
+# STANDALONE FALLBACK ONLY. You ALREADY run n8n in your ai-stack as `ai-n8n`
+# (~/.dotfiles/podman-compose/ai-stack.yaml — Mem0 + Langfuse + Phoenix + n8n,
+# data volume podman-compose_n8ndata, workflows mount ~/.config/n8n/workflows).
+# PRIMARY PATH: start that — `systemctl --user start ai-stack` — and import the
+# workflows (already copied into ~/.config/n8n/workflows). Use THIS compose only
+# if you ever want n8n standalone, off the ai mesh. Image pinned to the local
+# docker.io copy (docker.n8n.io rate-limits unauthenticated pulls).
 services:
   n8n:
-    image: docker.n8n.io/n8nio/n8n:latest
+    image: docker.io/n8nio/n8n:latest
     container_name: sl-n8n
     restart: unless-stopped
     ports:
