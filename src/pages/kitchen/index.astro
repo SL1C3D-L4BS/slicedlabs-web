@@ -8,7 +8,7 @@ const recipes = (await getCollection("recipes")).sort((a, b) => +b.data.date - +
 <Base title="The Kitchen — SlicedLabs" description="A free recipe, every month. The chaos menu, open-sourced — cook the build at home.">
   <section class="wrap" style="padding-block:clamp(2.5rem,7vw,4rem);">
     <p class="mono" data-reveal>the food blog · free monthly recipe</p>
-    <h1 data-reveal style="--i:1; font-size:clamp(2.2rem,7vw,4rem);"><span class="spectrum-text">The Kitchen</span></h1>
+    <h1 data-reveal style="--i:1; font-size:clamp(2.2rem,7vw,4rem);"><span class="blend-text">The Kitchen</span></h1>
     <hr class="blade" data-reveal style="--i:2; max-width:16rem; margin:1.4rem 0 0;" />
     <p data-reveal style="--i:3; font-size:clamp(1.1rem,2.4vw,1.4rem); color:var(--muted); max-width:46rem; margin-top:1.4rem;">
       One real recipe from the chaos menu — free, every month. Cook the build at home, then get the next drop in your inbox.
@@ -21,7 +21,7 @@ const recipes = (await getCollection("recipes")).sort((a, b) => +b.data.date - +
       {recipes.map((r, i) => (
         <a href={`/kitchen/${r.id}`} class="glass island col-3" data-reveal style={`--i:${i}; text-decoration:none; display:block;`}>
           <p class="mono">{r.data.date.toISOString().slice(0, 7)}{r.data.time ? " · " + r.data.time : ""}</p>
-          <h2 style="font-size:1.4rem; margin:.3rem 0 .4rem;"><span class="spectrum-text">{r.data.title}</span></h2>
+          <h2 style="font-size:1.4rem; margin:.3rem 0 .4rem;"><span class="blend-text">{r.data.title}</span></h2>
           <p style="color:var(--muted); margin:0;">{r.data.summary}</p>
         </a>
       ))}

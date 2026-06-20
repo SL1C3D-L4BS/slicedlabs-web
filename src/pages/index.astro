@@ -27,7 +27,7 @@ const scores = [
     <p class="mono" data-reveal style="--i:0; margin-bottom:1.2rem;">food · media · marketing — built in public</p>
     <img src="/slicedlabs-mark.svg" alt="SlicedLabs" width="92" height="92" data-reveal
       style="--i:1; display:block; margin:0 auto 1.3rem; filter:drop-shadow(0 10px 34px color-mix(in oklab, var(--mark) 32%, transparent));" />
-    <h1 class="kinetic" data-reveal style="--i:2;"><span class="spectrum-text">own your slice.</span></h1>
+    <h1 class="kinetic" data-reveal style="--i:2;"><span class="blend-text">own your slice.</span></h1>
     <p data-reveal style="--i:3; font-size:clamp(1.1rem,2.4vw,1.5rem); color:var(--muted); max-width:46rem; margin:1.4rem auto 0;">
       We're building a real food empire from the ground up — on camera, with the actual numbers shown.
       Watch the climb, and learn to build your own.
@@ -45,7 +45,7 @@ const scores = [
       {scores.map((s, i) => (
         <article class:list={["glass", "island", "col-2", s.ultra && "glass-ultra"]} data-reveal style={`--i:${i}; text-align:center;`}>
           <span class="mono">{s.k}</span>
-          <div class="count spectrum-text" data-count-to={s.v} data-count-prefix={s.pre} data-count-suffix={s.suf}
+          <div class="count blend-text" data-count-to={s.v} data-count-prefix={s.pre} data-count-suffix={s.suf}
             style="font-family:var(--font-display); font-weight:800; font-size:clamp(2.4rem,6vw,3.4rem); margin:.35rem 0 .2rem; line-height:1;">{s.pre}{s.v}{s.suf}</div>
           <span class="mono">{s.sub}</span>
         </article>
@@ -60,7 +60,7 @@ const scores = [
       {pillars.map((p, i) => (
         <article class="glass island col-2" data-reveal style={`--i:${i}`}>
           <span class="tag">{p.tag}</span>
-          <h3 style="font-size:1.9rem; margin:.8rem 0 .1rem;"><span class="spectrum-text">{p.k}</span></h3>
+          <h3 style="font-size:1.9rem; margin:.8rem 0 .1rem;"><span class="blend-text">{p.k}</span></h3>
           <p class="mono" style="margin:0 0 .6rem;">{p.t}</p>
           <p style="color:var(--muted); margin:0;">{p.d}</p>
         </article>
@@ -88,7 +88,7 @@ const scores = [
     <ol style="list-style:none; padding:0; margin:0; display:flex; gap:.6rem; flex-wrap:wrap;">
       {climb.map((c, i) => (
         <li class="glass" data-reveal style={`--i:${i}; padding:.7rem 1rem; display:flex; gap:.6rem; align-items:center;`}>
-          <span class="spectrum-text" style="font-family:var(--font-display); font-weight:800;">{String(i).padStart(2, "0")}</span>
+          <span class="blend-text" style="font-family:var(--font-display); font-weight:800;">{String(i).padStart(2, "0")}</span>
           <span>{c}</span>
         </li>
       ))}

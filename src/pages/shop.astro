@@ -8,7 +8,7 @@ const food = [
   { k: "Pre-orders", d: "Reserve a plate from the first service. Opens with the truck.", tag: "soon" },
 ];
 const merch = [
-  { k: "Tees", d: "The mark and the spectrum. Wear the build.", tag: "dropping soon" },
+  { k: "Tees", d: "The mark, the colors, the build.", tag: "dropping soon" },
   { k: "Caps", d: "Low-key, on-brand, sharp.", tag: "dropping soon" },
   { k: "Stickers", d: "Slap the chevron everywhere.", tag: "dropping soon" },
 ];
@@ -22,7 +22,7 @@ const playbooks = [
 <Base title="Shop — SlicedLabs" description="Food, merch, and the playbooks. Most of it's coming — here's what, and how to be first.">
   <section class="wrap" style="padding-block:clamp(2.5rem,7vw,4rem);">
     <p class="mono" data-reveal>everything we make</p>
-    <h1 data-reveal style="--i:1; font-size:clamp(2.4rem,8vw,4.6rem);"><span class="spectrum-text">Shop</span></h1>
+    <h1 data-reveal style="--i:1; font-size:clamp(2.4rem,8vw,4.6rem);"><span class="blend-text">Shop</span></h1>
     <hr class="blade" data-reveal style="--i:2; max-width:14rem; margin:1.4rem 0 0;" />
     <p data-reveal style="--i:3; font-size:clamp(1.1rem,2.4vw,1.4rem); color:var(--muted); max-width:46rem; margin-top:1.4rem;">
       The food, the merch, and the playbooks we run. Most of it isn't live yet — that's the honest part. Here's what's coming, and how to be first in line.
@@ -38,7 +38,7 @@ const playbooks = [
       {food.map((f, i) => (
         <article class="glass island col-3" data-reveal style={`--i:${i}`}>
           <span class="tag">{f.tag}</span>
-          <h3 style="font-size:1.3rem; margin:.6rem 0 .3rem;"><span class="spectrum-text">{f.k}</span></h3>
+          <h3 style="font-size:1.3rem; margin:.6rem 0 .3rem;"><span class="blend-text">{f.k}</span></h3>
           <p style="color:var(--muted); margin:0;">{f.d}</p>
         </article>
       ))}
@@ -72,7 +72,7 @@ const playbooks = [
     <div class="bento">
       {playbooks.map((p, i) => (
         <article class="glass island col-3" data-reveal style={`--i:${i}`}>
-          <h3 style="font-size:1.2rem; margin:0 0 .3rem;"><span class="spectrum-text">{p.k}</span></h3>
+          <h3 style="font-size:1.2rem; margin:0 0 .3rem;"><span class="blend-text">{p.k}</span></h3>
           <p style="color:var(--muted); margin:0;">{p.d}</p>
         </article>
       ))}

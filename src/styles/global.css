@@ -5,7 +5,7 @@
  * Edit the tokens; the desktop AND this site re-skin.
  *
  * 2026 upgrades layered in here:
- *   · Display-P3 wide-gamut spectrum (the OKLCH anchors, on real Retina/P3 glass)
+ *   · Display-P3 wide-gamut blend (the OKLCH anchors, on real Retina/P3 glass)
  *   · Liquid Glass material — base / focal / ultra (static specular + chromatic
  *     rim + squircle corners — NO animated shimmer; that is the law)
  *   · entrance choreography ([data-reveal] · .blade · .count) — plays ONCE,
@@ -23,14 +23,14 @@
   --stroke:    rgba(255, 255, 255, 0.08);
   --rim:       rgba(255, 255, 255, 0.18);
 
-  /* the signature spectrum — the OFFICIAL brand palette from the asset-pack
+  /* the signature blend — the OFFICIAL brand palette from the asset-pack
    * brand sheet (the mark's own gradients). Cohesive with the logo. sRGB base. */
   --coral:  #D9583C;      /* warm top */
   --orange: #CB6820;      /* warm base */
   --teal:   #2F9B80;      /* cool top */
   --blue:   #308BDB;      /* cool base */
   --mark:   #38B6FF;      /* the mark's bright blue accent (brand.mark_blue) */
-  --spectrum: linear-gradient(100deg, var(--coral), var(--orange) 38%, var(--teal) 68%, var(--blue));
+  --blend: linear-gradient(100deg, var(--coral), var(--orange) 38%, var(--teal) 68%, var(--blue));
 
   /* status (status ≠ identity) */
   --ok:     #C7D42B;
@@ -78,7 +78,7 @@
   color-scheme: light;
 }
 
-/* ── Display-P3 WIDE GAMUT (the "4k colors" — richer spectrum on Retina/P3) ─
+/* ── Display-P3 WIDE GAMUT (the "4k colors" — richer blend on Retina/P3) ─
  * sRGB above is the fallback; these override ONLY where the display can show
  * them. The OKLCH anchors live in tokens.toml; baked to display-p3 here. */
 @supports (color: color(display-p3 1 1 1)) {
@@ -123,7 +123,7 @@ body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   overflow-x: hidden;
-  /* subtle living field — faint spectrum aura, FLAT + still (no-shimmer law) */
+  /* subtle living field — faint blend aura, FLAT + still (no-shimmer law) */
   background-image:
     radial-gradient(60rem 42rem at 82% -12%, color-mix(in oklab, var(--blue) 16%, transparent), transparent 60%),
     radial-gradient(52rem 38rem at -12% 14%, color-mix(in oklab, var(--coral) 11%, transparent), transparent 60%),
@@ -137,19 +137,19 @@ a { color: inherit; text-decoration-color: color-mix(in oklab, var(--mark) 60%, 
 .mono { font-family: var(--font-mono); font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
 .wrap { max-width: var(--maxw); margin-inline: auto; padding-inline: 1.25rem; }
 
-/* ── the mark · spectrum ────────────────────────────────────────────────── */
-.spectrum-text {
-  background: var(--spectrum);
+/* ── the mark · blend ────────────────────────────────────────────────── */
+.blend-text {
+  background: var(--blend);
   -webkit-background-clip: text; background-clip: text;
   color: transparent;
 }
-.spectrum-rule { height: 3px; border: 0; border-radius: 3px; background: var(--spectrum); }
+.blend-rule { height: 3px; border: 0; border-radius: 3px; background: var(--blend); }
 .kinetic { font-size: clamp(2.8rem, 9vw, 7rem); line-height: .96; }  /* oversized hero — words are the design */
 
 /* THE BLADE — the signature element that "slices" the page on reveal. A static
- * spectrum bar that draws across once (scaleX 0→1); no perpetual motion. */
+ * blend bar that draws across once (scaleX 0→1); no perpetual motion. */
 .blade {
-  height: 4px; border: 0; border-radius: 999px; background: var(--spectrum);
+  height: 4px; border: 0; border-radius: 999px; background: var(--blend);
   transform: scaleX(0); transform-origin: left center;
   transition: transform 900ms var(--ease);
   box-shadow: 0 0 24px color-mix(in oklab, var(--teal) 28%, transparent);
@@ -215,7 +215,7 @@ a { color: inherit; text-decoration-color: color-mix(in oklab, var(--mark) 60%, 
 .btn {
   display: inline-flex; align-items: center; gap: .5rem;
   padding: .8rem 1.3rem; border-radius: 999px; font-weight: 600;
-  background: var(--spectrum); color: #0B0B0F; border: 0; cursor: pointer;
+  background: var(--blend); color: #0B0B0F; border: 0; cursor: pointer;
   transition: transform var(--t-quick) var(--ease), filter var(--t-quick);
 }
 .btn:hover { transform: translateY(-1px); filter: brightness(1.06); }
@@ -323,7 +323,7 @@ dialog.gate::backdrop { background: rgba(0,0,0,.6); backdrop-filter: blur(4px); 
 .prose a { color: var(--mark); text-decoration: underline; text-underline-offset: 3px; }
 .prose ul, .prose ol { padding-left: 1.3rem; }
 .prose li + li { margin-top: .4rem; }
-.prose blockquote { margin: 1.4rem 0; padding: .3rem 0 .3rem 1.1rem; border-left: 3px solid; border-image: var(--spectrum) 1; color: var(--muted); font-style: italic; }
+.prose blockquote { margin: 1.4rem 0; padding: .3rem 0 .3rem 1.1rem; border-left: 3px solid; border-image: var(--blend) 1; color: var(--muted); font-style: italic; }
 .prose code { font-family: var(--font-mono); font-size: .9em; background: var(--bg-alt); padding: .12em .4em; border-radius: 6px; }
 .prose pre { background: var(--bg-alt); padding: 1rem 1.1rem; border-radius: var(--radius); overflow-x: auto; border: 1px solid var(--stroke); }
 .prose pre code { background: none; padding: 0; }
