@@ -1,0 +1,94 @@
+{
+  "name": "SL · Apollo Prospect → HubSpot",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Outbound: Apollo finds Spokane prospects → HubSpot\nFinds businesses to cater for / partner with (breweries, event venues, offices near Spokane), enriches them, and drops each into HubSpot as a Company + Deal in the **Partnerships** pipeline, then alerts you.\n\n**Set in n8n:** an `APOLLO_API_KEY` credential (header `x-api-key`, from `pass show sl/apollo-api-key`), HubSpot creds, and `$vars.DISCORD_LEAD_WEBHOOK`.\n\nTune the search body (titles, locations, keywords). Run manually first; schedule once it's dialed in.",
+        "height": 260,
+        "width": 380
+      },
+      "id": "note2",
+      "name": "How this works",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [100, 60]
+    },
+    {
+      "parameters": {},
+      "id": "manual2",
+      "name": "Run (manual)",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [200, 380]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apollo.io/api/v1/mixed_companies/search",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [ { "name": "x-api-key", "value": "={{ $vars.APOLLO_API_KEY }}" }, { "name": "Content-Type", "value": "application/json" } ] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"organization_locations\": [\"Spokane, Washington\"],\n  \"q_organization_keyword_tags\": [\"brewery\", \"events\", \"catering\", \"venue\"],\n  \"page\": 1,\n  \"per_page\": 10\n}",
+        "options": {}
+      },
+      "id": "apollo2",
+      "name": "Apollo · Company Search",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 380]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "organizations",
+        "options": {}
+      },
+      "id": "split2",
+      "name": "Split Companies",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [700, 380]
+    },
+    {
+      "parameters": {
+        "resource": "company",
+        "operation": "create",
+        "name": "={{ $json.name }}",
+        "additionalFields": {
+          "domain": "={{ $json.primary_domain || $json.website_url }}",
+          "city": "={{ $json.city }}",
+          "stateRegion": "={{ $json.state }}",
+          "description": "Apollo prospect — partnerships/catering outbound."
+        }
+      },
+      "id": "hscompany2",
+      "name": "HubSpot · Create Company",
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2,
+      "position": [960, 380]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $vars.DISCORD_LEAD_WEBHOOK }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ embeds: [ { title: 'New Apollo prospect → HubSpot', description: '**' + $json.name + '**\\n' + ($json.primary_domain || '') + ' · ' + ($json.city || 'Spokane'), color: 13986876 } ] }) }}",
+        "options": {}
+      },
+      "id": "discord2",
+      "name": "Discord · Notify",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1220, 380]
+    }
+  ],
+  "connections": {
+    "Run (manual)": { "main": [[{ "node": "Apollo · Company Search", "type": "main", "index": 0 }]] },
+    "Apollo · Company Search": { "main": [[{ "node": "Split Companies", "type": "main", "index": 0 }]] },
+    "Split Companies": { "main": [[{ "node": "HubSpot · Create Company", "type": "main", "index": 0 }]] },
+    "HubSpot · Create Company": { "main": [[{ "node": "Discord · Notify", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "active": false
+}

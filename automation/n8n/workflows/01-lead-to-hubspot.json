@@ -1,0 +1,67 @@
+{
+  "name": "SL · Lead → HubSpot + Alert",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Inbound: a website/beehiiv lead → HubSpot + alert\nPOST a JSON lead to this webhook (wire it as a second sink in /api/lead, or from a beehiiv automation webhook). Fields: email, name, source, message.\n\n**Credentials to set in n8n UI:** HubSpot (private-app token), and the Discord webhook URL in the HTTP node.",
+        "height": 220,
+        "width": 360
+      },
+      "id": "note1",
+      "name": "How this works",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [120, 80]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "sl-lead",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "webhook1",
+      "name": "Lead Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 340]
+    },
+    {
+      "parameters": {
+        "resource": "contact",
+        "operation": "upsert",
+        "email": "={{ $json.body.email }}",
+        "additionalFields": {
+          "firstName": "={{ ($json.body.name || '').split(' ')[0] }}",
+          "lastName": "={{ ($json.body.name || '').split(' ').slice(1).join(' ') }}"
+        }
+      },
+      "id": "hubspot1",
+      "name": "HubSpot · Upsert Contact",
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2,
+      "position": [520, 340]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $vars.DISCORD_LEAD_WEBHOOK }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ embeds: [ { title: 'New lead → HubSpot', description: '**' + ($json.body.source || 'lead') + '**\\n' + $json.body.email, color: 3066993 } ] }) }}",
+        "options": {}
+      },
+      "id": "discord1",
+      "name": "Discord · Notify",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [800, 340]
+    }
+  ],
+  "connections": {
+    "Lead Webhook": { "main": [[{ "node": "HubSpot · Upsert Contact", "type": "main", "index": 0 }]] },
+    "HubSpot · Upsert Contact": { "main": [[{ "node": "Discord · Notify", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "active": false
+}

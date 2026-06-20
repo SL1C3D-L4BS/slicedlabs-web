@@ -1,0 +1,28 @@
+# SlicedLabs · automation · © 2026 SlicedLabs
+# Self-hosted n8n — the automation spine. Loopback-only by default (sovereign:
+# nothing public until you add a tunnel/reverse-proxy). Run with podman or docker
+# compose. Data persists in the named volume. Secrets come from .env (gitignored).
+services:
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    container_name: sl-n8n
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5678:5678"        # loopback only — reach it at http://localhost:5678
+    environment:
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - WEBHOOK_URL=${WEBHOOK_URL:-http://localhost:5678/}
+      - GENERIC_TIMEZONE=America/Los_Angeles
+      - TZ=America/Los_Angeles
+      - N8N_DIAGNOSTICS_ENABLED=false
+      - N8N_PERSONALIZATION_ENABLED=false
+      - N8N_RUNNERS_ENABLED=true
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
+      # Encryption key pins your saved credentials across restarts (set in .env).
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+    volumes:
+      - n8n_data:/home/node/.n8n
+volumes:
+  n8n_data:
