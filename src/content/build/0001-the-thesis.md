@@ -11,7 +11,7 @@ Here's the thesis. The "own your slice / build in public" space is drowning in p
 
 That's not a content strategy. It's the moat. Almost nobody shows the fundamentals, because most of them don't have any. Radical transparency about how the thing actually works *is* the deep value.
 
-**Trust math, not promises.**
+**We don't pitch. We prove.**
 
 The plan is boring on purpose: truck → first lot → property + an owned commissary → the homestead → a skills center. We don't start the next thing until the current one throws off cash. We buy every commodity tool and build only our edge — the content and the audience nobody can rent us.
 

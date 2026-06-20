@@ -6,7 +6,7 @@ import { MARK_PATH, OG_PATH } from "../lib/brand";
 interface Props { title?: string; description?: string; temp?: "dark" | "warm"; }
 const {
   title = "SlicedLabs — own your slice",
-  description = "A food · media · marketing company building a real food empire in public. Trust math, not promises.",
+  description = "A food · media · marketing company building a real food empire in public. We don't pitch. We prove.",
   temp = "dark",
 } = Astro.props;
 const ogUrl = Astro.site ? new URL(OG_PATH, Astro.site).href : OG_PATH;
