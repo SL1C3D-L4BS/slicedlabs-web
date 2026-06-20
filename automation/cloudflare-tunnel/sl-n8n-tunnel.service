@@ -1,0 +1,15 @@
+# Install to ~/.config/systemd/user/sl-n8n-tunnel.service, then:
+#   systemctl --user daemon-reload && systemctl --user enable --now sl-n8n-tunnel
+[Unit]
+Description=SlicedLabs · Cloudflare Tunnel for n8n (public MCP URL)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/cloudflared tunnel run sl-n8n
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

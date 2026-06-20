@@ -1,0 +1,8 @@
+# ~/.cloudflared/config.yml — named tunnel for n8n. Fill in tunnel id + hostname.
+tunnel: REPLACE_WITH_TUNNEL_ID
+credentials-file: /home/doodlebob/.cloudflared/REPLACE_WITH_TUNNEL_ID.json
+
+ingress:
+  - hostname: n8n.slicedlabs.io        # the DNS route you created
+    service: http://localhost:5678
+  - service: http_status:404           # catch-all

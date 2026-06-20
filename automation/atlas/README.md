@@ -56,6 +56,22 @@ It's the Marketing pillar, automated honestly: own the outreach, keep it human, 
 the work. The warm leads become catering gigs and partnerships — the truck's
 between-service revenue — and every interaction is on-brand: *we don't pitch, we prove.*
 
-> Start Atlas at **Phase B** once n8n is running and a few Apollo prospects are in
-> HubSpot. The agent is a small, well-scoped service — I can scaffold it (Agent SDK +
-> the tool wiring) when you're ready.
+## Phase B — BUILT (`atlas.py`)
+The research → score → draft agent is here and syntax-verified. It reads a prospect's
+site, asks Claude (Opus 4.8) for a brief + fit score + a personal, value-first draft,
+and (with `--notify`) posts it to Discord for your one-tap approval.
+
+```bash
+# one prospect:
+ANTHROPIC_API_KEY=sk-ant-… ./atlas.py --name "No-Li Brewhouse" --domain nolibrewhouse.com --notify
+# or store the key once (sovereign):  pass insert -m sl/anthropic-api-key
+```
+
+**Needs:** a real Anthropic API key (`sk-ant-…`) in `pass show sl/anthropic-api-key`
+or `ANTHROPIC_API_KEY`. (The Claude Code session token is NOT a usable API key — make
+one at console.anthropic.com.) For `--notify`, set `DISCORD_LEAD_WEBHOOK`.
+
+**Wire it into n8n (Phase C):** have workflow 02 (Apollo → HubSpot) call `atlas.py`
+per new company (Execute Command node, or an HTTP call to a tiny Atlas service), so
+every prospect auto-gets a researched draft in Discord. Sequencing + reply-detection
+is the rest of Phase C.
