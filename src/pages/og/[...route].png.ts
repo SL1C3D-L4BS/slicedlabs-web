@@ -26,6 +26,7 @@ const STATIC: Pg[] = [
   { route: "about", title: "We don't pitch. We prove.", desc: "The SlicedLabs manifesto." },
   { route: "numbers", title: "The Numbers", desc: "The real market data behind a PNW food + media + marketing company." },
   { route: "build", title: "The Build", desc: "The build-in-public journal — real numbers, real receipts." },
+  { route: "style", title: "The System", desc: "The SlicedLabs design system, rendered from the real tokens." },
 ];
 
 export async function getStaticPaths() {
