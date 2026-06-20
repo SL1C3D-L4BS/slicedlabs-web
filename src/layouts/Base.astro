@@ -1,6 +1,7 @@
 ---
 // SlicedLabs · studio · © 2026 SlicedLabs
 import "../styles/global.css";
+import Analytics from "@vercel/analytics/astro";
 interface Props { title?: string; description?: string; temp?: "dark" | "warm"; }
 const {
   title = "SlicedLabs — own your slice",
@@ -50,6 +51,8 @@ const nav = [
       <span class="mono">own your slice · build it in public · show the math</span>
       <span class="mono">© 2026 SlicedLabs</span>
     </footer>
+
+    <Analytics />
 
     <script is:inline>
       // dark ↔ warm temperature (the two-temperature system). Persists; respects no-shimmer.
