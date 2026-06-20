@@ -51,12 +51,12 @@ Reply and tell me what you're building. I read every one.
 ```
 Here they are — no catch, like we said.
 
-  • The $85k Truck Budget — the real pro-forma: revenue, COGS, break-even.
-    → [LINK TO ASSET]
+  • The $85k Truck Budget — the real line-item Spokane startup budget.
+    → https://slicedlabs-web.vercel.app/free/the-85k-truck-budget
   • The Atomise Machine — film once, publish six. The 1-page system.
-    → [LINK TO ASSET]
+    → https://slicedlabs-web.vercel.app/free/the-atomise-machine
   • The Build Receipts — the running numbers, updated as we climb.
-    → [LINK TO ASSET]
+    → https://slicedlabs-web.vercel.app/free/the-build-receipts
 
 That's the whole point of SlicedLabs: we show the machine instead of
 selling the dream. You'll get the weekly receipts from here on — and if
@@ -67,9 +67,8 @@ Go build your slice.
 — The SlicedLabs kitchen
 ```
 
-> **Action item:** replace each `[LINK TO ASSET]` once the files exist (host
-> them in beehiiv or a Drive public link). The capture is already tagging
-> `vault`; this is the only piece waiting on the asset files.
+> **The drops are LIVE as pages** (`/free/<slug>`), so this automation is ready to
+> go — no waiting on files. Swap the domain to `slicedlabs.io` when it's live.
 
 ---
 

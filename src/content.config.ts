@@ -24,4 +24,13 @@ const recipes = defineCollection({
   }),
 });
 
-export const collections = { build, recipes };
+const magnets = defineCollection({
+  loader: glob({ pattern: "**/*.md", base: "./src/content/magnets" }),
+  schema: z.object({
+    title: z.string(),
+    summary: z.string(),
+    order: z.number().optional(),
+  }),
+});
+
+export const collections = { build, recipes, magnets };

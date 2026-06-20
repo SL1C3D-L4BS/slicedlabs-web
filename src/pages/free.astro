@@ -3,9 +3,9 @@
 import Base from "../layouts/Base.astro";
 import LeadForm from "../components/LeadForm.astro";
 const drops = [
-  { k: "The $85k Truck Budget", d: "The real truck pro-forma — revenue, COGS, break-even, startup costs. The actual numbers, not a teaser.", tag: "spreadsheet" },
-  { k: "The Atomise Machine", d: "Film once, publish six. Our content-repurposing system as a one-page playbook.", tag: "playbook" },
-  { k: "The Build Receipts", d: "The running numbers so far — budget spent, permits filed, first sales. Updated as the build moves.", tag: "living doc" },
+  { k: "The $85k Truck Budget", d: "A real line-item Spokane startup budget — permits, commissary, the truck, the buffer. The numbers nobody shows.", tag: "the budget", slug: "the-85k-truck-budget" },
+  { k: "The Atomise Machine", d: "Film once, publish six. Our content-repurposing system as a one-page playbook.", tag: "playbook", slug: "the-atomise-machine" },
+  { k: "The Build Receipts", d: "The running numbers — budget spent, permits filed, first sales. Updated as the build moves.", tag: "living doc", slug: "the-build-receipts" },
 ];
 ---
 <Base title="Free Drops — SlicedLabs" description="The real $85k truck budget, the Atomise Machine, and the running build receipts — free. The honest move: show the math.">
@@ -21,11 +21,12 @@ const drops = [
   <section class="wrap" style="padding-block:1rem 2rem;">
     <div class="bento">
       {drops.map((d, i) => (
-        <article class="glass island col-2" data-reveal style={`--i:${i}`}>
+        <a href={`/free/${d.slug}`} class="glass island col-2" data-reveal style={`--i:${i}; text-decoration:none; display:block;`}>
           <span class="tag">{d.tag}</span>
           <h3 style="font-size:1.3rem; margin:.6rem 0 .3rem;"><span class="blend-text">{d.k}</span></h3>
-          <p style="color:var(--muted); margin:0;">{d.d}</p>
-        </article>
+          <p style="color:var(--muted); margin:0 0 .5rem;">{d.d}</p>
+          <span class="mono" style="font-size:.72rem;">read it →</span>
+        </a>
       ))}
     </div>
     <article class="glass glass-ultra island" data-reveal style="text-align:center; margin-top:1.6rem;">
