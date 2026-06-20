@@ -1,0 +1,65 @@
+---
+// SlicedLabs · studio · © 2026 SlicedLabs — The Numbers (the data case)
+import Base from "../layouts/Base.astro";
+const stats = [
+  { v: "$2.8B", k: "US food truck market", sub: "13.2% CAGR 2020–25 · IBISWorld" },
+  { v: "6–9%", k: "food-truck net margin", sub: "vs 1–3% for restaurants · Toast / Harvest" },
+  { v: "64%", k: "value local sourcing", sub: "the #1 2025 trend · Nat'l Restaurant Assoc." },
+  { v: "+32%", k: "YouTube food views YoY", sub: "4th-largest category, Q1 2025 · Pixability" },
+  { v: "99%", k: "top food channels are creators", sub: "1% are brands · Pixability" },
+  { v: "~8% / 3%", k: "email vs social conversion", sub: "owned beats rented · ClickMinded / DMA" },
+];
+const why = [
+  ["Why a truck", "Low startup vs brick-and-mortar, far better margins, and it moves to the crowd. The gold-rush phase is over — 92k trucks, plateauing — so operator quality wins now. That's the opening."],
+  ["Why local", "Local sourcing is the #1 restaurant trend and what Millennials + Gen Z expect. Spokane sits in farm country — Green Bluff, the Palouse, grass-fed ranches, LINC Foods. The supply chain is the story."],
+  ["Why media", "Food is the 4th-biggest thing on YouTube and 99% of the winners are individuals, not brands. A documented build compounds into an audience no competitor can buy."],
+  ["Why the list", "Email converts ~8% vs social's ~3%, with far higher engagement — and we own it outright. No algorithm, no de-platforming. The newsletter is the asset."],
+];
+---
+<Base title="The Numbers — SlicedLabs" description="Why we're building what we're building — the real market data behind a PNW food + media + marketing company. Sourced, with the honest caveats.">
+  <section class="wrap" style="padding-block:clamp(2.5rem,7vw,4rem);">
+    <p class="mono" data-reveal>the data · why we chose this</p>
+    <h1 data-reveal style="--i:1; font-size:clamp(2.2rem,8vw,4.4rem);"><span class="blend-text">The Numbers</span></h1>
+    <hr class="blade" data-reveal style="--i:2; max-width:16rem; margin:1.4rem 0 0;" />
+    <p data-reveal style="--i:3; font-size:clamp(1.1rem,2.4vw,1.4rem); color:var(--muted); max-width:46rem; margin-top:1.4rem;">
+      We don't pitch — so here's the data we're betting on, sourced and unspun. The case for a PNW food truck, a food channel, and an owned list.
+    </p>
+  </section>
+
+  <section class="wrap" aria-label="Key statistics" style="padding-block:1rem 2rem;">
+    <div class="bento">
+      {stats.map((s, i) => (
+        <article class="glass island col-2" data-reveal style={`--i:${i}; text-align:center;`}>
+          <div class="blend-text" style="font-family:var(--font-display); font-weight:800; font-size:clamp(2rem,5vw,2.8rem); line-height:1;">{s.v}</div>
+          <p style="margin:.5rem 0 .2rem; font-weight:600;">{s.k}</p>
+          <span class="mono" style="font-size:.7rem;">{s.sub}</span>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section class="wrap" aria-labelledby="why" style="padding-block:2rem;">
+    <h2 id="why" class="mono" data-reveal style="color:var(--muted); margin-bottom:1rem;">the choices, explained</h2>
+    <div class="bento">
+      {why.map(([h, d], i) => (
+        <article class="glass island col-3" data-reveal style={`--i:${i}`}>
+          <h3 style="font-size:1.3rem; margin:0 0 .4rem;"><span class="blend-text">{h}</span></h3>
+          <p style="color:var(--muted); margin:0;">{d}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section class="wrap" style="padding-block:1rem 2rem;">
+    <article class="glass island" data-reveal style="border-left:3px solid; border-image:var(--blend) 1;">
+      <p class="mono" style="margin:0 0 .5rem;">the honest caveats (because we don't fake it)</p>
+      <p style="color:var(--muted); margin:0;">
+        Spokane isn't on a current "best food city" list — it's a <em>growing</em> scene with James Beard-level talent, and that's enough. The "consumers pay 34% more for local" stat is a stated ceiling; people pay less at the register than they say. And "build-in-public" has no clean headline number — we lead with the proof, not a borrowed stat. Full sourcing lives in the repo's <code>research/</code>.
+      </p>
+    </article>
+  </section>
+
+  <section class="wrap" style="text-align:center; padding-block:1rem 2rem;">
+    <a class="btn" href="/free" data-reveal>Get the receipts →</a>
+  </section>
+</Base>
