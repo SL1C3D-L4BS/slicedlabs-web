@@ -110,7 +110,7 @@ const isActive = (href: string) => (href === "/" ? path === "/" : path === href 
         if (!matchMedia("(hover:hover) and (pointer:fine)").matches) return;
         if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
         var chips = Array.prototype.slice.call(nav.querySelectorAll(".pb-chip"));
-        var AMP = 0.32, SPREAD = 68;
+        var AMP = 0.42, SPREAD = 76;
         nav.addEventListener("pointermove", function (e) {
           for (var i = 0; i < chips.length; i++) {
             var r = chips[i].getBoundingClientRect();

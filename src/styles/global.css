@@ -250,9 +250,10 @@ a { color: inherit; text-decoration-color: color-mix(in oklab, var(--mark) 60%, 
   display:inline-flex; align-items:center; gap:.42rem;
   height:34px; padding:0 .72rem; border-radius:999px;
   text-decoration:none; border:1px solid transparent; background:transparent; cursor:pointer; white-space:nowrap;
-  font: inherit; margin:0; -webkit-appearance:none; appearance:none;
+  font: inherit; -webkit-appearance:none; appearance:none;
+  margin-block:0; margin-inline: calc((var(--mag) - 1) * 9px);   /* dock spread — chips push apart */
   transform: scale(var(--mag)); transform-origin:center bottom;
-  transition: transform 110ms var(--ease), background-color 150ms, border-color 150ms;
+  transition: transform 80ms linear, margin-inline 80ms linear, background-color 150ms, border-color 150ms;
 }
 .pb-chip:hover { background: color-mix(in oklab, var(--ink) 8%, transparent); }
 .pb-ico { display:inline-flex; width:18px; height:18px; color: color-mix(in oklab, var(--hue) 65%, var(--muted)); transition: color 150ms; }
