@@ -18,10 +18,11 @@ const STATIC: Pg[] = [
   { route: "index", title: "Own your slice.", desc: "A PNW-inspired food · media · marketing company, built in public." },
   { route: "truck", title: "The Truck", desc: "The chaos-menu food truck — the first rung of the climb." },
   { route: "shop", title: "Shop", desc: "Food, merch, and the playbooks. Be first in line." },
+  { route: "workshops", title: "Workshops", desc: "Cook it and build it — PNW in-person, virtual, group, 1-on-1, on-demand." },
   { route: "kitchen", title: "The Kitchen", desc: "A free recipe, every month. Cook the build at home." },
   { route: "free", title: "Free Drops", desc: "The $85k budget, the Atomise Machine, the build receipts — free." },
   { route: "contact", title: "Get in touch", desc: "Catering, press, partnerships, or just a hello." },
-  { route: "watch", title: "Watch the build", desc: "YouTube is home base — the build documentary." },
+  { route: "watch", title: "Watch & cook along", desc: "A full food channel and a business built in public." },
   { route: "about", title: "We don't pitch. We prove.", desc: "The SlicedLabs manifesto." },
   { route: "build", title: "The Build", desc: "The build-in-public journal — real numbers, real receipts." },
 ];

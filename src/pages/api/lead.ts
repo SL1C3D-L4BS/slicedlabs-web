@@ -29,6 +29,7 @@ const SOURCES: Record<string, { label: string; inquiry?: boolean }> = {
   "food-preorder": { label: "Food pre-order" },
   recipe: { label: "Free recipe drop" },
   vault: { label: "Free drops / lead magnet" },
+  workshop: { label: "Workshop interest", inquiry: true },
 };
 
 const json = (b: unknown, s: number) =>

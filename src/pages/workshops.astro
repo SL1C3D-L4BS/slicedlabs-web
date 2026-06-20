@@ -1,0 +1,59 @@
+---
+// SlicedLabs · studio · © 2026 SlicedLabs — Workshops
+import Base from "../layouts/Base.astro";
+import WorkshopForm from "../components/WorkshopForm.astro";
+const tracks = [
+  { k: "Cook it", d: "How we cook and what we cook — technique, the chaos menu, sourcing local. You leave able to actually make it." },
+  { k: "Build it", d: "The business behind the food — own your slice, the funnel, the offer ladder. Build your own venture, on camera." },
+];
+const formats = [
+  { k: "Group workshops", d: "Hands-on cohorts — cook-alongs and build sessions. In person across the PNW, or live virtual.", tag: "in person · virtual" },
+  { k: "1-on-1", d: "Private, on camera and mic. Your kitchen or your business — we go deep on exactly your thing.", tag: "private" },
+  { k: "On-demand", d: "Recorded workshops that live on the channel — learn at your pace, free and premium.", tag: "on youtube" },
+];
+---
+<Base title="Workshops — SlicedLabs" description="Learn to cook it, and learn to build it. SlicedLabs workshops — PNW in-person + virtual, group, 1-on-1, and on-demand.">
+  <section class="wrap" style="padding-block:clamp(2.5rem,7vw,4rem);">
+    <p class="mono" data-reveal>learn it · build it · own it</p>
+    <h1 data-reveal style="--i:1; font-size:clamp(2.2rem,8vw,4.6rem);"><span class="blend-text">Workshops</span></h1>
+    <hr class="blade" data-reveal style="--i:2; max-width:18rem; margin:1.4rem 0 0;" />
+    <p data-reveal style="--i:3; font-size:clamp(1.1rem,2.4vw,1.4rem); color:var(--muted); max-width:46rem; margin-top:1.4rem;">
+      Two things, taught for real: how to <strong style="color:var(--ink);">cook it</strong>, and how to <strong style="color:var(--ink);">build it</strong>. In person across the Pacific Northwest, live virtual, or on-demand on the channel.
+    </p>
+    <div data-reveal style="--i:4; margin-top:1.8rem;"><a class="btn" href="#register">Get on the list →</a></div>
+  </section>
+
+  <section class="wrap" aria-labelledby="tracks" style="padding-block:1.5rem 2rem;">
+    <h2 id="tracks" class="mono" data-reveal style="color:var(--muted); margin-bottom:1rem;">two tracks</h2>
+    <div class="bento">
+      {tracks.map((t, i) => (
+        <article class="glass island col-3" data-reveal style={`--i:${i}`}>
+          <h3 style="font-size:1.6rem; margin:0 0 .3rem;"><span class="blend-text">{t.k}</span></h3>
+          <p style="color:var(--muted); margin:0;">{t.d}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section class="wrap" aria-labelledby="formats" style="padding-block:1.5rem;">
+    <h2 id="formats" class="mono" data-reveal style="color:var(--muted); margin-bottom:1rem;">three ways in</h2>
+    <div class="bento">
+      {formats.map((f, i) => (
+        <article class="glass island col-2" data-reveal style={`--i:${i}`}>
+          <span class="tag">{f.tag}</span>
+          <h3 style="font-size:1.3rem; margin:.6rem 0 .3rem;"><span class="blend-text">{f.k}</span></h3>
+          <p style="color:var(--muted); margin:0;">{f.d}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section id="register" class="wrap" style="padding-block:2rem;">
+    <article class="glass glass-ultra island" data-reveal>
+      <p class="mono" style="text-align:center;">launching in phases · the list gets first dibs</p>
+      <h2 style="font-size:clamp(1.5rem,4vw,2.2rem); margin:.3rem 0 .5rem; text-align:center;">Tell us what you want to learn.</h2>
+      <p style="color:var(--muted); max-width:40rem; margin:0 auto 1.4rem; text-align:center;">First access to dates, seats, and the on-demand drops. The live virtual room runs on our own on-camera tool — in build now, honest as ever.</p>
+      <div style="max-width:34rem; margin:0 auto;"><WorkshopForm /></div>
+    </article>
+  </section>
+</Base>

@@ -1,0 +1,31 @@
+---
+// SlicedLabs · studio · © 2026 SlicedLabs
+// Workshop interest → /api/lead (source=workshop): beehiiv + a live Discord ping.
+---
+<form action="/api/lead" method="post" style="display:grid; gap:.8rem; text-align:left;">
+  <input type="hidden" name="source" value="workshop" />
+  <input type="hidden" name="anchor" value="register" />
+  <input type="hidden" name="redirect" value={Astro.url.pathname} />
+  <div class="row2">
+    <input name="name" placeholder="Your name" autocomplete="name" class="fld" />
+    <input name="email" type="email" required placeholder="you@email.com" autocomplete="email" class="fld" />
+  </div>
+  <div class="row2">
+    <select name="interest" aria-label="Format" class="fld">
+      <option value="">Which format?</option>
+      <option>Group workshop (in person)</option>
+      <option>Group workshop (virtual)</option>
+      <option>1-on-1</option>
+      <option>On-demand (recorded)</option>
+    </select>
+    <select name="topic" aria-label="Track" class="fld">
+      <option value="">Cook or build?</option>
+      <option>The food — how &amp; what to cook</option>
+      <option>The build — the business</option>
+      <option>Both</option>
+    </select>
+  </div>
+  <textarea name="message" rows="2" placeholder="What do you want to learn? (optional)" class="fld"></textarea>
+  <button class="btn" type="submit" style="justify-self:start;">Get on the list →</button>
+  <p data-lead-status data-src="workshop" role="status" aria-live="polite" class="mono" hidden style="margin:.2rem 0 0;"></p>
+</form>
