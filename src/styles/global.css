@@ -223,6 +223,57 @@ a { color: inherit; text-decoration-color: color-mix(in oklab, var(--mark) 60%, 
 .tag { font-family: var(--font-mono); font-size: .72rem; letter-spacing: .06em; text-transform: uppercase;
        color: var(--muted); border: 1px solid var(--stroke); border-radius: 999px; padding: .2rem .6rem; }
 
+/* ── cockpit pill bar — the Quickshell bar, ported to the web ───────────── */
+.pillbar-wrap { position: sticky; top: 0; z-index: 50; display: flex; justify-content: center; padding: 10px 1rem 0; pointer-events: none; }
+.pillbar {
+  pointer-events: auto; position: relative; isolation: isolate;
+  display: flex; align-items: center; gap: 8px;
+  height: 44px; padding: 0 8px; max-width: calc(100vw - 2rem);
+  border-radius: 999px; background: var(--panel);
+  backdrop-filter: blur(18px) saturate(1.4) brightness(1.03);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4) brightness(1.03);
+  border: 1px solid var(--stroke);
+  box-shadow: inset 0 1px 0 var(--rim), inset 0 0 0 1px color-mix(in oklab, var(--mark) 5%, transparent), 0 10px 34px rgba(0,0,0,.34);
+}
+.pillbar::before { content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none; z-index:-1;
+  background: linear-gradient(177deg, color-mix(in oklab, white 12%, transparent), transparent 42%); }
+@supports (corner-shape: superellipse(4)) { .pillbar, .pb-chip { corner-shape: superellipse(4); } }
+
+.pb-brand { display:flex; align-items:center; gap:.5rem; text-decoration:none; height:34px; padding:0 .4rem 0 .5rem; }
+.pb-brand img { display:block; filter: drop-shadow(0 2px 8px color-mix(in oklab, var(--mark) 28%, transparent)); }
+.pb-word { font-family: var(--font-display); font-weight:800; letter-spacing:-.02em; font-size:1.02rem; color: var(--ink); }
+.pb-sep { width:1px; height:18px; background: var(--stroke); border-radius:1px; flex:none; }
+
+.pb-nav { display:flex; align-items:center; gap:6px; }
+.pb-chip {
+  --mag: 1; --hue: var(--mark);
+  display:inline-flex; align-items:center; gap:.42rem;
+  height:34px; padding:0 .72rem; border-radius:999px;
+  text-decoration:none; border:1px solid transparent; background:transparent; cursor:pointer; white-space:nowrap;
+  font: inherit; margin:0; -webkit-appearance:none; appearance:none;
+  transform: scale(var(--mag)); transform-origin:center bottom;
+  transition: transform 110ms var(--ease), background-color 150ms, border-color 150ms;
+}
+.pb-chip:hover { background: color-mix(in oklab, var(--ink) 8%, transparent); }
+.pb-ico { display:inline-flex; width:18px; height:18px; color: color-mix(in oklab, var(--hue) 65%, var(--muted)); transition: color 150ms; }
+.pb-ico svg { width:100%; height:100%; }
+.pb-label { font-family: var(--font-mono); font-size:.82rem; letter-spacing:.01em; color: var(--muted); transition: color 150ms; }
+.pb-chip:hover .pb-ico { color: var(--hue); }
+.pb-chip:hover .pb-label { color: var(--ink); }
+.pb-chip.is-active { background: color-mix(in oklab, var(--hue) 15%, transparent); border-color: color-mix(in oklab, var(--hue) 45%, transparent); }
+.pb-chip.is-active .pb-ico { color: var(--hue); }
+.pb-chip.is-active .pb-label { color: var(--ink); }
+
+.pb-toggle { padding:0 .6rem; }
+.pb-toggle .pb-ico { color: var(--muted); }
+.pb-toggle:hover .pb-ico { color: var(--ink); }
+.pb-toggle [data-ico-sun] { display:none; }
+[data-temp="warm"] .pb-toggle [data-ico-sun] { display:inline-flex; }
+[data-temp="warm"] .pb-toggle [data-ico-moon] { display:none; }
+
+@media (max-width: 660px) { .pb-word, .pb-label { display:none; } .pb-chip { padding:0 .55rem; } .pb-brand { padding-right:.2rem; } }
+@media (prefers-reduced-motion: reduce) { .pb-chip { transform:none !important; } }
+
 /* ── entrance choreography — plays ONCE, reduced-motion gated ────────────── */
 [data-reveal] {
   opacity: 0; transform: translateY(var(--reveal-rise, 16px));
