@@ -15,29 +15,50 @@ const principles = [
   ["Sequence, don't scatter.", "Truck → first lot → property + commissary → homestead → skills center. Don't start phase N+1 until N throws off cash."],
 ];
 const climb = ["Brand + media engine", "One truck", "The first lot", "Venue + owned commissary", "The homestead", "The skills center"];
+const scores = [
+  { v: "85", pre: "$", suf: "k", k: "build budget · to the dollar", sub: "the real number", ultra: true },
+  { v: "6", pre: "", suf: "", k: "the climb", sub: "phases to the homestead", ultra: false },
+  { v: "100", pre: "", suf: "%", k: "on camera", sub: "nothing hidden", ultra: false },
+];
 ---
 <Base>
-  <!-- HERO — the words are the design -->
-  <section class="wrap" style="padding-block: clamp(3rem,9vw,7rem) 2rem; text-align:center;">
-    <p class="mono" style="margin-bottom:1.2rem;">food · media · marketing — built in public</p>
-    <h1 class="kinetic"><span class="spectrum-text">own your slice.</span></h1>
-    <p style="font-size:clamp(1.1rem,2.4vw,1.5rem); color:var(--muted); max-width:46rem; margin:1.4rem auto 0;">
+  <!-- HERO — the words are the design; the blade slices the page -->
+  <section class="wrap" style="padding-block: clamp(3rem,9vw,6rem) 1.5rem; text-align:center;">
+    <p class="mono" data-reveal style="--i:0; margin-bottom:1.2rem;">food · media · marketing — built in public</p>
+    <img src="/slicedlabs-mark.svg" alt="SlicedLabs" width="92" height="92" data-reveal
+      style="--i:1; display:block; margin:0 auto 1.3rem; filter:drop-shadow(0 10px 34px color-mix(in oklab, var(--mark) 32%, transparent));" />
+    <h1 class="kinetic" data-reveal style="--i:2;"><span class="spectrum-text">own your slice.</span></h1>
+    <p data-reveal style="--i:3; font-size:clamp(1.1rem,2.4vw,1.5rem); color:var(--muted); max-width:46rem; margin:1.4rem auto 0;">
       We're building a real food empire from the ground up — on camera, with the actual numbers shown.
       Watch the climb, and learn to build your own.
     </p>
-    <div style="display:flex; gap:.8rem; justify-content:center; flex-wrap:wrap; margin-top:2rem;">
+    <div data-reveal style="--i:4; display:flex; gap:.8rem; justify-content:center; flex-wrap:wrap; margin-top:2rem;">
       <a class="btn" href="/watch">Watch the build →</a>
       <a class="btn btn-ghost" href="/build">Read the receipts</a>
     </div>
-    <hr class="spectrum-rule" style="max-width:34rem; margin:3rem auto 0;" />
+    <hr class="blade center" data-reveal style="--i:5; max-width:46rem; margin:3rem auto 0;" />
   </section>
 
-  <!-- THREE PILLARS — bento of glass islands -->
-  <section class="wrap" aria-labelledby="pillars" style="padding-block:2rem;">
-    <h2 id="pillars" class="mono" style="color:var(--muted); margin-bottom:1rem;">one company, three limbs</h2>
+  <!-- SCOREBOARD — the brand IS the math. The numbers count up on reveal. -->
+  <section class="wrap" aria-label="The build, by the numbers" style="padding-block:1.5rem 2rem;">
     <div class="bento">
-      {pillars.map((p) => (
-        <article class="glass island col-2">
+      {scores.map((s, i) => (
+        <article class:list={["glass", "island", "col-2", s.ultra && "glass-ultra"]} data-reveal style={`--i:${i}; text-align:center;`}>
+          <span class="mono">{s.k}</span>
+          <div class="count spectrum-text" data-count-to={s.v} data-count-prefix={s.pre} data-count-suffix={s.suf}
+            style="font-family:var(--font-display); font-weight:800; font-size:clamp(2.4rem,6vw,3.4rem); margin:.35rem 0 .2rem; line-height:1;">{s.pre}{s.v}{s.suf}</div>
+          <span class="mono">{s.sub}</span>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <!-- THREE PILLARS — bento of glass islands, assembling on scroll -->
+  <section class="wrap" aria-labelledby="pillars" style="padding-block:2rem;">
+    <h2 id="pillars" class="mono" data-reveal style="color:var(--muted); margin-bottom:1rem;">one company, three limbs</h2>
+    <div class="bento">
+      {pillars.map((p, i) => (
+        <article class="glass island col-2" data-reveal style={`--i:${i}`}>
           <span class="tag">{p.tag}</span>
           <h3 style="font-size:1.9rem; margin:.8rem 0 .1rem;"><span class="spectrum-text">{p.k}</span></h3>
           <p class="mono" style="margin:0 0 .6rem;">{p.t}</p>
@@ -49,11 +70,11 @@ const climb = ["Brand + media engine", "One truck", "The first lot", "Venue + ow
 
   <!-- PRINCIPLES — the depth (what the books taught, lived) -->
   <section class="wrap" aria-labelledby="principles" style="padding-block:3rem;">
-    <h2 id="principles" style="font-size:clamp(1.8rem,5vw,3rem); margin-bottom:.4rem;">The principles we actually run.</h2>
-    <p style="color:var(--muted); max-width:42rem; margin:0 0 1.6rem;">Not theory. The operating laws behind every decision — earned, then lived on camera.</p>
+    <h2 id="principles" data-reveal style="font-size:clamp(1.8rem,5vw,3rem); margin-bottom:.4rem;">The principles we actually run.</h2>
+    <p data-reveal style="color:var(--muted); max-width:42rem; margin:0 0 1.6rem;">Not theory. The operating laws behind every decision — earned, then lived on camera.</p>
     <div class="bento">
-      {principles.map(([h, d]) => (
-        <article class="glass island col-3">
+      {principles.map(([h, d], i) => (
+        <article class="glass island col-3" data-reveal style={`--i:${i}`}>
           <h3 style="font-size:1.25rem; margin:0 0 .4rem;">{h}</h3>
           <p style="color:var(--muted); margin:0;">{d}</p>
         </article>
@@ -63,10 +84,10 @@ const climb = ["Brand + media engine", "One truck", "The first lot", "Venue + ow
 
   <!-- THE CLIMB — the sequence -->
   <section class="wrap" aria-labelledby="climb" style="padding-block:2rem;">
-    <h2 id="climb" class="mono" style="color:var(--muted); margin-bottom:1rem;">the climb (you are here → phase 0)</h2>
+    <h2 id="climb" class="mono" data-reveal style="color:var(--muted); margin-bottom:1rem;">the climb (you are here → phase 0)</h2>
     <ol style="list-style:none; padding:0; margin:0; display:flex; gap:.6rem; flex-wrap:wrap;">
       {climb.map((c, i) => (
-        <li class="glass" style="padding:.7rem 1rem; display:flex; gap:.6rem; align-items:center;">
+        <li class="glass" data-reveal style={`--i:${i}; padding:.7rem 1rem; display:flex; gap:.6rem; align-items:center;`}>
           <span class="spectrum-text" style="font-family:var(--font-display); font-weight:800;">{String(i).padStart(2, "0")}</span>
           <span>{c}</span>
         </li>
@@ -77,7 +98,7 @@ const climb = ["Brand + media engine", "One truck", "The first lot", "Venue + ow
   <div class="wrap"><Newsletter /></div>
 
   <section class="wrap" style="text-align:center; padding-block:3rem 1rem;">
-    <hr class="spectrum-rule" style="max-width:10rem; margin:0 auto 1rem;" />
+    <hr class="blade center" data-reveal style="max-width:10rem; margin:0 auto 1rem;" />
     <p class="mono">build it in public · show the math</p>
   </section>
 </Base>
