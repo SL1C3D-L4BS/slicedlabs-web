@@ -1,0 +1,166 @@
+/* SlicedLabs · @slicedlabs/shop · © 2026 SlicedLabs
+ * app.css — the Hydrogen storefront's Tailwind entry + base layer. This is the
+ * React/Hydrogen twin of apps/web/src/styles/global.css: SAME tokens, SAME base
+ * (body field, headings, .wrap, a11y), so the shop renders pixel-equivalent to
+ * the Astro marketing site. The COMPONENT contract (.glass / .btn / .pillbar /
+ * .pb-* / .blade / .tag) is imported separately from @slicedlabs/ui/ui.css in
+ * root.tsx — never duplicated here.
+ *
+ * Liquid Retina law: NO perpetual shimmer; reduced-motion + reduced-transparency
+ * gated; cream ([data-temp="warm"]) is untouched law; dark base is #161619. */
+@import 'tailwindcss';
+
+/* tokens — generated from packages/tokens/tokens.toml by @slicedlabs/tokens.
+ * :root (dark #161619) + [data-temp="warm"] (cream, law) + the Display-P3
+ * wide-gamut overrides. */
+@import '@slicedlabs/tokens/tokens.css';
+@import '@slicedlabs/tokens/p3.css';
+
+/* ── Tailwind theme bridge (utilities speak the tokens) ─────────────────── */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-muted-strong: var(--muted-strong);
+  --color-coral: var(--coral);
+  --color-orange: var(--orange);
+  --color-teal: var(--teal);
+  --color-blue: var(--blue);
+  --color-mark: var(--mark);
+  --radius-squircle: var(--radius);
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --font-mono: var(--font-mono);
+}
+
+/* ── base ───────────────────────────────────────────────────────────────── */
+* {
+  box-sizing: border-box;
+}
+html {
+  scroll-behavior: smooth;
+}
+::selection {
+  background: var(--coral);
+  color: #fff;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+  /* subtle living field — faint blend aura, FLAT + still (no-shimmer law) */
+  background-image:
+    radial-gradient(
+      60rem 42rem at 82% -12%,
+      color-mix(in oklab, var(--blue) 16%, transparent),
+      transparent 60%
+    ),
+    radial-gradient(
+      52rem 38rem at -12% 14%,
+      color-mix(in oklab, var(--coral) 11%, transparent),
+      transparent 60%
+    ),
+    radial-gradient(
+      46rem 40rem at 50% 116%,
+      color-mix(in oklab, var(--teal) 10%, transparent),
+      transparent 62%
+    );
+  background-attachment: fixed;
+}
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+}
+/* hierarchy rides WEIGHT, not colour (the design law) */
+h2 {
+  font-weight: 700;
+}
+h3 {
+  font-weight: 600;
+}
+a {
+  color: inherit;
+  text-decoration-color: color-mix(in oklab, var(--mark) 60%, transparent);
+  text-underline-offset: 3px;
+}
+.wrap {
+  max-width: var(--maxw);
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+}
+.kinetic {
+  font-size: clamp(2.8rem, 9vw, 7rem);
+  line-height: 0.96;
+}
+
+/* ── storefront layout helpers (use the tokens; not in ui.css) ──────────── */
+.shop-hero {
+  display: grid;
+  gap: 1.4rem;
+  padding-block: clamp(3rem, 8vw, 6rem) 2rem;
+}
+.product-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+}
+.product-card-media {
+  aspect-ratio: 1 / 1;
+  width: 100%;
+  object-fit: cover;
+  border-radius: var(--radius);
+  background: var(--bg-alt);
+}
+.empty-state {
+  display: grid;
+  gap: 0.6rem;
+  padding: clamp(2rem, 6vw, 3.5rem);
+  text-align: center;
+}
+
+/* ── a11y — the showpiece never beats access (Liquid Retina law) ────────── */
+.skip {
+  position: absolute;
+  left: -999px;
+}
+.skip:focus {
+  left: 1rem;
+  top: 1rem;
+  position: fixed;
+  z-index: 99;
+}
+:focus-visible {
+  outline: 2px solid var(--mark);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto;
+  }
+  .blade {
+    transform: scaleX(1) !important;
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .glass {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: var(--bg-alt);
+  }
+  .glass::before {
+    display: none;
+  }
+}

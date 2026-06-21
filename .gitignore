@@ -8,6 +8,10 @@ dist/
 .vercel
 .turbo
 
+# react-router / hydrogen generated + transient
+.react-router/
+*.tsbuildinfo
+
 # env / secrets
 .env
 .env.*
