@@ -15,6 +15,7 @@ Each file = one applied migration, in order:
 5. `0005_harden_set_updated_at.sql` — pin `search_path` on the commerce trigger fn.
 6. `0006_relax_entitlements_unique_ref.sql` — relax the entitlements unique key to `(user_id, kind, ref_id)` (NULLS NOT DISTINCT) so a user can hold multiple distinct vault drops, one `member` row.
 7. `0007_perk_grant_log.sql` — per-IP/email attempt log that rate-limits the public perk write-pipeline.
+8. `0008_vault_storage_bucket.sql` — private `vault` Storage bucket for entitlement-gated perk assets (served via service-role signed URLs).
 
 ## RLS posture
 RLS is ON for every table (and auto-enforced on new `public` tables by the `ensure_rls`
