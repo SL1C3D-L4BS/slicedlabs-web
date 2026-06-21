@@ -1,0 +1,10 @@
+# Secrets never get uploaded — runtime env comes from Vercel project settings.
+**/.env
+**/.env.local
+**/.env.*.local
+
+# build artifacts / caches (rebuilt on Vercel)
+**/.turbo
+**/.astro
+**/dist
+**/.vercel/output
