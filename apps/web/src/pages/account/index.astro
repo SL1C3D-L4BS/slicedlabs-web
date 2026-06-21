@@ -78,6 +78,7 @@ const activeEnts = ((entRows ?? []) as unknown as Entitlement[]).filter(
 const isMember = activeEnts.some((e) => e.kind === "member");
 const vaultDrops = activeEnts.filter((e) => e.kind === "vault_drops");
 const playbooks = activeEnts.filter((e) => e.kind.startsWith("playbook:"));
+const workshops = activeEnts.filter((e) => e.kind.startsWith("workshop:"));
 const recipes = (recipeRows ?? []) as unknown as SavedRecipe[];
 
 const fmtDate = (iso: string) =>
@@ -221,6 +222,26 @@ const fmtDate = (iso: string) =>
             </li>
           ))}
         </ul>
+      </>
+    )}
+
+    {workshops.length > 0 && (
+      <>
+        <h2 data-reveal style="font-size:clamp(1.3rem,4vw,1.8rem); margin:2.6rem 0 1rem;">
+          Your workshops
+        </h2>
+        <div style="display:flex; flex-direction:column; gap:.6rem;">
+          {workshops.map((w) => (
+            <a
+              class="glass island"
+              href={`/workshops/${w.ref_id}`}
+              style="text-decoration:none; display:flex; justify-content:space-between; align-items:center; gap:.8rem;"
+            >
+              <span style="color:var(--ink);">{w.ref_id}</span>
+              <span class="mono" style="color:var(--teal);">View workshop →</span>
+            </a>
+          ))}
+        </div>
       </>
     )}
 

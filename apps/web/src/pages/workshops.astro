@@ -1,7 +1,43 @@
 ---
 // SlicedLabs · studio · © 2026 SlicedLabs — Workshops
+// Server-rendered. If published workshops exist, show the live grid; otherwise
+// fall back to the honest waitlist funnel so we still capture intent.
+export const prerender = false;
 import Base from "../layouts/Base.astro";
+import Newsletter from "../components/Newsletter.astro";
 import WorkshopForm from "../components/WorkshopForm.astro";
+import { getServerSupabase } from "../lib/supabase";
+import { formatMoney } from "../lib/commerce/cart";
+
+const supabase = getServerSupabase(Astro.cookies, Astro.request);
+const { data: rows } = await supabase
+  .from("workshops")
+  .select("slug,title,description,starts_at,duration_min,price_cents,currency,cover_image")
+  .eq("status", "published")
+  .order("starts_at", { ascending: true });
+
+type WorkshopCard = {
+  slug: string;
+  title: string;
+  description: string | null;
+  starts_at: string | null;
+  duration_min: number | null;
+  price_cents: number;
+  currency: string;
+  cover_image: string | null;
+};
+
+const workshops = (rows ?? []) as unknown as WorkshopCard[];
+const hasWorkshops = workshops.length > 0;
+
+const fmtWhen = (iso: string | null): string =>
+  iso
+    ? new Date(iso).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })
+    : "Date TBA";
+const fmtPrice = (cents: number, currency: string): string =>
+  cents > 0 ? formatMoney(cents, currency) : "Free";
+
+// Fallback funnel content (preserved from the original waitlist page).
 const tracks = [
   { k: "Cook it", d: "How we cook and what we cook — technique, the chaos menu, sourcing local. You leave able to actually make it." },
   { k: "Build it", d: "The business behind the food — own your slice, the funnel, the offer ladder. Build your own venture, on camera." },
@@ -20,40 +56,88 @@ const formats = [
     <p data-reveal style="--i:3; font-size:clamp(1.1rem,2.4vw,1.4rem); color:var(--muted); max-width:46rem; margin-top:1.4rem;">
       Two things, taught for real: how to <strong style="color:var(--ink);">cook it</strong>, and how to <strong style="color:var(--ink);">build it</strong>. In person across the Pacific Northwest, live virtual, or on-demand on the channel.
     </p>
-    <div data-reveal style="--i:4; margin-top:1.8rem;"><a class="btn" href="#register">Get on the list →</a></div>
+    {hasWorkshops ? (
+      <div data-reveal style="--i:4; margin-top:1.8rem;"><a class="btn" href="#sessions">See the sessions →</a></div>
+    ) : (
+      <div data-reveal style="--i:4; margin-top:1.8rem;"><a class="btn" href="#register">Get on the list →</a></div>
+    )}
   </section>
 
-  <section class="wrap" aria-labelledby="tracks" style="padding-block:1.5rem 2rem;">
-    <h2 id="tracks" class="mono" data-reveal style="color:var(--muted); margin-bottom:1rem;">two tracks</h2>
-    <div class="bento">
-      {tracks.map((t, i) => (
-        <article class="glass island col-3" data-reveal style={`--i:${i}`}>
-          <h3 style="font-size:1.6rem; margin:0 0 .3rem;"><span class="blend-text">{t.k}</span></h3>
-          <p style="color:var(--muted); margin:0;">{t.d}</p>
+  {hasWorkshops ? (
+    <section id="sessions" class="wrap" aria-labelledby="sessions-h" style="padding-block:clamp(2rem,6vw,3.5rem);">
+      <div data-reveal style="display:flex; align-items:baseline; gap:.8rem; margin-bottom:1.2rem; flex-wrap:wrap;">
+        <h2 id="sessions-h" style="font-size:clamp(1.4rem,4vw,2rem); margin:0;">Upcoming sessions</h2>
+        <span class="tag">grab a seat</span>
+      </div>
+      <div class="bento">
+        {workshops.map((w, i) => (
+          <a
+            class="glass island col-3"
+            href={`/workshops/${w.slug}`}
+            data-reveal
+            style={`--i:${i}; display:flex; flex-direction:column; gap:.6rem; text-decoration:none; color:inherit;`}
+          >
+            {w.cover_image && (
+              <div style="aspect-ratio:4/3; border-radius:var(--radius); overflow:hidden; background:var(--panel); border:1px solid var(--stroke);">
+                <img
+                  src={w.cover_image}
+                  alt={w.title}
+                  loading="lazy"
+                  style="width:100%; height:100%; object-fit:cover; display:block;"
+                />
+              </div>
+            )}
+            <p class="mono" style="margin:0; color:var(--muted);">{fmtWhen(w.starts_at)}</p>
+            <h3 style="font-size:1.3rem; margin:0;"><span class="blend-text">{w.title}</span></h3>
+            {w.description && (
+              <p style="color:var(--muted); margin:0;">{w.description}</p>
+            )}
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:.8rem; margin-top:auto; padding-top:.4rem;">
+              <span class="tag">{fmtPrice(w.price_cents, w.currency)}</span>
+              <span class="mono" aria-hidden="true">Get ticket →</span>
+            </div>
+          </a>
+        ))}
+      </div>
+      <div class="wrap" style="padding-inline:0;"><Newsletter /></div>
+    </section>
+  ) : (
+    <>
+      <section class="wrap" aria-labelledby="tracks" style="padding-block:1.5rem 2rem;">
+        <h2 id="tracks" class="mono" data-reveal style="color:var(--muted); margin-bottom:1rem;">two tracks</h2>
+        <div class="bento">
+          {tracks.map((t, i) => (
+            <article class="glass island col-3" data-reveal style={`--i:${i}`}>
+              <h3 style="font-size:1.6rem; margin:0 0 .3rem;"><span class="blend-text">{t.k}</span></h3>
+              <p style="color:var(--muted); margin:0;">{t.d}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section class="wrap" aria-labelledby="formats" style="padding-block:1.5rem;">
+        <h2 id="formats" class="mono" data-reveal style="color:var(--muted); margin-bottom:1rem;">three ways in</h2>
+        <div class="bento">
+          {formats.map((f, i) => (
+            <article class="glass island col-2" data-reveal style={`--i:${i}`}>
+              <span class="tag">{f.tag}</span>
+              <h3 style="font-size:1.3rem; margin:.6rem 0 .3rem;"><span class="blend-text">{f.k}</span></h3>
+              <p style="color:var(--muted); margin:0;">{f.d}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section id="register" class="wrap" style="padding-block:2rem;">
+        <article class="glass glass-ultra island" data-reveal>
+          <p class="mono" style="text-align:center;">launching in phases · the list gets first dibs</p>
+          <h2 style="font-size:clamp(1.5rem,4vw,2.2rem); margin:.3rem 0 .5rem; text-align:center;">Tell us what you want to learn.</h2>
+          <p style="color:var(--muted); max-width:40rem; margin:0 auto 1.4rem; text-align:center;">First access to dates, seats, and the on-demand drops. The live virtual room runs on our own on-camera tool — in build now, honest as ever.</p>
+          <div style="max-width:34rem; margin:0 auto;"><WorkshopForm /></div>
         </article>
-      ))}
-    </div>
-  </section>
+      </section>
 
-  <section class="wrap" aria-labelledby="formats" style="padding-block:1.5rem;">
-    <h2 id="formats" class="mono" data-reveal style="color:var(--muted); margin-bottom:1rem;">three ways in</h2>
-    <div class="bento">
-      {formats.map((f, i) => (
-        <article class="glass island col-2" data-reveal style={`--i:${i}`}>
-          <span class="tag">{f.tag}</span>
-          <h3 style="font-size:1.3rem; margin:.6rem 0 .3rem;"><span class="blend-text">{f.k}</span></h3>
-          <p style="color:var(--muted); margin:0;">{f.d}</p>
-        </article>
-      ))}
-    </div>
-  </section>
-
-  <section id="register" class="wrap" style="padding-block:2rem;">
-    <article class="glass glass-ultra island" data-reveal>
-      <p class="mono" style="text-align:center;">launching in phases · the list gets first dibs</p>
-      <h2 style="font-size:clamp(1.5rem,4vw,2.2rem); margin:.3rem 0 .5rem; text-align:center;">Tell us what you want to learn.</h2>
-      <p style="color:var(--muted); max-width:40rem; margin:0 auto 1.4rem; text-align:center;">First access to dates, seats, and the on-demand drops. The live virtual room runs on our own on-camera tool — in build now, honest as ever.</p>
-      <div style="max-width:34rem; margin:0 auto;"><WorkshopForm /></div>
-    </article>
-  </section>
+      <div class="wrap"><Newsletter /></div>
+    </>
+  )}
 </Base>

@@ -1,0 +1,262 @@
+---
+// SlicedLabs · commerce · © 2026 SlicedLabs — Admin cockpit: Workshops list + create
+export const prerender = false;
+import Base from "../../layouts/Base.astro";
+import { getServerSupabase, createServiceSupabase } from "../../lib/supabase";
+import { isAdmin } from "../../lib/admin";
+import { formatMoney } from "../../lib/commerce/cart";
+
+const supabase = getServerSupabase(Astro.cookies, Astro.request);
+const {
+  data: { user },
+} = await supabase.auth.getUser();
+if (!user) return Astro.redirect("/account/login?next=" + encodeURIComponent(Astro.url.pathname));
+if (!isAdmin(user.email)) return new Response("Forbidden", { status: 403 });
+
+let svc: ReturnType<typeof createServiceSupabase> | undefined;
+try {
+  svc = createServiceSupabase();
+} catch {
+  /* SUPABASE_SERVICE_ROLE_KEY not set — render a friendly notice below */
+}
+
+type WorkshopRow = {
+  id: string;
+  slug: string;
+  title: string;
+  status: string;
+  starts_at: string | null;
+  price_cents: number;
+  currency: string;
+  created_at: string;
+};
+
+let workshops: WorkshopRow[] = [];
+let loadError: string | null = null;
+if (svc) {
+  const { data, error } = await svc
+    .from("workshops")
+    .select("id,slug,title,status,starts_at,price_cents,currency,created_at")
+    .order("created_at", { ascending: false });
+  if (error) loadError = error.message;
+  else workshops = (data as WorkshopRow[]) ?? [];
+}
+
+const WORKSHOP_STATUS = ["draft", "published", "archived"];
+
+const statusHue = (st: string): string => {
+  switch (st) {
+    case "published":
+      return "var(--teal)";
+    case "archived":
+      return "var(--muted)";
+    default:
+      return "var(--coral)"; // draft
+  }
+};
+
+const fmtWhen = (iso: string | null): string =>
+  iso
+    ? new Date(iso).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })
+    : "Date TBA";
+const fmtPrice = (cents: number, currency: string): string =>
+  cents > 0 ? formatMoney(cents, currency) : "Free";
+
+const err = Astro.url.searchParams.get("err");
+---
+
+<Base
+  title="Admin — Workshops · SlicedLabs"
+  description="SlicedLabs operator cockpit — workshops."
+  noindex={true}
+>
+  <section class="wrap" style="padding-block:clamp(2rem,6vw,3rem)">
+    <div
+      style="display:flex; align-items:baseline; gap:1rem; flex-wrap:wrap; justify-content:space-between;"
+    >
+      <div>
+        <p class="mono" data-reveal>operator cockpit</p>
+        <h1 data-reveal style="--i:1; font-size:clamp(2rem,6vw,3.4rem); margin:.2rem 0 0;">
+          <span class="blend-text">Workshops</span>
+        </h1>
+      </div>
+      <nav data-reveal style="--i:2; display:flex; gap:1.2rem; align-items:center; flex-wrap:wrap;">
+        <a href="/admin">Orders</a>
+        <a href="/admin/products">Products</a>
+        <a href="/admin/vault">Vault</a>
+        <a href="/admin/truck">Truck</a>
+      </nav>
+    </div>
+
+    {
+      err && (
+        <p class="mono" data-reveal style="color:var(--coral); margin-top:1rem;">
+          {err}
+        </p>
+      )
+    }
+
+    {
+      !svc && (
+        <div class="glass island" data-reveal style="margin-top:1.6rem;">
+          <h2 style="font-size:1.2rem; margin:0 0 .4rem;">Service role key not set</h2>
+          <p style="color:var(--muted); margin:0;">
+            Set <code>SUPABASE_SERVICE_ROLE_KEY</code> so the cockpit can read drafts and write
+            workshops.
+          </p>
+        </div>
+      )
+    }
+
+    {
+      svc && (
+        <>
+          {/* ---- new workshop ----------------------------------------------- */}
+          <div class="glass island" data-reveal style="margin-top:1.6rem;">
+            <h2 style="font-size:1.25rem; margin:0 0 1rem;">New workshop</h2>
+            <form
+              method="POST"
+              action="/api/admin/workshop"
+              style="display:flex; flex-direction:column; gap:.8rem;"
+            >
+              <input type="hidden" name="action" value="create" />
+              <div class="row2">
+                <label>
+                  <span class="mono">Title *</span>
+                  <input class="fld" type="text" name="title" required placeholder="Cook-along: the chaos menu" />
+                </label>
+                <label>
+                  <span class="mono">Slug (optional)</span>
+                  <input class="fld" type="text" name="slug" placeholder="auto from title" />
+                </label>
+              </div>
+              <label>
+                <span class="mono">Description</span>
+                <textarea class="fld" name="description" placeholder="What it is, who it's for, what you leave with."></textarea>
+              </label>
+              <div class="row2">
+                <label>
+                  <span class="mono">Starts at</span>
+                  <input class="fld" type="datetime-local" name="starts_at" />
+                </label>
+                <label>
+                  <span class="mono">Duration (min)</span>
+                  <input class="fld" type="number" name="duration_min" min="0" step="1" placeholder="90" />
+                </label>
+              </div>
+              <div class="row2">
+                <label>
+                  <span class="mono">Price (USD)</span>
+                  <input class="fld" type="number" name="price" step="0.01" min="0" placeholder="0.00 = free" />
+                </label>
+                <label>
+                  <span class="mono">Capacity (optional)</span>
+                  <input class="fld" type="number" name="capacity" min="0" step="1" placeholder="leave blank for unlimited" />
+                </label>
+              </div>
+              <div class="row2">
+                <label>
+                  <span class="mono">LiveKit room (optional)</span>
+                  <input class="fld" type="text" name="livekit_room" placeholder="https://… or room id" />
+                </label>
+                <label>
+                  <span class="mono">Cover image URL (optional)</span>
+                  <input class="fld" type="url" name="cover_image" placeholder="https://…" />
+                </label>
+              </div>
+              <div>
+                <button type="submit" class="btn">Create workshop</button>
+              </div>
+            </form>
+          </div>
+
+          {/* ---- workshops table ------------------------------------------- */}
+          {loadError && (
+            <p class="mono" data-reveal style="color:var(--coral); margin-top:1.4rem;">
+              Couldn't load workshops: {loadError}
+            </p>
+          )}
+
+          <div
+            data-reveal
+            style="--i:1; margin-top:1.8rem; overflow-x:auto; border:1px solid var(--stroke); border-radius:var(--radius);"
+          >
+            <table style="width:100%; border-collapse:collapse; min-width:48rem; font-size:.92rem;">
+              <thead>
+                <tr style="text-align:left;">
+                  {["Title", "Slug", "Status", "Date", "Price", "Set status"].map((h) => (
+                    <th
+                      class="mono"
+                      style="padding:.7rem .8rem; border-bottom:1px solid var(--stroke); white-space:nowrap;"
+                    >
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {workshops.length === 0 && (
+                  <tr>
+                    <td colspan="6" style="padding:1.2rem .8rem; color:var(--muted);">
+                      No workshops yet — create one above.
+                    </td>
+                  </tr>
+                )}
+                {workshops.map((w) => (
+                  <tr style="border-bottom:1px solid var(--stroke);">
+                    <td style="padding:.7rem .8rem;">
+                      <a href={`/workshops/${w.slug}`} style="color:var(--mark);">
+                        {w.title}
+                      </a>
+                    </td>
+                    <td style="padding:.7rem .8rem; color:var(--muted); white-space:nowrap;">
+                      {w.slug}
+                    </td>
+                    <td style="padding:.7rem .8rem;">
+                      <span class="tag" style={`color:${statusHue(w.status)}; border-color:${statusHue(w.status)};`}>
+                        {w.status}
+                      </span>
+                    </td>
+                    <td style="padding:.7rem .8rem; white-space:nowrap; color:var(--muted);">
+                      {fmtWhen(w.starts_at)}
+                    </td>
+                    <td style="padding:.7rem .8rem; white-space:nowrap;">
+                      {fmtPrice(w.price_cents, w.currency)}
+                    </td>
+                    <td style="padding:.7rem .8rem;">
+                      <form
+                        method="POST"
+                        action="/api/admin/workshop"
+                        style="display:flex; gap:.4rem; align-items:center;"
+                      >
+                        <input type="hidden" name="action" value="set-status" />
+                        <input type="hidden" name="id" value={w.id} />
+                        <label
+                          class="mono"
+                          for={`wst-${w.id}`}
+                          style="position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0);"
+                        >
+                          Status for {w.title}
+                        </label>
+                        <select id={`wst-${w.id}`} name="status" class="fld" style="width:auto; padding:.4rem .6rem;">
+                          {WORKSHOP_STATUS.map((st) => (
+                            <option value={st} selected={st === w.status}>
+                              {st}
+                            </option>
+                          ))}
+                        </select>
+                        <button type="submit" class="btn btn-ghost" style="padding:.45rem .8rem;">
+                          Save
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )
+    }
+  </section>
+</Base>

@@ -17,6 +17,7 @@ Each file = one applied migration, in order:
 7. `0007_perk_grant_log.sql` — per-IP/email attempt log that rate-limits the public perk write-pipeline.
 8. `0008_vault_storage_bucket.sql` — private `vault` Storage bucket for entitlement-gated perk assets (served via service-role signed URLs).
 9. `0009_truck_status.sql` — singleton live food-truck status (public read, service-role write) + added to the realtime publication for the live `/truck` map.
+10. `0010_workshops.sql` — paid workshops (published-read RLS); Stripe tickets grant a `workshop:<slug>` entitlement.
 
 ## RLS posture
 RLS is ON for every table (and auto-enforced on new `public` tables by the `ensure_rls`

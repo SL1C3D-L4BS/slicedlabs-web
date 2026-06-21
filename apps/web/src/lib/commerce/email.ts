@@ -104,3 +104,29 @@ export async function sendPerkDelivery(args: {
   });
   return { sent: !r.error };
 }
+
+export async function sendWorkshopTicket(args: {
+  to: string;
+  title: string;
+  slug: string;
+  startsAt: string | null;
+}): Promise<{ sent: boolean }> {
+  const resend = client();
+  if (!resend) return { sent: false };
+  const when = args.startsAt
+    ? new Date(args.startsAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })
+    : null;
+  const html = shell(`
+    <h1 style="font-size:22px;margin:0 0 4px">You're in</h1>
+    <p style="color:#7A6E5C;margin:0 0 18px">Your ticket to <strong>${args.title}</strong> is confirmed${when ? ` — ${when}` : ""}. The live room opens from your account at start time.</p>
+    <p style="margin:0 0 20px">
+      <a href="https://slicedlabs.io/account" style="display:inline-block;background:#CB6820;color:#fff;text-decoration:none;padding:12px 22px;border-radius:999px;font-weight:600">View my ticket →</a>
+    </p>`);
+  const r = await resend.emails.send({
+    from: env.resendFrom(),
+    to: args.to,
+    subject: `Ticket confirmed — ${args.title}`,
+    html,
+  });
+  return { sent: !r.error };
+}

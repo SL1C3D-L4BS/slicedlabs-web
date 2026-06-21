@@ -9,6 +9,7 @@ import { createServiceSupabase } from "../../../lib/supabase";
 import { env } from "../../../lib/commerce/env";
 import { createPrintfulOrder, printfulConfigured } from "../../../lib/commerce/printful";
 import { sendOrderConfirmation } from "../../../lib/commerce/email";
+import { fulfillWorkshopTicket } from "../../../lib/workshops";
 
 export const prerender = false;
 
@@ -40,6 +41,17 @@ export const POST: APIRoute = async ({ request }) => {
 
   const session = event.data.object as Stripe.Checkout.Session;
   const s = session as unknown as Record<string, any>;
+
+  // Workshop ticket (no order row) → grant the workshop entitlement + email.
+  if (session.metadata?.kind === "workshop") {
+    try {
+      await fulfillWorkshopTicket(session);
+    } catch (e) {
+      console.error("workshop fulfill failed:", (e as Error).message);
+    }
+    return new Response("ok", { status: 200 });
+  }
+
   const orderId = session.metadata?.order_id;
   if (!orderId) return new Response("no order_id", { status: 200 });
 

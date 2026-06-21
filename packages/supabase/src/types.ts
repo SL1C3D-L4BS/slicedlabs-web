@@ -469,6 +469,57 @@ export type Database = {
           },
         ]
       }
+      workshops: {
+        Row: {
+          capacity: number | null
+          cover_image: string | null
+          created_at: string
+          currency: string
+          description: string | null
+          duration_min: number | null
+          id: string
+          livekit_room: string | null
+          price_cents: number
+          slug: string
+          starts_at: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          capacity?: number | null
+          cover_image?: string | null
+          created_at?: string
+          currency?: string
+          description?: string | null
+          duration_min?: number | null
+          id?: string
+          livekit_room?: string | null
+          price_cents?: number
+          slug: string
+          starts_at?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          capacity?: number | null
+          cover_image?: string | null
+          created_at?: string
+          currency?: string
+          description?: string | null
+          duration_min?: number | null
+          id?: string
+          livekit_room?: string | null
+          price_cents?: number
+          slug?: string
+          starts_at?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

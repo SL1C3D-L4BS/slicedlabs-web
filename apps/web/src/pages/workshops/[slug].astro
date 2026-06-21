@@ -1,0 +1,236 @@
+---
+// SlicedLabs · studio · © 2026 SlicedLabs — Workshop detail + ticket
+// Server-rendered. Public reads see only published workshops (RLS). If the
+// signed-in user already holds the `workshop:<slug>` entitlement we show the
+// "you're in" panel; otherwise we offer Stripe Embedded Checkout (price comes
+// from the server, never the client).
+export const prerender = false;
+import Base from "../../layouts/Base.astro";
+import { getServerSupabase } from "../../lib/supabase";
+import { formatMoney } from "../../lib/commerce/cart";
+
+const { slug } = Astro.params;
+if (!slug) return Astro.redirect("/workshops");
+
+const supabase = getServerSupabase(Astro.cookies, Astro.request);
+
+type Workshop = {
+  slug: string;
+  title: string;
+  description: string | null;
+  starts_at: string | null;
+  duration_min: number | null;
+  price_cents: number;
+  currency: string;
+  capacity: number | null;
+  livekit_room: string | null;
+  cover_image: string | null;
+};
+
+const { data: wsRow } = await supabase
+  .from("workshops")
+  .select(
+    "slug,title,description,starts_at,duration_min,price_cents,currency,capacity,livekit_room,cover_image",
+  )
+  .eq("slug", slug)
+  .eq("status", "published")
+  .maybeSingle();
+
+const ws = (wsRow as Workshop | null) ?? null;
+
+// --- not found -----------------------------------------------------------
+if (!ws) {
+  Astro.response.status = 404;
+}
+
+// --- ticket / entitlement state (only when the workshop exists) ----------
+let hasTicket = false;
+if (ws) {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (user) {
+    const { data: ticket } = await supabase
+      .from("entitlements")
+      .select("id")
+      .eq("kind", "workshop:" + slug)
+      .eq("ref_id", slug)
+      .maybeSingle();
+    hasTicket = !!ticket;
+  }
+}
+
+// --- live-room window ----------------------------------------------------
+// live = the session has a start time and "now" sits inside the run window.
+let isLive = false;
+if (ws?.starts_at) {
+  const start = new Date(ws.starts_at).getTime();
+  const end = start + (ws.duration_min || 120) * 60000;
+  const now = Date.now();
+  isLive = now >= start && now <= end;
+}
+
+const fmtWhen = (iso: string | null): string =>
+  iso
+    ? new Date(iso).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })
+    : "Date TBA";
+
+const justPaid = Boolean(Astro.url.searchParams.get("ticket"));
+const isFree = ws ? ws.price_cents <= 0 : false;
+const isPaid = ws ? ws.price_cents > 0 : false;
+---
+{!ws ? (
+  <Base title="Workshop not found — SlicedLabs" description="That workshop isn't available." noindex={true}>
+    <section class="wrap" style="padding-block:clamp(2.5rem,7vw,4rem);">
+      <p class="mono" data-reveal>404</p>
+      <h1 data-reveal style="--i:1; font-size:clamp(1.8rem,6vw,3rem);"><span class="blend-text">Workshop not found</span></h1>
+      <hr class="blade" data-reveal style="--i:2; max-width:12rem; margin:1.2rem 0 1.4rem;" />
+      <p data-reveal style="--i:3; color:var(--muted); max-width:36rem;">It may have ended, been pulled, or never existed at this address.</p>
+      <div data-reveal style="--i:4; margin-top:1.6rem;"><a class="btn" href="/workshops">← All workshops</a></div>
+    </section>
+  </Base>
+) : (
+  <Base title={`${ws.title} — Workshops · SlicedLabs`} description={ws.description ?? `A SlicedLabs workshop: ${ws.title}.`}>
+    <section class="wrap" style="padding-block:clamp(2.5rem,7vw,4rem);">
+      <p class="mono" data-reveal><a href="/workshops" style="color:inherit; text-decoration:none;">← workshops</a></p>
+
+      {ws.cover_image && (
+        <div
+          data-reveal
+          style="--i:1; margin:1.2rem 0 0; aspect-ratio:16/7; border-radius:var(--radius); overflow:hidden; background:var(--panel); border:1px solid var(--stroke);"
+        >
+          <img src={ws.cover_image} alt={ws.title} style="width:100%; height:100%; object-fit:cover; display:block;" />
+        </div>
+      )}
+
+      <h1 data-reveal style="--i:2; font-size:clamp(2rem,7vw,4rem); margin-top:1.4rem;"><span class="blend-text">{ws.title}</span></h1>
+      <hr class="blade" data-reveal style="--i:3; max-width:16rem; margin:1.2rem 0 0;" />
+
+      <div data-reveal style="--i:4; display:flex; gap:.6rem; flex-wrap:wrap; margin-top:1.2rem;">
+        <span class="tag">{fmtWhen(ws.starts_at)}</span>
+        {ws.duration_min && <span class="tag">{ws.duration_min} min</span>}
+        <span class="tag">{isFree ? "Free" : formatMoney(ws.price_cents, ws.currency)}</span>
+        {isLive && <span class="tag" style="color:var(--teal); border-color:var(--teal);">live now</span>}
+      </div>
+
+      {ws.description && (
+        <p data-reveal style="--i:5; font-size:clamp(1.05rem,2.2vw,1.3rem); color:var(--muted); max-width:46rem; margin-top:1.4rem; white-space:pre-line;">{ws.description}</p>
+      )}
+
+      {justPaid && (
+        <div class="glass island" data-reveal style="--i:6; margin-top:1.8rem; border-color:var(--teal);">
+          <p class="mono" style="color:var(--teal); margin:0 0 .3rem;">payment received</p>
+          <h2 style="font-size:1.25rem; margin:0 0 .4rem;">Your ticket is confirmed.</h2>
+          <p style="color:var(--muted); margin:0;">Check your email or your <a href="/account" style="color:var(--mark);">account</a> for the details. The live room opens here at start time.</p>
+        </div>
+      )}
+
+      {/* ---- already holds a ticket ------------------------------------- */}
+      {hasTicket ? (
+        <div class="glass island" data-reveal style="--i:7; margin-top:1.8rem;">
+          <p class="mono" style="margin:0 0 .3rem;">your ticket</p>
+          <h2 style="font-size:1.35rem; margin:0 0 .6rem;"><span class="blend-text">You're in — you have a ticket</span></h2>
+          {/* NOTE: full LiveKit SDK join is a future step. For now this links to
+              the configured livekit_room when we're inside the live window, and
+              shows the waiting state otherwise. */}
+          {isLive && ws.livekit_room ? (
+            <>
+              <p style="color:var(--muted); margin:0 0 1rem;">The room is open. See you in there.</p>
+              <a class="btn" href={ws.livekit_room}>Join the live room →</a>
+            </>
+          ) : (
+            <p style="color:var(--muted); margin:0;">The live room opens here at start time.</p>
+          )}
+        </div>
+      ) : isPaid ? (
+        /* ---- paid, no ticket yet → embedded Stripe checkout ----------- */
+        <div data-reveal style="--i:7; margin-top:1.8rem;">
+          <button id="buy-ticket" class="btn" type="button" data-slug={ws.slug}>
+            Buy ticket — {formatMoney(ws.price_cents, ws.currency)}
+          </button>
+          <p id="checkout-msg" class="mono" role="status" aria-live="polite" style="color:var(--muted); margin-top:1rem;" hidden></p>
+          <div id="checkout" style="margin-top:1rem;"></div>
+        </div>
+      ) : (
+        /* ---- free event ---------------------------------------------- */
+        <div class="glass island" data-reveal style="--i:7; margin-top:1.8rem;">
+          <p class="mono" style="margin:0 0 .3rem;">free event</p>
+          <h2 style="font-size:1.25rem; margin:0 0 .4rem;">No ticket needed.</h2>
+          <p style="color:var(--muted); margin:0;">This one's free — the live room opens here at start time. Want a reminder? <a href="/workshops" style="color:var(--mark);">Join the list →</a></p>
+        </div>
+      )}
+    </section>
+
+    {/* Embedded Stripe Checkout — mirrors src/pages/checkout.astro. */}
+    <script>
+      import { loadStripe } from "@stripe/stripe-js";
+
+      const btn = document.getElementById("buy-ticket") as HTMLButtonElement | null;
+      const msg = document.getElementById("checkout-msg");
+      const mount = document.getElementById("checkout");
+
+      function say(html: string) {
+        if (!msg) return;
+        msg.innerHTML = html;
+        msg.hidden = false;
+      }
+
+      async function start() {
+        if (!btn) return;
+        const slug = btn.dataset.slug;
+        if (!slug) return;
+        btn.disabled = true;
+        say("Preparing your ticket…");
+
+        let data: { clientSecret?: string; error?: string };
+        try {
+          const res = await fetch("/api/workshops/checkout", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ slug }),
+          });
+          data = await res.json();
+        } catch {
+          say("Something went wrong starting checkout. Please try again.");
+          btn.disabled = false;
+          return;
+        }
+
+        if (data.error || !data.clientSecret) {
+          const friendly: Record<string, string> = {
+            not_found: "This workshop isn't on sale right now.",
+            not_purchasable: "This is a free event — no ticket needed.",
+            stripe_not_configured: "Payments aren't switched on yet. Check back soon.",
+          };
+          const text =
+            (data.error && friendly[data.error]) || "We couldn't start checkout right now.";
+          say(text);
+          btn.disabled = false;
+          return;
+        }
+
+        const clientSecret = data.clientSecret;
+        const stripe = await loadStripe(import.meta.env.PUBLIC_STRIPE_PUBLISHABLE_KEY);
+        if (!stripe) {
+          say("Payments unavailable right now. Please try again later.");
+          btn.disabled = false;
+          return;
+        }
+
+        try {
+          const checkout = await stripe.initEmbeddedCheckout({
+            fetchClientSecret: async () => clientSecret,
+          });
+          if (msg) msg.hidden = true;
+          btn.hidden = true;
+          if (mount) checkout.mount("#checkout");
+        } catch {
+          say("We couldn't load the payment form. Please try again.");
+          btn.disabled = false;
+        }
+      }
+
+      btn?.addEventListener("click", start);
+    </script>
+  </Base>
+)}
