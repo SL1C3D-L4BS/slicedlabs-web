@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900" fill="none" role="img" aria-label="Image coming soon — SlicedLabs">
+  <rect width="1200" height="900" fill="#FBF6EE"/>
+  <rect x="24" y="24" width="1152" height="852" rx="32" fill="none" stroke="#E7DDC9" stroke-width="2"/>
+  <defs>
+    <linearGradient id="ph-warm" x1="245" y1="101" x2="245" y2="284" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#D9583C"/><stop offset=".45" stop-color="#D65B38"/><stop offset="1" stop-color="#CB6820"/>
+    </linearGradient>
+    <linearGradient id="ph-cool" x1="266" y1="226" x2="266" y2="409" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2F9B80"/><stop offset=".5" stop-color="#2E9B7F"/><stop offset="1" stop-color="#308BDB"/>
+    </linearGradient>
+  </defs>
+  <!-- operator-provided chevron-S mark (slicedlabs-mark.svg paths, reused verbatim) -->
+  <g transform="translate(447 188) scale(0.62)" opacity="0.92">
+    <path d="M307 101 L328 138 L245 190 L329 250 L308 284 L158 192 Z" fill="url(#ph-warm)"/>
+    <path d="M203 409 L182 372 L265 320 L181 260 L202 226 L352 318 Z" fill="url(#ph-cool)"/>
+  </g>
+  <text x="600" y="640" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="44" font-weight="700" fill="#1C1A17">Image coming soon</text>
+  <text x="600" y="694" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, monospace" font-size="22" letter-spacing="3" fill="#7A6E5C">SLICEDLABS</text>
+</svg>

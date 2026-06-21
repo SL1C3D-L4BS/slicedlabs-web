@@ -1,0 +1,235 @@
+---
+// SlicedLabs · studio · © 2026 SlicedLabs — The Chaos Menu
+// Server-rendered from menu_items (RLS: public read of published rows). The
+// anchor is fixed; the drops board rotates — the lab, in public.
+export const prerender = false;
+import Base from "../layouts/Base.astro";
+import { getServerSupabase } from "../lib/supabase";
+
+const supabase = getServerSupabase(Astro.cookies, Astro.request);
+const { data: rows } = await supabase
+  .from("menu_items")
+  .select("slug,name,blurb,section,price_label,dietary,note,season,hero,sort")
+  .eq("status", "published")
+  .order("section")
+  .order("sort");
+
+type MenuItem = {
+  slug: string;
+  name: string;
+  blurb: string | null;
+  section: string;
+  price_label: string | null;
+  dietary: string[];
+  note: string | null;
+  season: string | null;
+  hero: boolean;
+  sort: number;
+};
+
+const items = (rows ?? []) as unknown as MenuItem[];
+
+const anchors = items.filter((i) => i.section === "anchor");
+const drops = items.filter((i) => i.section === "drop");
+const sides = items.filter((i) => i.section === "side");
+const sweets = items.filter((i) => i.section === "sweet");
+const hasItems = items.length > 0;
+
+// Dietary legend — code → label. Anything unknown falls through as-is.
+const DIET_LABEL: Record<string, string> = {
+  gf: "GF",
+  "gf-avail": "GF✓",
+  v: "V",
+  vg: "VG",
+  "vg-avail": "VG✓",
+};
+const LEGEND: Array<{ code: string; means: string }> = [
+  { code: "GF", means: "gluten-free" },
+  { code: "GF✓", means: "gluten-free available" },
+  { code: "V", means: "vegetarian" },
+  { code: "VG", means: "vegan" },
+  { code: "VG✓", means: "vegan available" },
+];
+const dietLabel = (code: string): string => DIET_LABEL[code] ?? code.toUpperCase();
+const focalBorder = "color-mix(in oklab, var(--mark) 35%, var(--stroke))";
+---
+<Base title="Menu — SlicedLabs" description="The Chaos Menu — fine-dining technique, radically local, dietary by design.">
+  <section class="wrap" style="padding-block:clamp(2.5rem,7vw,4rem);">
+    <p class="mono" data-reveal>the chaos menu</p>
+    <h1 data-reveal style="--i:1; font-size:clamp(2.4rem,8vw,4.6rem);"><span class="blend-text">The Menu</span></h1>
+    <hr class="blade" data-reveal style="--i:2; max-width:16rem; margin:1.4rem 0 0;" />
+    <p data-reveal style="--i:3; font-size:clamp(1.1rem,2.4vw,1.4rem); color:var(--muted); max-width:48rem; margin-top:1.4rem;">
+      A tight fixed anchor we nail every time, plus a rotating drops board — the lab, in public. Fine-dining technique, radically local, dietary by design.
+    </p>
+    <p data-reveal style="--i:4; margin-top:1rem; max-width:48rem;"><span class="blend-text" style="font-weight:600;">Own your slice. Cook the season. Show the source.</span></p>
+  </section>
+
+  {hasItems ? (
+    <>
+      {/* DIETARY LEGEND */}
+      <section class="wrap" style="padding-block:.5rem 1rem;">
+        <div data-reveal style="display:flex; align-items:center; gap:.8rem; flex-wrap:wrap;">
+          <span class="mono" style="color:var(--muted);">key</span>
+          {LEGEND.map((l) => (
+            <span style="display:inline-flex; align-items:center; gap:.45rem;">
+              <span class="tag" style="color:var(--ink);">{l.code}</span>
+              <span style="color:var(--muted); font-size:.85rem;">{l.means}</span>
+            </span>
+          ))}
+        </div>
+      </section>
+
+      {/* THE ANCHORS */}
+      {anchors.length > 0 && (
+        <section class="wrap" aria-labelledby="anchors-h" style="padding-block:clamp(2rem,6vw,3.5rem);">
+          <div data-reveal style="display:flex; align-items:baseline; gap:.8rem; margin-bottom:.3rem; flex-wrap:wrap;">
+            <h2 id="anchors-h" style="font-size:clamp(1.6rem,4.5vw,2.6rem); margin:0;">The anchors</h2>
+            <span class="tag">always on</span>
+          </div>
+          <p data-reveal style="color:var(--muted); max-width:42rem; margin:0 0 1.4rem;">The set we nail every single service. The standard the rest of the board has to live up to.</p>
+          <div class="bento">
+            {anchors.map((m, i) => (
+              <article
+                class={`glass island col-2${m.hero ? " glass-focal" : ""}`}
+                data-reveal
+                style={`--i:${i}; display:flex; flex-direction:column; gap:.6rem;${m.hero ? ` border-color:${focalBorder};` : ""}`}
+              >
+                <div style="display:flex; align-items:baseline; justify-content:space-between; gap:1rem;">
+                  <h3 style="font-size:1.35rem; margin:0;">
+                    {m.hero ? <span class="blend-text">{m.name}</span> : m.name}
+                  </h3>
+                  {m.price_label && (
+                    <span class="mono" style="font-size:1.15rem; color:var(--ink); white-space:nowrap;">{m.price_label}</span>
+                  )}
+                </div>
+                {m.blurb && <p style="color:var(--muted); margin:0;">{m.blurb}</p>}
+                {m.note && <p style="margin:0; color:var(--muted); font-style:italic; font-size:.9rem;">{m.note}</p>}
+                {m.dietary.length > 0 && (
+                  <div style="display:flex; gap:.4rem; flex-wrap:wrap; margin-top:.2rem;">
+                    {m.dietary.map((d) => (
+                      <span class="tag" style="font-size:.66rem;">{dietLabel(d)}</span>
+                    ))}
+                  </div>
+                )}
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* THIS WEEK · THE DROPS */}
+      {drops.length > 0 && (
+        <section class="wrap" aria-labelledby="drops-h" style="padding-block:clamp(2rem,6vw,3.5rem);">
+          <div data-reveal style="display:flex; align-items:baseline; gap:.8rem; margin-bottom:.3rem; flex-wrap:wrap;">
+            <h2 id="drops-h" style="font-size:clamp(1.6rem,4.5vw,2.6rem); margin:0;">This week's drops</h2>
+            <span class="tag">scarce</span>
+          </div>
+          <p data-reveal style="color:var(--muted); max-width:42rem; margin:0 0 1.4rem;">Seasonal, scarce, gone fast — watch the socials.</p>
+          <div class="bento">
+            {drops.map((m, i) => (
+              <article class="glass island col-2" data-reveal style={`--i:${i}; display:flex; flex-direction:column; gap:.6rem;`}>
+                <div style="display:flex; align-items:baseline; justify-content:space-between; gap:1rem;">
+                  <h3 style="font-size:1.3rem; margin:0;"><span class="blend-text">{m.name}</span></h3>
+                  {m.price_label && (
+                    <span class="mono" style="font-size:1.15rem; color:var(--ink); white-space:nowrap;">{m.price_label}</span>
+                  )}
+                </div>
+                {m.season && <span class="tag" style="align-self:flex-start;">{m.season}</span>}
+                {m.blurb && <p style="color:var(--muted); margin:0;">{m.blurb}</p>}
+                {m.note && <p style="margin:0; color:var(--muted); font-style:italic; font-size:.9rem;">{m.note}</p>}
+                {m.dietary.length > 0 && (
+                  <div style="display:flex; gap:.4rem; flex-wrap:wrap; margin-top:.2rem;">
+                    {m.dietary.map((d) => (
+                      <span class="tag" style="font-size:.66rem;">{dietLabel(d)}</span>
+                    ))}
+                  </div>
+                )}
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* SIDES */}
+      {sides.length > 0 && (
+        <section class="wrap" aria-labelledby="sides-h" style="padding-block:clamp(1.5rem,4vw,2.5rem);">
+          <h2 id="sides-h" class="mono" data-reveal style="color:var(--muted); margin-bottom:1rem;">sides</h2>
+          <div class="bento">
+            {sides.map((m, i) => (
+              <article class="glass island col-2" data-reveal style={`--i:${i}; display:flex; flex-direction:column; gap:.4rem;`}>
+                <div style="display:flex; align-items:baseline; justify-content:space-between; gap:.8rem;">
+                  <h3 style="font-size:1.1rem; margin:0;">{m.name}</h3>
+                  {m.price_label && (
+                    <span class="mono" style="color:var(--ink); white-space:nowrap;">{m.price_label}</span>
+                  )}
+                </div>
+                {m.blurb && <p style="color:var(--muted); margin:0; font-size:.92rem;">{m.blurb}</p>}
+                {m.dietary.length > 0 && (
+                  <div style="display:flex; gap:.4rem; flex-wrap:wrap; margin-top:.1rem;">
+                    {m.dietary.map((d) => (
+                      <span class="tag" style="font-size:.66rem;">{dietLabel(d)}</span>
+                    ))}
+                  </div>
+                )}
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* SWEET */}
+      {sweets.length > 0 && (
+        <section class="wrap" aria-labelledby="sweet-h" style="padding-block:clamp(1.5rem,4vw,2.5rem);">
+          <h2 id="sweet-h" class="mono" data-reveal style="color:var(--muted); margin-bottom:1rem;">sweet</h2>
+          <div class="bento">
+            {sweets.map((m, i) => (
+              <article class="glass island col-2" data-reveal style={`--i:${i}; display:flex; flex-direction:column; gap:.4rem;`}>
+                <div style="display:flex; align-items:baseline; justify-content:space-between; gap:.8rem;">
+                  <h3 style="font-size:1.1rem; margin:0;">{m.name}</h3>
+                  {m.price_label && (
+                    <span class="mono" style="color:var(--ink); white-space:nowrap;">{m.price_label}</span>
+                  )}
+                </div>
+                {m.blurb && <p style="color:var(--muted); margin:0; font-size:.92rem;">{m.blurb}</p>}
+                {m.dietary.length > 0 && (
+                  <div style="display:flex; gap:.4rem; flex-wrap:wrap; margin-top:.1rem;">
+                    {m.dietary.map((d) => (
+                      <span class="tag" style="font-size:.66rem;">{dietLabel(d)}</span>
+                    ))}
+                  </div>
+                )}
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* THE HONEST NOTE */}
+      <section class="wrap" style="padding-block:clamp(1.5rem,4vw,2.5rem);">
+        <article class="glass island" data-reveal>
+          <p class="mono" style="margin:0 0 .6rem;">the honest note</p>
+          <p style="color:var(--muted); max-width:46rem; margin:0; line-height:1.6;">
+            We share a fryer, flat-top, and press. We take dietary needs seriously and will tell you exactly what's in everything — but we can't guarantee a celiac-safe, zero-cross-contact kitchen on a truck. Ask us and we'll be straight with you.
+          </p>
+        </article>
+      </section>
+
+      {/* CTA */}
+      <section class="wrap" style="padding-block:clamp(1.5rem,5vw,3rem);">
+        <div data-reveal style="display:flex; gap:.8rem; flex-wrap:wrap;">
+          <a class="btn" href="/truck#catering">Book the truck for catering →</a>
+          <a class="btn btn-ghost" href="/shop">Shop the merch →</a>
+        </div>
+      </section>
+    </>
+  ) : (
+    <section class="wrap" style="padding-block:clamp(2rem,6vw,3.5rem);">
+      <article class="glass glass-ultra island" data-reveal style="text-align:center;">
+        <p class="mono" style="margin:0 0 .4rem;">the board's resetting</p>
+        <h2 style="font-size:clamp(1.5rem,4vw,2.2rem); margin:.2rem 0 .5rem;"><span class="blend-text">Menu coming soon</span></h2>
+        <p style="color:var(--muted); max-width:40rem; margin:0 auto 1.4rem;">The anchor's locked and the drops are in prep. Want us at your event in the meantime?</p>
+        <a class="btn" href="/truck#catering">Book the truck for catering →</a>
+      </article>
+    </section>
+  )}
+</Base>

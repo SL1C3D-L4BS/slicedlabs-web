@@ -123,6 +123,57 @@ export type Database = {
         }
         Relationships: []
       }
+      menu_items: {
+        Row: {
+          blurb: string | null
+          created_at: string
+          dietary: string[]
+          hero: boolean
+          id: string
+          name: string
+          note: string | null
+          price_label: string | null
+          season: string | null
+          section: string
+          slug: string
+          sort: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          blurb?: string | null
+          created_at?: string
+          dietary?: string[]
+          hero?: boolean
+          id?: string
+          name: string
+          note?: string | null
+          price_label?: string | null
+          season?: string | null
+          section?: string
+          slug: string
+          sort?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          blurb?: string | null
+          created_at?: string
+          dietary?: string[]
+          hero?: boolean
+          id?: string
+          name?: string
+          note?: string | null
+          price_label?: string | null
+          season?: string | null
+          section?: string
+          slug?: string
+          sort?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string
