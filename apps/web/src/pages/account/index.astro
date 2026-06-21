@@ -23,13 +23,28 @@ const {
 } = await supabase.auth.getUser();
 if (!user) return Astro.redirect("/account/login?next=/account");
 
-// Orders (RLS limits this to the signed-in user's own rows).
-const { data: orderRows } = await supabase
-  .from("orders")
-  .select(
-    "id,status,total_cents,currency,fulfillment_type,printful_order_id,tracking,created_at,order_items(title,qty,unit_price_cents)",
-  )
-  .order("created_at", { ascending: false });
+// Orders + entitlements + saved recipes — independent reads fired in PARALLEL
+// (one round-trip floor instead of three serial awaits). RLS scopes each read to
+// the signed-in user; getUser() above already gated/short-circuited anon visitors.
+const [ordersRes, entRes, recipeRes] = await Promise.all([
+  supabase
+    .from("orders")
+    .select(
+      "id,status,total_cents,currency,fulfillment_type,printful_order_id,tracking,created_at,order_items(title,qty,unit_price_cents)",
+    )
+    .order("created_at", { ascending: false }),
+  supabase
+    .from("entitlements")
+    .select("kind, source, ref_id, granted_at, expires_at")
+    .order("granted_at", { ascending: false }),
+  supabase
+    .from("saved_recipes")
+    .select("recipe_slug, note, saved_at")
+    .order("saved_at", { ascending: false }),
+]);
+const orderRows = ordersRes.data;
+const entRows = entRes.data;
+const recipeRows = recipeRes.data;
 
 type LineItem = { title: string; qty: number; unit_price_cents: number };
 type Tracking = { carrier?: string; number?: string; url?: string } | null;
@@ -46,6 +61,24 @@ type Order = {
 };
 
 const orders = (orderRows ?? []) as unknown as Order[];
+
+type Entitlement = {
+  kind: string;
+  source: string;
+  ref_id: string | null;
+  granted_at: string;
+  expires_at: string | null;
+};
+type SavedRecipe = { recipe_slug: string; note: string | null; saved_at: string };
+
+const nowMs = Date.now();
+const activeEnts = ((entRows ?? []) as unknown as Entitlement[]).filter(
+  (e) => !e.expires_at || new Date(e.expires_at).getTime() > nowMs,
+);
+const isMember = activeEnts.some((e) => e.kind === "member");
+const vaultDrops = activeEnts.filter((e) => e.kind === "vault_drops");
+const playbooks = activeEnts.filter((e) => e.kind.startsWith("playbook:"));
+const recipes = (recipeRows ?? []) as unknown as SavedRecipe[];
 
 const fmtDate = (iso: string) =>
   new Date(iso).toLocaleDateString("en-US", {
@@ -69,7 +102,15 @@ const fmtDate = (iso: string) =>
         <h1 style="font-size:clamp(1.8rem,6vw,2.8rem); margin:.2rem 0 0; line-height:1.05;">
           <span class="blend-text">Welcome back</span>
         </h1>
-        <p style="color:var(--muted); margin:.5rem 0 0;">{user.email}</p>
+        <p style="color:var(--muted); margin:.5rem 0 0;">
+          {user.email}
+          {isMember && (
+            <span
+              class="tag"
+              style="margin-left:.55rem; color:var(--muted-strong); border-color:color-mix(in oklab, var(--teal) 45%, var(--stroke));"
+            >Member</span>
+          )}
+        </p>
       </div>
       <form method="POST" style="margin-top:.4rem;">
         <input type="hidden" name="intent" value="signout" />
@@ -132,7 +173,7 @@ const fmtDate = (iso: string) =>
                 href={o.tracking.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                style="color:var(--teal); text-decoration:none; font-weight:600; align-self:flex-start;"
+                style="color:var(--muted-strong); text-decoration:underline; text-underline-offset:3px; font-weight:600; align-self:flex-start;"
               >
                 Track package →
               </a>
@@ -140,6 +181,67 @@ const fmtDate = (iso: string) =>
           </article>
         ))}
       </div>
+    )}
+
+    {vaultDrops.length > 0 && (
+      <>
+        <h2 data-reveal style="font-size:clamp(1.3rem,4vw,1.8rem); margin:2.6rem 0 1rem;">
+          Vault drops
+        </h2>
+        <div style="display:flex; flex-direction:column; gap:.8rem;">
+          {vaultDrops.map((d, i) => (
+            <article
+              class="glass island"
+              data-reveal
+              style={`--i:${i}; display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;`}
+            >
+              <span>{d.ref_id ?? "Drop"}</span>
+              {d.ref_id ? (
+                <a class="btn-ghost" href={`/api/vault/${encodeURIComponent(d.ref_id)}`}>
+                  Download →
+                </a>
+              ) : (
+                <span class="mono" style="color:var(--muted);">preparing…</span>
+              )}
+            </article>
+          ))}
+        </div>
+      </>
+    )}
+
+    {playbooks.length > 0 && (
+      <>
+        <h2 data-reveal style="font-size:clamp(1.3rem,4vw,1.8rem); margin:2.6rem 0 1rem;">
+          Playbooks
+        </h2>
+        <ul style="list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.5rem;">
+          {playbooks.map((p) => (
+            <li class="glass island" style="padding:.9rem 1.1rem;">
+              {p.kind.replace("playbook:", "")}
+            </li>
+          ))}
+        </ul>
+      </>
+    )}
+
+    {recipes.length > 0 && (
+      <>
+        <h2 data-reveal style="font-size:clamp(1.3rem,4vw,1.8rem); margin:2.6rem 0 1rem;">
+          Saved recipes
+        </h2>
+        <div style="display:flex; flex-direction:column; gap:.6rem;">
+          {recipes.map((r) => (
+            <a
+              class="glass island"
+              href={`/kitchen/${r.recipe_slug}`}
+              style="text-decoration:none; display:block;"
+            >
+              <span style="color:var(--ink);">{r.recipe_slug}</span>
+              {r.note && <p style="color:var(--muted); margin:.3rem 0 0;">{r.note}</p>}
+            </a>
+          ))}
+        </div>
+      </>
     )}
   </section>
 </Base>

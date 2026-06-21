@@ -234,7 +234,8 @@ dialog.gate::backdrop { background: rgba(0,0,0,.6); backdrop-filter: blur(4px); 
   opacity: 0; transform: translateY(var(--reveal-rise, 16px));
   transition: opacity var(--t-slow) var(--ease), transform var(--t-slow) var(--ease);
   transition-delay: calc(var(--i, 0) * 70ms);
-  will-change: opacity, transform;
+  /* no persistent will-change: the entrance is one-shot; a permanent compositor
+     layer per reveal node is a memory cost the browser auto-optimizes without. */
 }
 [data-reveal].is-in { opacity: 1; transform: none; }
 /* the budget count-up — tabular figures so digits don't reflow while counting */
@@ -254,6 +255,42 @@ dialog.gate::backdrop { background: rgba(0,0,0,.6); backdrop-filter: blur(4px); 
 .prose pre code { background: none; padding: 0; }
 .prose img { max-width: 100%; height: auto; border-radius: var(--radius); }
 .prose hr { border: 0; height: 2px; background: var(--stroke); margin: 2rem 0; }
+
+/* ── 2026 motion layer — View Transitions + scroll progress ──────────────────
+ * One-shot + user-driven ONLY (page navigation / scroll position) — never a
+ * perpetual autoplay loop, so it upholds the no-shimmer law. Both gated. */
+/* native cross-document (MPA) view transitions — app-native page changes */
+@view-transition { navigation: auto; }
+/* the sticky pill bar persists smoothly across navigations instead of re-fading */
+.pillbar { view-transition-name: sl-pillbar; }
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root) { animation-duration: 260ms; }
+  ::view-transition-new(root) { animation-duration: 260ms; }
+}
+/* reduced-motion: keep the transition INSTANT (universal `*` can't reach the
+ * ::view-transition pseudo-tree, so neutralise it explicitly) */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) { animation-duration: 0s !important; }
+}
+
+/* scroll-progress blend bar — pure compositor (transform), driven by scroll
+ * position. Shown only where scroll-timelines exist AND motion is allowed. */
+.scroll-progress { display: none; }
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: scroll()) {
+    .scroll-progress {
+      display: block;
+      position: fixed; inset: 0 0 auto 0; height: 3px; z-index: 60;
+      background: var(--blend); transform: scaleX(0); transform-origin: 0 50%;
+      animation: sl-scroll-fill linear both;
+      animation-timeline: scroll(root block);
+      pointer-events: none;
+    }
+    @keyframes sl-scroll-fill { to { transform: scaleX(1); } }
+  }
+}
 
 /* ── a11y — the showpiece never beats access (Liquid Retina law) ────────── */
 .skip { position: absolute; left: -999px; }
