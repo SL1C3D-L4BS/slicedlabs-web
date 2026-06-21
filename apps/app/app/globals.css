@@ -1,0 +1,54 @@
+/* Tailwind first (preflight + layers), then the token SSOT (:root dark + [data-temp="warm"]
+   cream), the P3 widening, and the shared UI class contract. transpilePackages whitelists
+   these node_modules CSS imports. */
+@import "tailwindcss";
+@import "@slicedlabs/tokens/tokens.css";
+@import "@slicedlabs/tokens/p3.css";
+@import "@slicedlabs/ui/ui.css";
+
+/* Expose tokens to Tailwind utilities (bg-bg, text-ink, …) as INLINE refs so the
+   dark/[data-temp="warm"] runtime swap is preserved (plain @theme would freeze the value). */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-alt: var(--bg-alt);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-muted-strong: var(--muted-strong);
+  --color-coral: var(--coral);
+  --color-orange: var(--orange);
+  --color-teal: var(--teal);
+  --color-blue: var(--blue);
+  --color-mark: var(--mark);
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --font-mono: var(--font-mono);
+}
+
+html { color-scheme: dark; background: var(--bg); }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100dvh;
+}
+
+/* A simple member-surface glass card (focal tier look) + a one-shot rise. */
+.sl-glass {
+  position: relative;
+  background: var(--panel);
+  border: 1px solid var(--stroke);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(var(--blur)) saturate(1.2);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(1.2);
+  box-shadow: inset 0 1px 0 0 var(--rim), 0 8px 30px rgb(0 0 0 / 0.35);
+}
+@supports (corner-shape: superellipse(4)) { .sl-glass { corner-shape: superellipse(4); } }
+@media (prefers-reduced-motion: no-preference) {
+  .sl-rise { animation: sl-rise var(--t-slow) var(--ease) both; }
+}
+@keyframes sl-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-transparency: reduce) {
+  .sl-glass { backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--bg-alt); }
+}

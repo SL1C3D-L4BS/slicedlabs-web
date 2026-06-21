@@ -1,0 +1,278 @@
+---
+// HeroPass.astro — "THE PASS": Liquid-Glass parallax-depth hero.
+// Re-stages the existing receipts (the $85k/6/100% scoreboard) as glass cards
+// floating in real Z-depth around a crisp focal lockup. The cinema IS the proof.
+//
+// Reuses verbatim: the operator mark (/slicedlabs-mark.svg — NEVER redrawn),
+// --blend, .blade, .glass/.glass-focal/.glass-ultra, .btn/.btn-ghost,
+// .kinetic/.blend-text, and the [data-reveal] / [data-count-to] hooks that
+// Base.astro's existing IntersectionObserver already drives (reveal + count-up).
+//
+// LCP = the server-rendered focal lockup (mark + headline), unchanged from today.
+// Only NEW js = pointer parallax: input-driven (no loop), mouse-only, rAF self-cancels,
+// never attached under reduced-motion. No island, no hydration.
+
+const receipts = [
+  // depth 1=far .. 3=near · pos = corner placement (kept clear of the centre column)
+  { v: "100", pre: "",  suf: "%", k: "on camera",    sub: "nothing hidden",     depth: 1, tier: "glass",       pos: "tr" },
+  { v: "6",   pre: "",  suf: "",  k: "the climb",     sub: "phases → homestead", depth: 2, tier: "glass-focal", pos: "bl" },
+  { v: "85",  pre: "$", suf: "k", k: "build budget",  sub: "to the dollar",      depth: 3, tier: "glass-ultra", pos: "tl" },
+];
+---
+<section class="pass" aria-label="SlicedLabs — own your slice. The build, by the numbers.">
+  <div class="pass-stage" data-pass-stage>
+    <!-- z0 — depth veil over the body gradient field (already painted by body) -->
+    <div class="pass-plane pass-field" data-depth="0" aria-hidden="true"></div>
+
+    <!-- z1–z3 — floating receipts; .is-in / count-up driven by Base.astro's observer -->
+    {receipts.map((r, i) => (
+      <article
+        class:list={["pass-card", r.tier, `at-${r.pos}`]}
+        data-depth={r.depth}
+        data-reveal
+        style={`--i:${i + 2}`}
+      >
+        <span class="mono">{r.k}</span>
+        <div
+          class="count blend-text"
+          data-count-to={r.v}
+          data-count-prefix={r.pre}
+          data-count-suffix={r.suf}
+        >{r.pre}{r.v}{r.suf}</div>
+        <span class="mono">{r.sub}</span>
+      </article>
+    ))}
+
+    <!-- z4 — focal lockup. Crisp, on top, never parallaxed from legibility. The LCP. -->
+    <div class="pass-lockup" data-depth="4">
+      <p class="mono" data-reveal style="--i:0;">food · media · marketing — built in public</p>
+
+      <img
+        src="/slicedlabs-mark.svg"
+        alt="SlicedLabs"
+        width="92"
+        height="92"
+        fetchpriority="high"
+        decoding="async"
+        class="pass-mark"
+        data-reveal
+        style="--i:1;"
+      />
+
+      <!-- Grafted from "THE SLICE": two-line weight-led kinetic headline with a
+           clip-window mask-wipe. Pure transform/clip — no CLS, no deps. Line 1 in
+           --ink wipes up; line 2 in --blend resolves on the beat the .blade sweeps. -->
+      <h1 class="kinetic pass-head" data-reveal style="--i:2;">
+        <span class="pass-line"><span class="pass-line-in">We don't pitch.</span></span>
+        <span class="pass-line"><span class="pass-line-in blend-text">We prove.</span></span>
+      </h1>
+
+      <p class="pass-sub" data-reveal style="--i:3;">
+        A real food empire, built from the ground up — on camera, with the actual numbers shown.
+      </p>
+
+      <div class="pass-cta" data-reveal style="--i:4;">
+        <a class="btn" href="/watch">Watch the build →</a>
+        <a class="btn btn-ghost" href="/build">Read the receipts</a>
+      </div>
+
+      <hr class="blade center" data-reveal style="--i:5; max-width:42rem; margin:2.4rem auto 0;" />
+    </div>
+  </div>
+</section>
+
+<style>
+  /* ── the camera + reserved frame (no CLS: fixed min-height, transforms only) ── */
+  .pass {
+    position: relative;
+    min-height: clamp(34rem, 88vh, 52rem);
+    display: grid;
+    place-items: center;
+    padding-block: clamp(2rem, 6vw, 4rem);
+    overflow: clip;
+  }
+  .pass-stage {
+    position: relative;
+    width: min(var(--maxw), 100%);
+    height: 100%;
+    min-height: inherit;
+    perspective: 1400px;
+    transform-style: preserve-3d;
+  }
+  .pass-plane,
+  .pass-card,
+  .pass-lockup { position: absolute; }
+
+  /* ── z4 focal lockup — always crisp, always on top ── */
+  .pass-lockup {
+    inset: 0;
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    text-align: center;
+    z-index: 5;
+    transform: translateZ(0);
+    padding-inline: 1rem;
+    pointer-events: none;                 /* let parallax own the field; re-enable interactives below */
+  }
+  .pass-lockup a,
+  .pass-lockup .pass-cta { pointer-events: auto; }
+
+  .pass-mark {
+    display: block;
+    margin: 0 auto 1.2rem;
+    filter: drop-shadow(0 10px 34px color-mix(in oklab, var(--mark) 32%, transparent));
+  }
+  .pass-sub {
+    font-size: clamp(1.05rem, 2.3vw, 1.45rem);
+    color: var(--muted);
+    max-width: 44rem;
+    margin: 1.3rem auto 0;
+  }
+  .pass-cta { display: flex; gap: .8rem; justify-content: center; flex-wrap: wrap; margin-top: 1.9rem; }
+
+  /* ── grafted kinetic headline: clip-window mask-wipe, two weight-led lines ── */
+  .pass-head { margin: 0; }
+  .pass-line { display: block; overflow: clip; padding-block: .02em; }   /* the clip window */
+  .pass-line-in {
+    display: inline-block;
+    transform: translateY(110%);                                          /* hidden below the window */
+    transition: transform var(--t-slow) var(--ease);
+  }
+  .pass-head[data-reveal].is-in .pass-line:nth-child(1) .pass-line-in { transition-delay: 60ms; transform: translateY(0); }
+  .pass-head[data-reveal].is-in .pass-line:nth-child(2) .pass-line-in { transition-delay: 220ms; transform: translateY(0); }
+  /* the headline element itself rides [data-reveal] for the opacity beat; kill its
+     default translate so only the inner clip-wipe moves (no double motion) */
+  .pass-head[data-reveal] { --reveal-rise: 0px; }
+
+  /* ── z1–z3 floating receipts — reuse .glass tiers; place + size + depth ── */
+  .pass-card {
+    width: clamp(11rem, 22vw, 15rem);
+    padding: 1.1rem 1.2rem;
+    text-align: center;
+    z-index: 2;
+  }
+  .pass-card[data-depth="3"] { z-index: 3; }
+  .pass-card .count {
+    font-family: var(--font-display); font-weight: 800;
+    font-size: clamp(2rem, 5vw, 3rem); line-height: 1; margin: .3rem 0 .15rem;
+  }
+  /* corner placement — flanks the centred lockup column, never occludes the text */
+  .at-tl { top: 3%;   left: 0; }
+  .at-tr { top: 7%;   right: 0; }
+  .at-bl { bottom: 5%; left: 3%; }
+
+  /* the field — a faint brand-bloom veil pushed deep; lenses through the cards */
+  .pass-field {
+    inset: -10%;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(40rem 30rem at 72% 6%,  color-mix(in oklab, var(--blue)  14%, transparent), transparent 60%),
+      radial-gradient(36rem 28rem at 16% 84%, color-mix(in oklab, var(--coral) 12%, transparent), transparent 60%);
+    transform: translateZ(-320px) scale(1.34);
+  }
+
+  /* ── entrance "pass": extend [data-reveal] with a Z-arrival on the cards ──
+     The class toggle (.is-in) is added by Base.astro's observer — we only define
+     the from/to transforms here. Far card arrives first, near card last (stagger). */
+  .pass-card[data-reveal] {
+    --rest-z: 0px;
+    transform: translateZ(-600px) translateY(26px);
+    opacity: 0;
+    transition: transform var(--t-slow) var(--ease), opacity var(--t-slow) var(--ease);
+    transition-delay: calc(var(--i) * 90ms);
+    will-change: transform, opacity;
+  }
+  .pass-card[data-depth="1"][data-reveal] { --rest-z: -180px; }
+  .pass-card[data-depth="2"][data-reveal] { --rest-z:  -90px; }
+  .pass-card[data-depth="3"][data-reveal] { --rest-z:  -30px; }
+  .pass-card[data-reveal].is-in { transform: translateZ(var(--rest-z)); opacity: 1; }
+  .pass-card[data-depth="1"][data-reveal].is-in { opacity: .82; }   /* far reads softer */
+
+  /* ── mobile: drop to 2 cards, cap backdrop blur, let the lockup own the frame ── */
+  @media (max-width: 720px) {
+    .pass-card {
+      width: clamp(9rem, 40vw, 12rem);
+      backdrop-filter: blur(12px) saturate(1.3);
+      -webkit-backdrop-filter: blur(12px) saturate(1.3);
+    }
+    .at-tr { display: none; }                    /* 3 → 2 cards on phones */
+    .at-tl { top: 2%; left: -2%; }
+    .at-bl { bottom: 3%; left: 0; }
+  }
+  @media (max-width: 460px) {
+    .pass-card { width: clamp(8rem, 46vw, 10.5rem); padding: .85rem .9rem; }
+    .at-bl { display: none; }                     /* tightest phones → lockup only, dignified */
+  }
+
+  /* ── reduced-motion: no entrance pass, no wipe — resting scene, full + crisp ──
+     (global reduced-motion block already forces [data-reveal].is-in + .blade full;
+      we add the card resting-Z and pin the headline lines open.) */
+  @media (prefers-reduced-motion: reduce) {
+    .pass-card[data-reveal] { transform: translateZ(var(--rest-z)) !important; opacity: 1 !important; }
+    .pass-card[data-depth="1"][data-reveal] { opacity: .82 !important; }
+    .pass-line-in { transform: none !important; }
+  }
+
+  /* ── reduced-transparency: global block flattens .glass to solid --bg-alt;
+        kill the field there (nothing to lens through), keep the depth composition. */
+  @media (prefers-reduced-transparency: reduce) {
+    .pass-field { display: none; }
+  }
+</style>
+
+<script is:inline>
+  // THE PASS — pointer parallax. Input-driven (NOT a perpetual loop → satisfies the
+  // no-shimmer law), mouse-only (touch/coarse stays static), rAF self-cancels when
+  // settled, and is NEVER attached under reduced-motion. The entrance reveal, the
+  // .blade sweep, and the count-up are all driven by Base.astro's observer — unchanged.
+  (function () {
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    var stage = document.querySelector("[data-pass-stage]");
+    if (!stage) return;
+
+    // Let the one-shot entrance finish before parallax writes transforms — an inline
+    // transform mid-flight would abort a card's entrance animation.
+    var ready = false;
+    setTimeout(function () { ready = true; }, 820);
+
+    // gain per depth plane (0..4): deeper planes move LESS (correct parallax). The focal
+    // lockup (.pass-lockup, depth 4) is EXCLUDED so the LCP text stays crisp + legible.
+    var GAIN = [0.18, 0.34, 0.55, 0.78, 1.0];
+    var planes = [].map.call(stage.querySelectorAll("[data-depth]:not(.pass-lockup)"), function (el) {
+      var d = +el.dataset.depth;
+      var z = ({ "0": -320, "1": -180, "2": -90, "3": -30, "4": 0 })[el.dataset.depth] || 0;
+      return { el: el, gain: GAIN[d] != null ? GAIN[d] : 0.5, z: z };
+    });
+
+    var tx = 0, ty = 0, cx = 0, cy = 0, raf = 0;
+    function tick() {
+      cx += (tx - cx) * 0.08;
+      cy += (ty - cy) * 0.08;
+      for (var i = 0; i < planes.length; i++) {
+        var p = planes[i];
+        var sx = (p.el.dataset.depth === "0") ? 1.34 : 1;   // keep the field's scale
+        p.el.style.transform =
+          "translate3d(" + (cx * p.gain * 18).toFixed(2) + "px," +
+                           (cy * p.gain * 12).toFixed(2) + "px," + p.z + "px)" +
+          (sx !== 1 ? " scale(" + sx + ")" : "");
+      }
+      if (Math.abs(tx - cx) > 0.001 || Math.abs(ty - cy) > 0.001) raf = requestAnimationFrame(tick);
+      else raf = 0;                                          // settled → stop (no idle rAF)
+    }
+    function kick() { if (!raf) raf = requestAnimationFrame(tick); }
+
+    addEventListener("pointermove", function (e) {
+      if (e.pointerType !== "mouse" || !ready) return;      // mouse only; wait out the entrance
+      tx = (e.clientX / innerWidth) * 2 - 1;
+      ty = (e.clientY / innerHeight) * 2 - 1;
+      kick();
+    }, { passive: true });
+
+    addEventListener("pointerout", function (e) {
+      if (e.relatedTarget || !ready) return;
+      tx = 0; ty = 0; kick();                                // ease back to centre, then halt
+    }, { passive: true });
+  })();
+</script>

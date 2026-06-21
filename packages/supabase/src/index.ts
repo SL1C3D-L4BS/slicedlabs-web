@@ -8,10 +8,12 @@ import type { Database } from "./types";
 export type { Database, Json, Tables, TablesInsert, TablesUpdate } from "./types";
 
 // The publishable (anon) key is safe to ship to the browser; env overrides allowed.
+// `||` (not `??`) so an empty-string env (e.g. a Next `env:` bridge that defaults
+// unset vars to "") still falls back to the correct public defaults.
 export const SUPABASE_URL =
-  process.env.PUBLIC_SUPABASE_URL ?? "https://zaskrhtcadamiutdecgu.supabase.co";
+  process.env.PUBLIC_SUPABASE_URL || "https://zaskrhtcadamiutdecgu.supabase.co";
 export const SUPABASE_ANON_KEY =
-  process.env.PUBLIC_SUPABASE_ANON_KEY ?? "sb_publishable_5-pJNSReTfveXzk023-HsA_ZVyko0a2";
+  process.env.PUBLIC_SUPABASE_ANON_KEY || "sb_publishable_5-pJNSReTfveXzk023-HsA_ZVyko0a2";
 
 // One login across all three surfaces → cookie scoped to the apex domain.
 // Leave unset in dev (host-only cookie on localhost); set SUPABASE_COOKIE_DOMAIN=.slicedlabs.io in prod.

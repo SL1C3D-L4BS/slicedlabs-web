@@ -1,0 +1,195 @@
+/* SlicedLabs · @slicedlabs/ui · © 2026 SlicedLabs
+ * ui.css — the React twin of apps/web global.css. SAME CLASS CONTRACT, so the
+ * Next.js app + the Hydrogen storefront render PIXEL-EQUIVALENT to the Astro
+ * marketing site. Consumes ONLY @slicedlabs/tokens CSS vars — never imports a
+ * per-app stylesheet, never re-declares a token.
+ *
+ * Liquid Retina law:
+ *   · Glass material — base / focal / ultra (static specular + chromatic rim +
+ *     squircle corners). NO animated/perpetual shimmer.
+ *   · hierarchy rides WEIGHT, not colour.
+ *   · entrance choreography ([data-reveal] · .blade) plays ONCE, reduced-motion
+ *     gated, never a loop.
+ *   · a11y AA contrast; the showpiece never beats access.
+ *
+ * The token vars (--panel, --stroke, --rim, --blend, --mark, --blur, --radius,
+ * --t-*, --ease, fonts, type scale) come from "@slicedlabs/tokens/tokens.css",
+ * which the consuming app imports once at its root (alongside this file).
+ */
+
+/* ── the mark · blend ────────────────────────────────────────────────────── */
+.blend-text {
+  background: var(--blend);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.blend-rule { height: 3px; border: 0; border-radius: 3px; background: var(--blend); }
+
+/* mono label — the metadata/eyebrow contract (matches apps/web global.css) */
+.mono { font-family: var(--font-mono); font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+
+/* THE BLADE — the signature element that "slices" the page on reveal. A static
+ * blend bar that draws across once (scaleX 0→1); no perpetual motion. */
+.blade {
+  height: 4px; border: 0; border-radius: 999px; background: var(--blend);
+  transform: scaleX(0); transform-origin: left center;
+  transition: transform 900ms var(--ease);
+  box-shadow: 0 0 24px color-mix(in oklab, var(--teal) 28%, transparent);
+}
+.blade.is-in { transform: scaleX(1); }
+.blade.center { transform-origin: center; }
+
+/* ── Liquid Glass — base / focal / ultra (static specular + chromatic rim) ── */
+.glass {
+  position: relative; isolation: isolate;
+  background: var(--panel);
+  backdrop-filter: blur(var(--blur)) saturate(1.35) brightness(1.02);
+  -webkit-backdrop-filter: blur(var(--blur)) saturate(1.35) brightness(1.02);
+  border: 1px solid var(--stroke);
+  border-radius: var(--radius);
+  box-shadow:
+    inset 0 1px 0 var(--rim),                 /* grazing top rim */
+    inset 0 0 0 1px color-mix(in oklab, var(--mark) 6%, transparent),
+    0 12px 40px rgba(0, 0, 0, .28);
+}
+/* static specular sheen — a still top-left highlight, never animated */
+.glass::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: -1;
+  background: linear-gradient(177deg,
+    color-mix(in oklab, white calc(var(--glass-sheen) * 100%), transparent),
+    transparent 34%);
+}
+.glass-focal {
+  border-radius: var(--radius-lg);
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklab, white calc(var(--focal-rim) * 100%), transparent),
+    inset 0 0 0 1px color-mix(in oklab, var(--mark) 9%, transparent),
+    0 24px 70px rgba(0, 0, 0, .38);
+}
+/* ULTRA — the showpiece: deeper lensing feel + a faint chromatic edge (still). */
+.glass-ultra {
+  backdrop-filter: blur(calc(var(--blur) + 8px)) saturate(1.5) brightness(1.04);
+  -webkit-backdrop-filter: blur(calc(var(--blur) + 8px)) saturate(1.5) brightness(1.04);
+  border-radius: var(--radius-lg);
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklab, white calc(var(--ultra-rim) * 100%), transparent),
+    inset  1px 0 0 color-mix(in oklab, var(--coral) 22%, transparent),  /* chromatic */
+    inset -1px 0 0 color-mix(in oklab, var(--teal)  22%, transparent),  /* rim */
+    0 32px 90px rgba(0, 0, 0, .46);
+}
+/* true squircle where the browser supports it; rounded-rect fallback elsewhere */
+@supports (corner-shape: superellipse(4)) {
+  .glass, .glass-focal, .glass-ultra, .btn, .tag, .island { corner-shape: superellipse(4); }
+}
+
+/* ── islands ─────────────────────────────────────────────────────────────── */
+.island { padding: 1.5rem; transition: transform var(--t-quick) var(--ease), border-color var(--t-quick); }
+.island:hover { transform: translateY(-2px); border-color: color-mix(in oklab, var(--mark) 40%, var(--stroke)); }
+
+/* ── chips / buttons ─────────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; gap: .5rem;
+  padding: .8rem 1.3rem; border-radius: 999px; font-weight: 600;
+  background: var(--blend); color: #0B0B0F; border: 0; cursor: pointer;
+  font: inherit; text-decoration: none;
+  transition: transform var(--t-quick) var(--ease), filter var(--t-quick);
+}
+.btn:hover { transform: translateY(-1px); filter: brightness(1.06); }
+.btn:disabled { opacity: .55; cursor: not-allowed; transform: none; filter: none; }
+.btn-ghost { background: transparent; color: var(--ink); border: 1px solid var(--stroke); }
+.tag {
+  display: inline-block;
+  font-family: var(--font-mono); font-size: .72rem; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--muted); border: 1px solid var(--stroke); border-radius: 999px; padding: .2rem .6rem;
+}
+
+/* ── form fields (intakes) ───────────────────────────────────────────────── */
+.fld { width: 100%; padding: .7rem .9rem; border-radius: 12px; border: 1px solid var(--stroke); background: var(--bg); color: var(--ink); font: inherit; font-size: .95rem; }
+.fld::placeholder { color: color-mix(in oklab, var(--muted) 75%, transparent); }
+.fld:focus-visible { outline: 2px solid var(--mark); outline-offset: 1px; }
+select.fld { appearance: none; -webkit-appearance: none; cursor: pointer; }
+textarea.fld { resize: vertical; min-height: 5rem; }
+.row2 { display: grid; gap: .8rem; grid-template-columns: 1fr 1fr; }
+@media (max-width: 520px) { .row2 { grid-template-columns: 1fr; } }
+
+/* ── cockpit pill bar — the Quickshell bar, ported to the web ────────────── */
+.pillbar-wrap { position: sticky; top: 0; z-index: 50; display: flex; justify-content: center; padding: 10px 1rem 0; pointer-events: none; }
+.pillbar {
+  pointer-events: auto; position: relative; isolation: isolate;
+  display: flex; align-items: center; gap: 8px;
+  height: 44px; padding: 0 8px; max-width: calc(100vw - 2rem);
+  border-radius: 999px; background: var(--panel);
+  backdrop-filter: blur(18px) saturate(1.4) brightness(1.03);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4) brightness(1.03);
+  border: 1px solid var(--stroke);
+  box-shadow: inset 0 1px 0 var(--rim), inset 0 0 0 1px color-mix(in oklab, var(--mark) 5%, transparent), 0 10px 34px rgba(0, 0, 0, .34);
+}
+.pillbar::before { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: -1;
+  background: linear-gradient(177deg, color-mix(in oklab, white 12%, transparent), transparent 42%); }
+@supports (corner-shape: superellipse(4)) { .pillbar, .pb-chip { corner-shape: superellipse(4); } }
+
+.pb-brand { display: flex; align-items: center; gap: .5rem; text-decoration: none; height: 34px; padding: 0 .4rem 0 .5rem; }
+.pb-brand img { display: block; filter: drop-shadow(0 2px 8px color-mix(in oklab, var(--mark) 28%, transparent)); }
+.pb-word { font-family: var(--font-display); font-weight: 800; letter-spacing: -.02em; font-size: 1.02rem; color: var(--ink); }
+.pb-sep { width: 1px; height: 18px; background: var(--stroke); border-radius: 1px; flex: none; }
+
+.pb-nav { display: flex; align-items: center; gap: 6px; }
+.pb-chip {
+  --mag: 1; --hue: var(--mark);
+  display: inline-flex; align-items: center; gap: .42rem;
+  height: 34px; padding: 0 .72rem; border-radius: 999px;
+  text-decoration: none; border: 1px solid transparent; background: transparent; cursor: pointer; white-space: nowrap;
+  font: inherit; -webkit-appearance: none; appearance: none;
+  margin-block: 0; margin-inline: calc((var(--mag) - 1) * 13px);  /* dock spread — chips push apart */
+  transform: scale(var(--mag)); transform-origin: center bottom;
+  transition: transform 80ms linear, margin-inline 80ms linear, background-color 150ms, border-color 150ms;
+}
+.pb-chip:hover { background: color-mix(in oklab, var(--ink) 8%, transparent); }
+.pb-ico { display: inline-flex; width: 18px; height: 18px; color: color-mix(in oklab, var(--hue) 65%, var(--muted)); transition: color 150ms; }
+.pb-ico svg { width: 100%; height: 100%; }
+.pb-label { font-family: var(--font-mono); font-size: .82rem; letter-spacing: .01em; color: var(--muted); transition: color 150ms; }
+.pb-chip:hover .pb-ico { color: var(--hue); }
+.pb-chip:hover .pb-label { color: var(--ink); }
+.pb-chip.is-active { background: color-mix(in oklab, var(--hue) 15%, transparent); border-color: color-mix(in oklab, var(--hue) 45%, transparent); }
+.pb-chip.is-active .pb-ico { color: var(--hue); }
+.pb-chip.is-active .pb-label { color: var(--ink); }
+
+.pb-toggle { padding: 0 .6rem; }
+.pb-toggle .pb-ico { color: var(--muted); }
+.pb-toggle:hover .pb-ico { color: var(--ink); }
+.pb-toggle [data-ico-sun] { display: none; }
+[data-temp="warm"] .pb-toggle [data-ico-sun] { display: inline-flex; }
+[data-temp="warm"] .pb-toggle [data-ico-moon] { display: none; }
+
+/* responsive — tablet keeps labels (tighter); phone becomes an icon-only dock */
+@media (max-width: 860px) { .pb-nav { gap: 4px; } .pb-chip { padding: 0 .58rem; } }
+@media (max-width: 720px) { .pb-word { display: none; } .pb-brand { padding-right: .15rem; } }
+@media (max-width: 560px) {
+  .pillbar { gap: 6px; padding: 0 6px; }
+  .pb-label { display: none; }
+  .pb-chip { padding: 0 .5rem; }
+  .pb-ico { width: 20px; height: 20px; }
+  .pb-sep { height: 16px; }
+}
+@media (pointer: coarse) { .pb-chip { height: 38px; } }   /* comfortable tap targets on touch */
+@media (prefers-reduced-motion: reduce) { .pb-chip { transform: none !important; margin-inline: 0 !important; } }
+
+/* ── entrance choreography — plays ONCE, reduced-motion gated ─────────────── */
+[data-reveal] {
+  opacity: 0; transform: translateY(var(--reveal-rise, 16px));
+  transition: opacity var(--t-slow) var(--ease), transform var(--t-slow) var(--ease);
+  transition-delay: calc(var(--i, 0) * 70ms);
+  will-change: opacity, transform;
+}
+[data-reveal].is-in { opacity: 1; transform: none; }
+
+/* ── a11y — the showpiece never beats access (Liquid Retina law) ─────────── */
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] { opacity: 1 !important; transform: none !important; }
+  .blade { transform: scaleX(1) !important; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .glass { backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--bg-alt); }
+  .glass::before { display: none; }
+}

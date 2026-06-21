@@ -132,12 +132,21 @@ const isActive = (href: string) => (href === "/" ? path === "/" : path === href 
     <script is:inline>
       // dark ↔ warm temperature (the two-temperature system). Persists; respects no-shimmer.
       const root = document.documentElement;
-      const saved = localStorage.getItem("sl-temp");
-      if (saved) root.setAttribute("data-temp", saved);
+      const readCookie = () => (document.cookie.match(/(?:^|;\s*)sl-temp=(warm|dark)/) || [])[1];
+      const saved = readCookie() || localStorage.getItem("sl-temp");
+      if (saved === "warm" || saved === "dark") root.setAttribute("data-temp", saved);
+      // persist to BOTH localStorage and an apex-scoped cookie so the app. / shop.
+      // subdomains (which SSR-read the cookie) stay continuous with the marketing site.
+      const persistTemp = (next) => {
+        try { localStorage.setItem("sl-temp", next); } catch (e) {}
+        const domain = location.hostname.endsWith("slicedlabs.io") ? "; domain=.slicedlabs.io" : "";
+        const secure = location.protocol === "https:" ? "; secure" : "";
+        document.cookie = "sl-temp=" + next + "; path=/; max-age=31536000; samesite=lax" + domain + secure;
+      };
       document.getElementById("temp")?.addEventListener("click", () => {
         const next = root.getAttribute("data-temp") === "warm" ? "dark" : "warm";
         root.setAttribute("data-temp", next);
-        localStorage.setItem("sl-temp", next);
+        persistTemp(next);
       });
     </script>
 
