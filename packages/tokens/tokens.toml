@@ -8,21 +8,28 @@
 name = "SlicedLabs Liquid Retina"
 
 # ── DARK / PREMIUM (default — company / build-in-public) ──────────────────────
+# 2026 cinematic rework: deeper, faintly-cool base (more "Unreal" depth + lifts the
+# brand accents over AA-normal), crisper liquid-glass rim, + a high-contrast
+# --muted-strong for dense secondary text. Verified by src/contrast.ts.
 [color.dark]
-bg     = "#1E1E1E"
-bg-alt = "#2B2B2B"
-ink    = "#F7F6F2"
-muted  = "#B8A789"
-panel  = "rgba(43, 43, 43, 0.82)"
-stroke = "rgba(255, 255, 255, 0.08)"
-rim    = "rgba(255, 255, 255, 0.18)"
+bg           = "#161619"
+bg-alt       = "#1F2024"
+ink          = "#F7F6F2"
+muted        = "#B8A789"
+muted-strong = "#D6C9AE"
+panel        = "rgba(31, 32, 36, 0.82)"
+stroke       = "rgba(255, 255, 255, 0.10)"
+rim          = "rgba(255, 255, 255, 0.22)"
 
 # ── WARM / FOOD (truck · menu · consumer) — cream, UNTOUCHED LAW ───────────────
+# All original cream values are byte-identical; --muted-strong is purely additive
+# (a darker warm for dense text on cream — nothing existing changed).
 [color.warm]
 bg          = "#FBF6EE"
 bg-alt      = "#F3EADB"
 ink         = "#1C1A17"
 muted       = "#7A6E5C"
+muted-strong = "#5E5446"
 panel       = "rgba(255, 255, 255, 0.62)"
 stroke      = "rgba(28, 26, 23, 0.10)"
 rim         = "rgba(28, 26, 23, 0.14)"
