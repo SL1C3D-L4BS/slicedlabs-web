@@ -4,6 +4,9 @@
   "private": true,
   "type": "module",
   "description": "SlicedLabs design tokens — product SSOT (tokens.toml) → generated CSS + JS, consumed by all surfaces.",
+  "scripts": {
+    "build": "bun run src/build.ts"
+  },
   "exports": {
     "./tokens.css": "./dist/tokens.css",
     "./p3.css": "./dist/p3.css",

@@ -1,0 +1,89 @@
+# SlicedLabs design tokens — PRODUCT SSOT.
+# src/build.ts generates dist/{tokens.css, p3.css, tokens.js} from this file.
+# LAW: the [color.warm] (cream) palette is loved and must stay byte-identical.
+# The [color.dark] palette is the one that gets reworked.
+# (Mirrors the machine-wide ~/.dotfiles/system/tokens.toml; kept in sync, not relocated.)
+
+[meta]
+name = "SlicedLabs Liquid Retina"
+
+# ── DARK / PREMIUM (default — company / build-in-public) ──────────────────────
+[color.dark]
+bg     = "#1E1E1E"
+bg-alt = "#2B2B2B"
+ink    = "#F7F6F2"
+muted  = "#B8A789"
+panel  = "rgba(43, 43, 43, 0.82)"
+stroke = "rgba(255, 255, 255, 0.08)"
+rim    = "rgba(255, 255, 255, 0.18)"
+
+# ── WARM / FOOD (truck · menu · consumer) — cream, UNTOUCHED LAW ───────────────
+[color.warm]
+bg          = "#FBF6EE"
+bg-alt      = "#F3EADB"
+ink         = "#1C1A17"
+muted       = "#7A6E5C"
+panel       = "rgba(255, 255, 255, 0.62)"
+stroke      = "rgba(28, 26, 23, 0.10)"
+rim         = "rgba(28, 26, 23, 0.14)"
+glass-sheen = "0.045"
+
+# ── the official mark gradients — sRGB base ───────────────────────────────────
+[brand]
+coral  = "#D9583C"
+orange = "#CB6820"
+teal   = "#2F9B80"
+blue   = "#308BDB"
+mark   = "#38B6FF"
+
+[blend]
+value = "linear-gradient(100deg, var(--coral), var(--orange) 38%, var(--teal) 68%, var(--blue))"
+
+# ── Display-P3 wide-gamut overrides (richer blend on Retina/P3) ────────────────
+[brand_p3]
+coral  = "color(display-p3 0.851 0.345 0.235)"
+orange = "color(display-p3 0.796 0.408 0.125)"
+teal   = "color(display-p3 0.184 0.608 0.502)"
+blue   = "color(display-p3 0.188 0.545 0.859)"
+mark   = "color(display-p3 0.298 0.714 1.000)"
+
+[status]
+ok     = "#C7D42B"
+warn   = "#D9892B"
+danger = "#D95C5C"
+
+[material]
+radius         = "16px"
+radius-lg      = "28px"
+blur           = "20px"
+gap            = "8px"
+contrast-floor = "4.5"
+maxw           = "72rem"
+
+[glass]
+glass-tint  = "0.82"
+glass-rim   = "0.18"
+glass-sheen = "0.10"
+focal-rim   = "0.22"
+ultra-rim   = "0.30"
+
+[motion]
+t-quick  = "120ms"
+t-normal = "200ms"
+t-slow   = "380ms"
+ease     = "cubic-bezier(0.2, 0.8, 0.2, 1.0)"
+
+[font]
+display = '"Geist Mono", "JetBrains Mono", ui-monospace, monospace'
+body    = '"Inter", system-ui, sans-serif'
+mono    = '"JetBrains Mono", ui-monospace, monospace'
+
+# ── fluid type scale — perfect-fifth feel, clamped ────────────────────────────
+[scale]
+"step--1" = "clamp(0.80rem, 0.77rem + 0.15vw, 0.89rem)"
+"step-0"  = "clamp(1.00rem, 0.96rem + 0.20vw, 1.13rem)"
+"step-1"  = "clamp(1.20rem, 1.10rem + 0.45vw, 1.50rem)"
+"step-2"  = "clamp(1.50rem, 1.32rem + 0.85vw, 2.10rem)"
+"step-3"  = "clamp(1.90rem, 1.58rem + 1.55vw, 2.95rem)"
+"step-4"  = "clamp(2.40rem, 1.85rem + 2.65vw, 4.15rem)"
+"step-5"  = "clamp(3.00rem, 2.00rem + 5.00vw, 6.00rem)"

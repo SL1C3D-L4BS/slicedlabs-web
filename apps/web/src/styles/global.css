@@ -1,8 +1,7 @@
 /* SlicedLabs · studio · © 2026 SlicedLabs
- * global.css — Liquid Retina v3, on the web. ONE BODY: the web mirror of
- * ~/.dotfiles/system/tokens.toml ([color] · [brand] · [glass] · [motion]) and
- * the rendered ~/.dotfiles/system/brand-assets/surface/liquid-tokens.css.
- * Edit the tokens; the desktop AND this site re-skin.
+ * global.css — Liquid Retina v3, on the web. ONE BODY: the token values are
+ * generated from packages/tokens/tokens.toml by @slicedlabs/tokens (which mirrors
+ * ~/.dotfiles/system/tokens.toml). Edit the tokens; every surface re-skins.
  *
  * 2026 upgrades layered in here:
  *   · Display-P3 wide-gamut blend (the OKLCH anchors, on real Retina/P3 glass)
@@ -13,96 +12,10 @@
  */
 @import "tailwindcss";
 
-/* ── tokens · DARK / PREMIUM (default — company / build-in-public) ───────── */
-:root {
-  --bg:        #1E1E1E;   /* charcoal base */
-  --bg-alt:    #2B2B2B;
-  --ink:       #F7F6F2;   /* soft white */
-  --muted:     #B8A789;   /* weathered sand */
-  --panel:     rgba(43, 43, 43, 0.82);
-  --stroke:    rgba(255, 255, 255, 0.08);
-  --rim:       rgba(255, 255, 255, 0.18);
-
-  /* the signature blend — the OFFICIAL brand palette from the asset-pack
-   * brand sheet (the mark's own gradients). Cohesive with the logo. sRGB base. */
-  --coral:  #D9583C;      /* warm top */
-  --orange: #CB6820;      /* warm base */
-  --teal:   #2F9B80;      /* cool top */
-  --blue:   #308BDB;      /* cool base */
-  --mark:   #38B6FF;      /* the mark's bright blue accent (brand.mark_blue) */
-  --blend: linear-gradient(100deg, var(--coral), var(--orange) 38%, var(--teal) 68%, var(--blue));
-
-  /* status (status ≠ identity) */
-  --ok:     #C7D42B;
-  --warn:   #D9892B;
-  --danger: #D95C5C;
-
-  /* material + shape (Liquid Retina law) */
-  --radius:    16px;      /* squircle-soft */
-  --radius-lg: 28px;
-  --blur:      20px;
-  --gap:       8px;       /* 8pt grid */
-  --contrast-floor: 4.5;  /* WCAG-AA, never broken */
-
-  /* glass tiers — bound to [glass] token values */
-  --glass-tint:      0.82;  /* base body */
-  --glass-rim:       0.18;
-  --glass-sheen:     0.10;  /* static top specular strength */
-  --focal-rim:       0.22;
-  --ultra-rim:       0.30;
-
-  /* motion ([motion]) — three tiers + one curve */
-  --t-quick:  120ms;
-  --t-normal: 200ms;
-  --t-slow:   380ms;
-  --ease:     cubic-bezier(0.2, 0.8, 0.2, 1.0);
-
-  --font-display: "Geist Mono", "JetBrains Mono", ui-monospace, monospace;
-  --font-body:    "Inter", system-ui, sans-serif;
-  --font-mono:    "JetBrains Mono", ui-monospace, monospace; /* metadata / labels */
-
-  --maxw: 72rem;
-
-  /* fluid type scale — perfect-fifth feel, clamped (min → max across viewport).
-   * Tokenized so new surfaces size on ONE scale; /style renders the specimen. */
-  --step--1: clamp(0.80rem, 0.77rem + 0.15vw, 0.89rem);
-  --step-0:  clamp(1.00rem, 0.96rem + 0.20vw, 1.13rem);
-  --step-1:  clamp(1.20rem, 1.10rem + 0.45vw, 1.50rem);
-  --step-2:  clamp(1.50rem, 1.32rem + 0.85vw, 2.10rem);
-  --step-3:  clamp(1.90rem, 1.58rem + 1.55vw, 2.95rem);
-  --step-4:  clamp(2.40rem, 1.85rem + 2.65vw, 4.15rem);
-  --step-5:  clamp(3.00rem, 2.00rem + 5.00vw, 6.00rem);
-
-  color-scheme: dark;
-}
-
-/* ── tokens · WARM / FOOD (truck · menu · consumer surfaces) ─────────────── */
-[data-temp="warm"] {
-  --bg:     #FBF6EE;      /* warm canvas */
-  --bg-alt: #F3EADB;
-  --ink:    #1C1A17;      /* warm charcoal */
-  --muted:  #7A6E5C;
-  --panel:  rgba(255, 255, 255, 0.62);
-  --stroke: rgba(28, 26, 23, 0.10);
-  --rim:    rgba(28, 26, 23, 0.14);
-  --glass-sheen: 0.045;   /* calmer sheen so the cream body never washes out */
-  color-scheme: light;
-}
-
-/* ── Display-P3 WIDE GAMUT (the "4k colors" — richer blend on Retina/P3) ─
- * sRGB above is the fallback; these override ONLY where the display can show
- * them. The OKLCH anchors live in tokens.toml; baked to display-p3 here. */
-@supports (color: color(display-p3 1 1 1)) {
-  @media (color-gamut: p3) {
-    :root {
-      --coral:  color(display-p3 0.851 0.345 0.235);
-      --orange: color(display-p3 0.796 0.408 0.125);
-      --teal:   color(display-p3 0.184 0.608 0.502);
-      --blue:   color(display-p3 0.188 0.545 0.859);
-      --mark:   color(display-p3 0.298 0.714 1.000);
-    }
-  }
-}
+/* tokens — generated from packages/tokens/tokens.toml by @slicedlabs/tokens.
+ * :root (dark) + [data-temp="warm"] (cream, law) + the Display-P3 overrides. */
+@import "@slicedlabs/tokens/tokens.css";
+@import "@slicedlabs/tokens/p3.css";
 
 /* ── Tailwind theme bridge (utilities speak the tokens) ─────────────────── */
 @theme inline {
