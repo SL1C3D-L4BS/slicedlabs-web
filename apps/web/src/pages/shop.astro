@@ -1,178 +1,949 @@
 ---
 // SlicedLabs · studio · © 2026 SlicedLabs — Shop
-// Server-rendered storefront. If active products exist, show the grid; otherwise
-// fall back to the honest waitlist funnel so we still capture intent.
+// A cinematic, TABBED hub. One page, five live surfaces: Food, Merch, Events,
+// Workshops, Playbooks. Server-rendered from Supabase; the client script only
+// drives the ARIA tabs, the panel-enter choreography, and the shared modal.
+// No-shimmer law: every motion here is one-shot or user-driven (tab/hover/scroll).
 export const prerender = false;
 import Base from "../layouts/Base.astro";
-import Newsletter from "../components/Newsletter.astro";
-import LeadForm from "../components/LeadForm.astro";
 import { getServerSupabase } from "../lib/supabase";
 import { formatMoney } from "../lib/commerce/cart";
 
 const supabase = getServerSupabase(Astro.cookies, Astro.request);
-const { data: rows } = await supabase
-  .from("products")
-  .select(
-    "id, slug, title, description, images, fulfillment_type, variants(id, price_cents, currency, title)",
-  )
-  .eq("status", "active")
-  .order("created_at", { ascending: false });
 
-type Variant = { id: string; price_cents: number; currency: string; title: string };
+// ── FOOD (menu_items) ──────────────────────────────────────────────────────
+const { data: menuRows } = await supabase
+  .from("menu_items")
+  .select("slug,name,blurb,section,price_label,dietary,note,season,hero")
+  .eq("status", "published")
+  .order("section")
+  .order("sort");
+
+type MenuItem = {
+  slug: string;
+  name: string;
+  blurb: string | null;
+  section: string;
+  price_label: string | null;
+  dietary: string[];
+  note: string | null;
+  season: string | null;
+  hero: boolean;
+};
+
+// ── MERCH + PLAYBOOKS (products) ───────────────────────────────────────────
+const { data: productRows } = await supabase
+  .from("products")
+  .select("slug,title,description,images,fulfillment_type,status,variants(price_cents,currency)")
+  .eq("status", "active");
+
+type Variant = { price_cents: number; currency: string };
 type Product = {
-  id: string;
   slug: string;
   title: string;
   description: string | null;
   images: unknown;
   fulfillment_type: "pod" | "in_house" | "digital";
+  status: string;
   variants: Variant[];
 };
 
-const products = (rows ?? []) as unknown as Product[];
+// ── WORKSHOPS (workshops) ──────────────────────────────────────────────────
+const { data: workshopRows } = await supabase
+  .from("workshops")
+  .select("slug,title,description,starts_at,price_cents,currency,cover_image")
+  .eq("status", "published")
+  .order("starts_at", { ascending: true });
 
-const FULFILL_LABEL: Record<Product["fulfillment_type"], string> = {
-  pod: "made to order",
-  in_house: "limited drop",
-  digital: "digital",
+type Workshop = {
+  slug: string;
+  title: string;
+  description: string | null;
+  starts_at: string | null;
+  price_cents: number;
+  currency: string;
+  cover_image: string | null;
 };
 
-function firstImage(images: unknown): string | null {
-  if (!Array.isArray(images) || images.length === 0) return null;
-  const a = images[0];
-  if (typeof a === "string") return a;
-  if (a && typeof a === "object" && typeof (a as { url?: unknown }).url === "string") {
-    return (a as { url: string }).url;
-  }
-  return null;
-}
+const menuItems = (menuRows ?? []) as unknown as MenuItem[];
+const products = (productRows ?? []) as unknown as Product[];
+const workshops = (workshopRows ?? []) as unknown as Workshop[];
 
-function minPrice(variants: Variant[]): { cents: number; currency: string } | null {
+// ── derive ─────────────────────────────────────────────────────────────────
+const anchors = menuItems.filter((i) => i.section === "anchor");
+const drops = menuItems.filter((i) => i.section === "drop");
+const sides = menuItems.filter((i) => i.section === "side");
+const sweets = menuItems.filter((i) => i.section === "sweet");
+
+const merch = products.filter((p) => p.fulfillment_type === "pod");
+const playbooks = products.filter((p) => p.fulfillment_type === "digital");
+
+function firstImage(images: unknown): string {
+  if (Array.isArray(images)) {
+    for (const a of images) if (typeof a === "string" && a) return a;
+  }
+  return "/placeholder-product.svg";
+}
+function fromPrice(variants: Variant[]): string | null {
   if (!variants || variants.length === 0) return null;
   let best = variants[0];
   for (const v of variants) if (v.price_cents < best.price_cents) best = v;
-  return { cents: best.price_cents, currency: best.currency || "usd" };
+  return formatMoney(best.price_cents, best.currency || "usd");
 }
 
-const hasProducts = products.length > 0;
+// dietary code → label (the menu legend, shared)
+const DIET_LABEL: Record<string, string> = {
+  gf: "GF",
+  "gf-avail": "GF✓",
+  v: "V",
+  vg: "VG",
+  "vg-avail": "VG✓",
+};
+const dietLabel = (code: string): string => DIET_LABEL[code] ?? code.toUpperCase();
+// join a menu item's dietary into a modal-friendly string
+const dietJoin = (codes: string[]): string => codes.map(dietLabel).join(" · ");
 
-// Fallback funnel content (preserved from the original shop page).
-const food = [
-  { k: "The chaos menu", d: "The truck's rotating drop — preview the concept, order when we're live.", tag: "phase 1" },
-  { k: "Pre-orders", d: "Reserve a plate from the first service. Opens with the truck.", tag: "soon" },
+const fmtWhen = (iso: string | null): string =>
+  iso
+    ? new Date(iso).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })
+    : "Date TBA";
+const fmtPrice = (cents: number, currency: string): string =>
+  cents > 0 ? formatMoney(cents, currency) : "Free";
+
+const focalBorder = "color-mix(in oklab, var(--mark) 35%, var(--stroke))";
+
+// the static "where to find us" rota (no DB — these are recurring placements)
+const placements = [
+  { k: "Riverfront Eats", d: "Tuesdays, downtown — May–Aug" },
+  { k: "Kendall Yards Night Market", d: "Wednesdays through the season" },
+  { k: "South Perry Thursday Market", d: "Thursdays, the South Perry district" },
+  { k: "Brewery partnerships", d: "Pop-ups with the local taprooms — watch the socials" },
+  { k: "Stuffed on the Bluff", d: "September — 100% Inland NW" },
 ];
-const merch = [
-  { k: "Tees", d: "The mark, the colors, the build.", tag: "dropping soon" },
-  { k: "Caps", d: "Low-key, on-brand, sharp.", tag: "dropping soon" },
-  { k: "Stickers", d: "Slap the chevron everywhere.", tag: "dropping soon" },
-];
-const playbooks = [
-  { k: "The Atomise Machine", d: "Film once, publish six. The repurposing system that feeds every surface." },
-  { k: "Own The List", d: "Build the audience the algorithm can't throttle." },
-  { k: "Sell Without Sleaze", d: "Offers that convert because they're true, not pushy." },
-  { k: "Buy Back Your Time", d: "The delegation + systems stack that returns your hours." },
-];
+
+// the tab manifest (drives the tablist + panels)
+const TABS = [
+  { id: "food", label: "Food" },
+  { id: "merch", label: "Merch" },
+  { id: "events", label: "Events" },
+  { id: "workshops", label: "Workshops" },
+  { id: "playbooks", label: "Playbooks" },
+] as const;
 ---
-<Base title="Shop — SlicedLabs" description="Food, merch, and the playbooks. Most of it's coming — here's what, and how to be first.">
-  <section class="wrap" style="padding-block:clamp(2.5rem,7vw,4rem);">
+<Base title="Shop — SlicedLabs" description="Everything we make — food, merch, events, workshops, and the playbooks. Pick your slice.">
+  {/* ── HERO ───────────────────────────────────────────────────────────── */}
+  <section class="wrap" style="padding-block:clamp(2.5rem,7vw,4rem) clamp(1.2rem,3vw,2rem);">
     <p class="mono" data-reveal>everything we make</p>
     <h1 data-reveal style="--i:1; font-size:clamp(2.4rem,8vw,4.6rem);"><span class="blend-text">Shop</span></h1>
     <hr class="blade" data-reveal style="--i:2; max-width:14rem; margin:1.4rem 0 0;" />
     <p data-reveal style="--i:3; font-size:clamp(1.1rem,2.4vw,1.4rem); color:var(--muted); max-width:46rem; margin-top:1.4rem;">
-      The food, the merch, and the playbooks we run. Most of it isn't live yet — that's the honest part. Here's what's coming, and how to be first in line.
+      Everything we make, in one place — the food, the merch, the events, the workshops, and the playbooks we run the business on. <span class="blend-text" style="font-weight:600;">Pick your slice.</span>
     </p>
   </section>
 
-  {hasProducts ? (
-    <section class="wrap" aria-labelledby="store" style="padding-block:clamp(2rem,6vw,3.5rem);">
-      <div data-reveal style="display:flex; align-items:baseline; gap:.8rem; margin-bottom:1.2rem; flex-wrap:wrap;">
-        <h2 id="store" style="font-size:clamp(1.4rem,4vw,2rem); margin:0;">In stock</h2>
-        <span class="tag">order now</span>
+  {/* ── TABLIST (glass pill row, sticky under the header) ──────────────── */}
+  <div class="tabs-wrap" data-tabs>
+    <div class="wrap" style="padding-inline:1.25rem;">
+      <div class="tabbar glass" role="tablist" aria-label="Shop sections">
+        {TABS.map((t, i) => (
+          <button
+            type="button"
+            class="tab"
+            id={`tab-${t.id}`}
+            role="tab"
+            aria-selected={i === 0 ? "true" : "false"}
+            aria-controls={`panel-${t.id}`}
+            tabindex={i === 0 ? "0" : "-1"}
+            data-tab={t.id}
+          >
+            <span class="tab-glow" aria-hidden="true"></span>
+            <span class="tab-label">{t.label}</span>
+          </button>
+        ))}
       </div>
-      <div class="bento">
-        {products.map((p, i) => {
-          const img = firstImage(p.images) ?? "/placeholder-product.svg";
-          const mp = minPrice(p.variants);
-          return (
-            <a
-              class="glass island col-3"
-              href={`/shop/${p.slug}`}
-              data-reveal
-              style={`--i:${i}; display:flex; flex-direction:column; gap:.75rem; text-decoration:none; color:inherit;`}
-            >
-              <div style="aspect-ratio:4/3; border-radius:var(--radius); overflow:hidden; background:var(--panel); border:1px solid var(--stroke);">
-                <img
-                  src={img}
-                  alt={p.title}
-                  loading="lazy"
-                  style="width:100%; height:100%; object-fit:cover; display:block;"
-                />
+    </div>
+  </div>
+
+  <div class="wrap" style="padding-block:clamp(1.5rem,5vw,3rem);">
+    {/* ════════════════ FOOD ════════════════ */}
+    <section
+      id="panel-food"
+      role="tabpanel"
+      aria-labelledby="tab-food"
+      tabindex="0"
+      class="panel is-active"
+      data-panel="food"
+    >
+      {anchors.length + sides.length + sweets.length + drops.length === 0 ? (
+        <article class="glass glass-ultra island" data-reveal style="text-align:center;">
+          <p class="mono" style="margin:0 0 .4rem;">the board's resetting</p>
+          <h2 style="font-size:clamp(1.4rem,4vw,2rem); margin:.2rem 0 .5rem;"><span class="blend-text">Menu coming soon</span></h2>
+          <p style="color:var(--muted); max-width:38rem; margin:0 auto 1.2rem;">The anchor's locked and the drops are in prep. Want us at your event in the meantime?</p>
+          <a class="btn" href="/truck#catering">Book the truck →</a>
+        </article>
+      ) : (
+        <>
+          {anchors.length > 0 && (
+            <div class="grp">
+              <div class="grp-head" data-reveal>
+                <h2>The Anchors</h2>
+                <span class="tag">always on</span>
               </div>
-              <span class="tag">{FULFILL_LABEL[p.fulfillment_type]}</span>
-              <h3 style="font-size:1.3rem; margin:0;"><span class="blend-text">{p.title}</span></h3>
-              {mp && (
-                <p class="mono" style="margin:0; color:var(--muted);">from {formatMoney(mp.cents, mp.currency)}</p>
-              )}
-            </a>
-          );
-        })}
-      </div>
-      <div class="wrap" style="padding-inline:0;"><Newsletter /></div>
+              <div class="bento">
+                {anchors.map((m, i) => (
+                  <button
+                    type="button"
+                    class={`tile glass island col-2${m.hero ? " glass-focal tile-focal" : ""}`}
+                    data-reveal
+                    style={`--i:${i};${m.hero ? ` border-color:${focalBorder};` : ""}`}
+                    data-modal
+                    data-title={m.name}
+                    data-price={m.price_label ?? ""}
+                    data-body={m.blurb ?? ""}
+                    data-dietary={dietJoin(m.dietary)}
+                    data-note={m.note ?? ""}
+                    data-tag={m.season ?? ""}
+                    data-href="/truck"
+                    data-cta="Served at the truck →"
+                    data-food="1"
+                  >
+                    <div class="tile-row">
+                      <h3>{m.hero ? <span class="blend-text">{m.name}</span> : m.name}</h3>
+                      {m.price_label && <span class="price mono">{m.price_label}</span>}
+                    </div>
+                    {m.blurb && <p class="tile-blurb">{m.blurb}</p>}
+                    {(m.dietary.length > 0 || m.season) && (
+                      <div class="chips">
+                        {m.season && <span class="tag">{m.season}</span>}
+                        {m.dietary.map((d) => <span class="tag diet">{dietLabel(d)}</span>)}
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {drops.length > 0 && (
+            <div class="grp">
+              <div class="grp-head" data-reveal>
+                <h2>This Week — Drops</h2>
+                <span class="tag">scarce</span>
+              </div>
+              <div class="bento">
+                {drops.map((m, i) => (
+                  <button
+                    type="button"
+                    class="tile glass island col-2"
+                    data-reveal
+                    style={`--i:${i};`}
+                    data-modal
+                    data-title={m.name}
+                    data-price={m.price_label ?? ""}
+                    data-body={m.blurb ?? ""}
+                    data-dietary={dietJoin(m.dietary)}
+                    data-note={m.note ?? ""}
+                    data-tag={m.season ?? ""}
+                    data-href="/truck"
+                    data-cta="Served at the truck →"
+                    data-food="1"
+                  >
+                    <div class="tile-row">
+                      <h3><span class="blend-text">{m.name}</span></h3>
+                      {m.price_label && <span class="price mono">{m.price_label}</span>}
+                    </div>
+                    {m.blurb && <p class="tile-blurb">{m.blurb}</p>}
+                    {(m.dietary.length > 0 || m.season) && (
+                      <div class="chips">
+                        {m.season && <span class="tag">{m.season}</span>}
+                        {m.dietary.map((d) => <span class="tag diet">{dietLabel(d)}</span>)}
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {sides.length > 0 && (
+            <div class="grp">
+              <div class="grp-head" data-reveal>
+                <h2>Sides</h2>
+              </div>
+              <div class="bento">
+                {sides.map((m, i) => (
+                  <button
+                    type="button"
+                    class="tile glass island col-2"
+                    data-reveal
+                    style={`--i:${i};`}
+                    data-modal
+                    data-title={m.name}
+                    data-price={m.price_label ?? ""}
+                    data-body={m.blurb ?? ""}
+                    data-dietary={dietJoin(m.dietary)}
+                    data-note={m.note ?? ""}
+                    data-tag={m.season ?? ""}
+                    data-href="/truck"
+                    data-cta="Served at the truck →"
+                    data-food="1"
+                  >
+                    <div class="tile-row">
+                      <h3>{m.name}</h3>
+                      {m.price_label && <span class="price mono">{m.price_label}</span>}
+                    </div>
+                    {m.blurb && <p class="tile-blurb">{m.blurb}</p>}
+                    {m.dietary.length > 0 && (
+                      <div class="chips">
+                        {m.dietary.map((d) => <span class="tag diet">{dietLabel(d)}</span>)}
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {sweets.length > 0 && (
+            <div class="grp">
+              <div class="grp-head" data-reveal>
+                <h2>Sweet</h2>
+              </div>
+              <div class="bento">
+                {sweets.map((m, i) => (
+                  <button
+                    type="button"
+                    class="tile glass island col-2"
+                    data-reveal
+                    style={`--i:${i};`}
+                    data-modal
+                    data-title={m.name}
+                    data-price={m.price_label ?? ""}
+                    data-body={m.blurb ?? ""}
+                    data-dietary={dietJoin(m.dietary)}
+                    data-note={m.note ?? ""}
+                    data-tag={m.season ?? ""}
+                    data-href="/truck"
+                    data-cta="Served at the truck →"
+                    data-food="1"
+                  >
+                    <div class="tile-row">
+                      <h3>{m.name}</h3>
+                      {m.price_label && <span class="price mono">{m.price_label}</span>}
+                    </div>
+                    {m.blurb && <p class="tile-blurb">{m.blurb}</p>}
+                    {m.dietary.length > 0 && (
+                      <div class="chips">
+                        {m.dietary.map((d) => <span class="tag diet">{dietLabel(d)}</span>)}
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div class="panel-cta" data-reveal>
+            <a class="btn" href="/menu">See the full menu →</a>
+            <a class="btn btn-ghost" href="/truck">Track the truck →</a>
+          </div>
+        </>
+      )}
     </section>
-  ) : (
-    <>
-      <section class="wrap" aria-labelledby="food" style="padding-block:1.5rem;">
-        <div data-reveal style="display:flex; align-items:baseline; gap:.8rem; margin-bottom:1rem; flex-wrap:wrap;">
-          <h2 id="food" style="font-size:clamp(1.4rem,4vw,2rem); margin:0;">Food</h2>
-          <span class="tag">from the truck</span>
-        </div>
-        <div class="bento">
-          {food.map((f, i) => (
-            <article class="glass island col-3" data-reveal style={`--i:${i}`}>
-              <span class="tag">{f.tag}</span>
-              <h3 style="font-size:1.3rem; margin:.6rem 0 .3rem;"><span class="blend-text">{f.k}</span></h3>
-              <p style="color:var(--muted); margin:0;">{f.d}</p>
-            </article>
-          ))}
-        </div>
-        <div data-reveal style="max-width:30rem; margin:1.4rem auto 0;"><LeadForm source="food-preorder" anchor="food" cta="Notify me when food drops →" /></div>
-      </section>
 
-      <section class="wrap" aria-labelledby="merch" style="padding-block:1.5rem;">
-        <div data-reveal style="display:flex; align-items:baseline; gap:.8rem; margin-bottom:1rem; flex-wrap:wrap;">
-          <h2 id="merch" style="font-size:clamp(1.4rem,4vw,2rem); margin:0;">Merch</h2>
-          <span class="tag">wear the build</span>
-        </div>
+    {/* ════════════════ MERCH ════════════════ */}
+    <section
+      id="panel-merch"
+      role="tabpanel"
+      aria-labelledby="tab-merch"
+      tabindex="0"
+      class="panel"
+      data-panel="merch"
+      hidden
+    >
+      {merch.length === 0 ? (
+        <article class="glass glass-ultra island" data-reveal style="text-align:center;">
+          <p class="mono" style="margin:0 0 .4rem;">wear the build</p>
+          <h2 style="font-size:clamp(1.4rem,4vw,2rem); margin:.2rem 0 .5rem;"><span class="blend-text">Merch drops soon</span></h2>
+          <p style="color:var(--muted); max-width:38rem; margin:0 auto;">The mark, the colors, the build — on tees, caps, and stickers. Get on the list and you'll be first.</p>
+        </article>
+      ) : (
         <div class="bento">
-          {merch.map((m, i) => (
-            <article class="glass island col-2" data-reveal style={`--i:${i}`}>
-              <span class="tag">{m.tag}</span>
-              <h3 style="font-size:1.25rem; margin:.6rem 0 .3rem;">{m.k}</h3>
-              <p style="color:var(--muted); margin:0;">{m.d}</p>
-            </article>
-          ))}
+          {merch.map((p, i) => {
+            const img = firstImage(p.images);
+            const price = fromPrice(p.variants);
+            return (
+              <button
+                type="button"
+                class="tile tile-prod glass island col-3"
+                data-reveal
+                style={`--i:${i};`}
+                data-modal
+                data-title={p.title}
+                data-price={price ? `from ${price}` : ""}
+                data-body={p.description ?? ""}
+                data-img={img}
+                data-href={`/shop/${p.slug}`}
+                data-cta="View & buy →"
+              >
+                <div class="tile-media">
+                  <img src={img} alt={p.title} loading="lazy" />
+                </div>
+                <div class="tile-foot">
+                  <h3><span class="blend-text">{p.title}</span></h3>
+                  {price && <p class="price mono">from {price}</p>}
+                </div>
+              </button>
+            );
+          })}
         </div>
-        <div data-reveal style="max-width:30rem; margin:1.4rem auto 0;"><LeadForm source="merch-waitlist" anchor="merch" cta="Join the merch waitlist →" /></div>
-      </section>
+      )}
+    </section>
 
-      <section class="wrap" aria-labelledby="play" style="padding-block:1.5rem;">
-        <div data-reveal style="display:flex; align-items:baseline; gap:.8rem; margin-bottom:.3rem; flex-wrap:wrap;">
-          <h2 id="play" style="font-size:clamp(1.4rem,4vw,2rem); margin:0;">The Playbooks</h2>
-          <span class="tag">coming</span>
+    {/* ════════════════ EVENTS ════════════════ */}
+    <section
+      id="panel-events"
+      role="tabpanel"
+      aria-labelledby="tab-events"
+      tabindex="0"
+      class="panel"
+      data-panel="events"
+      hidden
+    >
+      {drops.length > 0 && (
+        <div class="grp">
+          <div class="grp-head" data-reveal>
+            <h2>Seasonal Drops</h2>
+            <span class="tag">scarce</span>
+          </div>
+          <p class="grp-sub" data-reveal>The specials that change with what's good and local. Here this week, gone the next.</p>
+          <div class="bento">
+            {drops.map((m, i) => (
+              <button
+                type="button"
+                class="tile glass island col-2"
+                data-reveal
+                style={`--i:${i};`}
+                data-modal
+                data-title={m.name}
+                data-price={m.price_label ?? ""}
+                data-body={m.blurb ?? ""}
+                data-dietary={dietJoin(m.dietary)}
+                data-note={m.note ?? ""}
+                data-tag={m.season ?? ""}
+                data-href="/truck"
+                data-cta="Served at the truck →"
+                data-food="1"
+              >
+                <div class="tile-row">
+                  <h3><span class="blend-text">{m.name}</span></h3>
+                  {m.price_label && <span class="price mono">{m.price_label}</span>}
+                </div>
+                {m.season && <span class="tag" style="align-self:flex-start;">{m.season}</span>}
+                {m.blurb && <p class="tile-blurb">{m.blurb}</p>}
+                {m.dietary.length > 0 && (
+                  <div class="chips">
+                    {m.dietary.map((d) => <span class="tag diet">{dietLabel(d)}</span>)}
+                  </div>
+                )}
+              </button>
+            ))}
+          </div>
         </div>
-        <p data-reveal style="color:var(--muted); max-width:42rem; margin:0 0 1.4rem;">The systems we run the business on — packaged once they've earned it on camera. Not theory; the actual machine.</p>
+      )}
+
+      <div class="grp">
+        <div class="grp-head" data-reveal>
+          <h2>Where to Find Us</h2>
+          <span class="tag">the rota</span>
+        </div>
+        <p class="grp-sub" data-reveal>The recurring placements across the Inland NW. Exact dates and the live pin go up on the truck page.</p>
+        <ul class="rows">
+          {placements.map((pl, i) => (
+            <li class="row glass island" data-reveal style={`--i:${i};`}>
+              <span class="row-dot" aria-hidden="true"></span>
+              <div>
+                <h3>{pl.k}</h3>
+                <p>{pl.d}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+        <div class="panel-cta" data-reveal>
+          <a class="btn" href="/truck">Track the truck →</a>
+          <a class="btn btn-ghost" href="/truck#catering">Book us for an event →</a>
+        </div>
+      </div>
+    </section>
+
+    {/* ════════════════ WORKSHOPS ════════════════ */}
+    <section
+      id="panel-workshops"
+      role="tabpanel"
+      aria-labelledby="tab-workshops"
+      tabindex="0"
+      class="panel"
+      data-panel="workshops"
+      hidden
+    >
+      {workshops.length === 0 ? (
+        <article class="glass glass-ultra island" data-reveal style="text-align:center;">
+          <p class="mono" style="margin:0 0 .4rem;">learn it · build it</p>
+          <h2 style="font-size:clamp(1.4rem,4vw,2rem); margin:.2rem 0 .5rem;"><span class="blend-text">Workshops drop soon</span></h2>
+          <p style="color:var(--muted); max-width:38rem; margin:0 auto 1.2rem;">Cook-alongs and build sessions — in person across the PNW, live virtual, and on-demand. Get the dates first.</p>
+          <a class="btn" href="/workshops">Get on the list →</a>
+        </article>
+      ) : (
         <div class="bento">
-          {playbooks.map((p, i) => (
-            <article class="glass island col-3" data-reveal style={`--i:${i}`}>
-              <h3 style="font-size:1.2rem; margin:0 0 .3rem;"><span class="blend-text">{p.k}</span></h3>
-              <p style="color:var(--muted); margin:0;">{p.d}</p>
-            </article>
-          ))}
+          {workshops.map((w, i) => {
+            const img = w.cover_image || "/placeholder-product.svg";
+            return (
+              <button
+                type="button"
+                class="tile tile-prod glass island col-3"
+                data-reveal
+                style={`--i:${i};`}
+                data-modal
+                data-title={w.title}
+                data-price={fmtPrice(w.price_cents, w.currency)}
+                data-body={w.description ?? ""}
+                data-img={img}
+                data-tag={fmtWhen(w.starts_at)}
+                data-href={`/workshops/${w.slug}`}
+                data-cta="Get a ticket →"
+              >
+                <div class="tile-media">
+                  <img src={img} alt={w.title} loading="lazy" />
+                </div>
+                <div class="tile-foot">
+                  <p class="price mono">{fmtWhen(w.starts_at)}</p>
+                  <h3><span class="blend-text">{w.title}</span></h3>
+                  <span class="tag" style="align-self:flex-start; margin-top:.2rem;">{fmtPrice(w.price_cents, w.currency)}</span>
+                </div>
+              </button>
+            );
+          })}
         </div>
-        <div data-reveal style="max-width:30rem; margin:1.4rem auto 0;"><LeadForm source="playbooks-waitlist" anchor="play" cta="Get the playbooks first →" /></div>
-      </section>
+      )}
+    </section>
 
-      <div class="wrap"><Newsletter /></div>
-    </>
-  )}
+    {/* ════════════════ PLAYBOOKS ════════════════ */}
+    <section
+      id="panel-playbooks"
+      role="tabpanel"
+      aria-labelledby="tab-playbooks"
+      tabindex="0"
+      class="panel"
+      data-panel="playbooks"
+      hidden
+    >
+      {playbooks.length === 0 ? (
+        <article class="glass glass-ultra island" data-reveal style="text-align:center;">
+          <p class="mono" style="margin:0 0 .4rem;">the machine, packaged</p>
+          <h2 style="font-size:clamp(1.4rem,4vw,2rem); margin:.2rem 0 .5rem;"><span class="blend-text">Playbooks drop soon</span></h2>
+          <p style="color:var(--muted); max-width:38rem; margin:0 auto;">The systems we run the business on — packaged once they've earned it on camera. Not theory; the actual machine.</p>
+        </article>
+      ) : (
+        <div class="bento">
+          {playbooks.map((p, i) => {
+            const img = firstImage(p.images);
+            const price = fromPrice(p.variants);
+            return (
+              <button
+                type="button"
+                class="tile tile-prod glass island col-3"
+                data-reveal
+                style={`--i:${i};`}
+                data-modal
+                data-title={p.title}
+                data-price={price ? `from ${price}` : ""}
+                data-body={p.description ?? ""}
+                data-img={img}
+                data-href={`/shop/${p.slug}`}
+                data-cta="Get the playbook →"
+              >
+                <div class="tile-media">
+                  <img src={img} alt={p.title} loading="lazy" />
+                </div>
+                <div class="tile-foot">
+                  <h3><span class="blend-text">{p.title}</span></h3>
+                  {price && <p class="price mono">from {price}</p>}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </section>
+  </div>
+
+  {/* ── SHARED MODAL (native <dialog>, mirrors Base's .gate) ───────────── */}
+  <dialog id="hub-modal" class="hub" aria-label="Quick view">
+    <div class="hub-inner glass-ultra">
+      <button class="hub-x" type="button" aria-label="Close" data-hub-close>✕</button>
+      <img class="hub-img" alt="" hidden />
+      <p class="mono hub-tag" hidden></p>
+      <h2 class="hub-title blend-text"></h2>
+      <p class="hub-price mono" hidden></p>
+      <div class="hub-diet" hidden></div>
+      <p class="hub-body" hidden></p>
+      <p class="hub-note" hidden></p>
+      <p class="hub-food" hidden>Served at the truck — <a href="/truck">see where we're parked</a>.</p>
+      <a class="btn hub-cta" href="#" hidden></a>
+    </div>
+  </dialog>
 </Base>
+
+<style>
+  /* ── tablist (glass pill row, sticky-ish under the header) ─────────────── */
+  .tabs-wrap {
+    position: sticky;
+    top: 60px; /* clears the floating pillbar */
+    z-index: 40;
+    padding-block: .25rem .6rem;
+  }
+  .tabbar {
+    display: flex;
+    gap: .25rem;
+    padding: .35rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .tabbar::-webkit-scrollbar { display: none; }
+  .tab {
+    position: relative;
+    isolation: isolate;
+    flex: 1 1 auto;
+    min-width: max-content;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: .55rem 1rem;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: .82rem;
+    letter-spacing: .03em;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color var(--t-quick), background-color var(--t-quick), border-color var(--t-quick);
+  }
+  @supports (corner-shape: superellipse(4)) { .tab { corner-shape: superellipse(4); } }
+  .tab:hover { color: var(--ink); background: color-mix(in oklab, var(--ink) 7%, transparent); }
+  .tab[aria-selected="true"] {
+    color: var(--ink);
+    border-color: color-mix(in oklab, var(--mark) 45%, transparent);
+    background: color-mix(in oklab, var(--mark) 12%, transparent);
+  }
+  .tab-label { position: relative; z-index: 1; }
+  /* signature: a static gradient glow behind the active tab — not animated */
+  .tab-glow {
+    position: absolute; inset: 0; border-radius: inherit; z-index: 0;
+    opacity: 0; pointer-events: none;
+    background: var(--blend);
+    filter: blur(10px);
+    transition: opacity var(--t-quick);
+  }
+  .tab[aria-selected="true"] .tab-glow { opacity: .22; }
+
+  /* ── panels ────────────────────────────────────────────────────────────── */
+  .panel[hidden] { display: none; }
+  .panel { display: block; }
+
+  /* group headers within a panel */
+  .grp { margin-bottom: clamp(2rem, 5vw, 3rem); }
+  .grp:last-child { margin-bottom: 0; }
+  .grp-head {
+    display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap;
+    margin-bottom: .3rem;
+  }
+  .grp-head h2 { font-size: clamp(1.4rem, 4vw, 2.1rem); margin: 0; }
+  .grp-sub { color: var(--muted); max-width: 42rem; margin: 0 0 1.2rem; }
+  .grp-head + .bento { margin-top: 1.2rem; }
+
+  /* ── tiles ─────────────────────────────────────────────────────────────── */
+  .tile {
+    display: flex; flex-direction: column; gap: .6rem;
+    text-align: left; width: 100%;
+    font: inherit; color: inherit;
+    cursor: pointer;
+    -webkit-appearance: none; appearance: none;
+    overflow: hidden;
+  }
+  .tile .tile-row {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
+  }
+  .tile h3 { font-size: 1.3rem; margin: 0; }
+  .tile-focal h3 { font-size: 1.45rem; }
+  .tile .price { font-size: 1.1rem; color: var(--ink); white-space: nowrap; }
+  .tile-blurb {
+    color: var(--muted); margin: 0;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .chips { display: flex; gap: .4rem; flex-wrap: wrap; margin-top: .2rem; }
+  .chips .diet { font-size: .66rem; }
+
+  /* product/cover tiles (image-led) */
+  .tile-prod { padding: 0; gap: 0; }
+  .tile-media {
+    aspect-ratio: 4 / 3; background: var(--panel);
+    border-bottom: 1px solid var(--stroke);
+    overflow: hidden;
+  }
+  .tile-media img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform var(--t-slow) var(--ease); }
+  .tile-foot { display: flex; flex-direction: column; gap: .35rem; padding: 1.1rem 1.25rem 1.25rem; }
+  .tile-foot h3 { font-size: 1.25rem; margin: 0; }
+  .tile-foot .price { color: var(--muted); margin: 0; }
+
+  /* the hover signature — lift + a faint gradient edge from the spectrum */
+  @media (prefers-reduced-motion: no-preference) {
+    .tile {
+      transition: transform var(--t-quick) var(--ease), box-shadow var(--t-quick) var(--ease), border-color var(--t-quick);
+    }
+    .tile:hover {
+      transform: translateY(-4px);
+      border-color: color-mix(in oklab, var(--mark) 38%, var(--stroke));
+      box-shadow:
+        inset 0 1px 0 var(--rim),
+        inset 0 0 0 1px color-mix(in oklab, var(--coral) 16%, transparent),
+        0 18px 50px rgba(0,0,0,.34),
+        0 0 36px color-mix(in oklab, var(--teal) 14%, transparent);
+    }
+    .tile-prod:hover .tile-media img { transform: scale(1.04); }
+  }
+  .tile:focus-visible { outline: 2px solid var(--mark); outline-offset: 2px; }
+
+  /* ── "where to find us" rows ───────────────────────────────────────────── */
+  .rows { list-style: none; padding: 0; margin: 0; display: grid; gap: .7rem; }
+  .row { display: flex; gap: 1rem; align-items: center; }
+  .row h3 { font-size: 1.1rem; margin: 0 0 .15rem; }
+  .row p { color: var(--muted); margin: 0; font-size: .95rem; }
+  .row-dot {
+    width: .65rem; height: .65rem; border-radius: 50%; flex: none;
+    background: var(--blend);
+    box-shadow: 0 0 0 4px color-mix(in oklab, var(--teal) 18%, transparent);
+  }
+
+  /* ── panel CTA row ─────────────────────────────────────────────────────── */
+  .panel-cta { display: flex; gap: .8rem; flex-wrap: wrap; margin-top: clamp(1.6rem, 4vw, 2.4rem); }
+
+  /* ── panel-enter choreography — one-shot per activation ────────────────── */
+  @media (prefers-reduced-motion: no-preference) {
+    .panel.panel-enter { animation: hub-panel-in 250ms var(--ease) both; }
+    @keyframes hub-panel-in {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: none; }
+    }
+  }
+
+  /* ── the shared modal (mirrors Base's .gate, scaled up) ────────────────── */
+  dialog.hub {
+    border: 0; padding: 0; background: transparent; color: var(--ink);
+    max-width: 34rem; width: calc(100vw - 2rem);
+    inset: 0; margin: auto; height: fit-content;
+  }
+  dialog.hub::backdrop {
+    background: rgba(0,0,0,.62);
+    backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+  }
+  .hub-inner {
+    position: relative;
+    background: var(--panel);
+    border: 1px solid var(--stroke);
+    border-radius: var(--radius-lg);
+    padding: 1.6rem 1.5rem 1.5rem;
+    box-shadow: inset 0 1px 0 var(--rim), 0 32px 90px rgba(0,0,0,.5);
+  }
+  .hub-x {
+    position: absolute; top: .6rem; right: .8rem;
+    background: transparent; border: 0; color: var(--muted);
+    font-size: 1.1rem; cursor: pointer; line-height: 1; z-index: 2;
+  }
+  .hub-x:hover { color: var(--ink); }
+  .hub-img {
+    width: 100%; aspect-ratio: 4 / 3; object-fit: cover; display: block;
+    border-radius: var(--radius); border: 1px solid var(--stroke);
+    margin-bottom: 1rem;
+  }
+  .hub-tag { margin: 0 0 .5rem; }
+  .hub-title { font-family: var(--font-display); font-weight: 800; font-size: clamp(1.5rem, 5vw, 2rem); line-height: 1.05; margin: 0 0 .4rem; }
+  .hub-price { font-size: 1.05rem; color: var(--ink); margin: 0 0 .8rem; }
+  .hub-diet { display: flex; gap: .4rem; flex-wrap: wrap; margin: 0 0 .9rem; }
+  .hub-diet .tag { font-size: .68rem; }
+  .hub-body { color: var(--muted); margin: 0 0 .8rem; line-height: 1.6; }
+  .hub-note { color: var(--muted); font-style: italic; font-size: .9rem; margin: 0 0 .8rem; }
+  .hub-food { color: var(--muted); font-size: .9rem; margin: 0 0 1.1rem; }
+  .hub-food a { color: var(--mark); }
+  .hub-cta { margin-top: .2rem; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    dialog.hub[open] { animation: hub-modal-in 200ms var(--ease) both; }
+    dialog.hub[open]::backdrop { animation: hub-backdrop-in 200ms var(--ease) both; }
+    @keyframes hub-modal-in {
+      from { opacity: 0; transform: scale(.96) translateY(8px); }
+      to   { opacity: 1; transform: none; }
+    }
+    @keyframes hub-backdrop-in { from { opacity: 0; } to { opacity: 1; } }
+  }
+
+  @media (prefers-reduced-transparency: reduce) {
+    .tabbar, .hub-inner { backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--bg-alt); }
+  }
+</style>
+
+<script>
+  // ── Shop hub — ARIA tabs, panel-enter choreography, and the shared modal.
+  // Plain DOM/TS; no deps. All motion is one-shot or user-driven (no-shimmer law).
+  (() => {
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    // ── TABS ────────────────────────────────────────────────────────────────
+    const tablist = document.querySelector('[role="tablist"]');
+    const tabs = Array.from(document.querySelectorAll<HTMLButtonElement>('[role="tab"]'));
+
+    function panelFor(tab: HTMLButtonElement): HTMLElement | null {
+      const id = tab.getAttribute("aria-controls");
+      return id ? document.getElementById(id) : null;
+    }
+
+    function selectTab(tab: HTMLButtonElement, focus = true) {
+      tabs.forEach((t) => {
+        const on = t === tab;
+        t.setAttribute("aria-selected", on ? "true" : "false");
+        t.tabIndex = on ? 0 : -1;
+        const panel = panelFor(t);
+        if (!panel) return;
+        if (on) {
+          panel.hidden = false;
+          panel.classList.add("is-active");
+          if (!reduce) {
+            panel.classList.remove("panel-enter");
+            // reflow so the animation re-triggers on every activation
+            void panel.offsetWidth;
+            panel.classList.add("panel-enter");
+          }
+        } else {
+          panel.hidden = true;
+          panel.classList.remove("is-active", "panel-enter");
+        }
+      });
+      if (focus) tab.focus();
+    }
+
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => selectTab(tab, false));
+    });
+
+    tablist?.addEventListener("keydown", (e) => {
+      const ev = e as KeyboardEvent;
+      const idx = tabs.findIndex((t) => t === document.activeElement);
+      if (idx === -1) return;
+      let next = -1;
+      if (ev.key === "ArrowRight" || ev.key === "ArrowDown") next = (idx + 1) % tabs.length;
+      else if (ev.key === "ArrowLeft" || ev.key === "ArrowUp") next = (idx - 1 + tabs.length) % tabs.length;
+      else if (ev.key === "Home") next = 0;
+      else if (ev.key === "End") next = tabs.length - 1;
+      else if (ev.key === "Enter" || ev.key === " ") {
+        ev.preventDefault();
+        selectTab(tabs[idx], false);
+        return;
+      }
+      if (next >= 0) {
+        ev.preventDefault();
+        selectTab(tabs[next]);
+      }
+    });
+
+    // deep-link: /shop#merch etc. selects that tab on load
+    const hash = location.hash.replace("#", "");
+    if (hash) {
+      const target = tabs.find((t) => t.dataset.tab === hash);
+      if (target) selectTab(target, false);
+    }
+
+    // ── MODAL ──────────────────────────────────────────────────────────────
+    const dialog = document.getElementById("hub-modal") as HTMLDialogElement | null;
+    if (dialog) {
+      const img = dialog.querySelector(".hub-img") as HTMLImageElement | null;
+      const tagEl = dialog.querySelector(".hub-tag") as HTMLElement | null;
+      const titleEl = dialog.querySelector(".hub-title") as HTMLElement | null;
+      const priceEl = dialog.querySelector(".hub-price") as HTMLElement | null;
+      const dietEl = dialog.querySelector(".hub-diet") as HTMLElement | null;
+      const bodyEl = dialog.querySelector(".hub-body") as HTMLElement | null;
+      const noteEl = dialog.querySelector(".hub-note") as HTMLElement | null;
+      const foodEl = dialog.querySelector(".hub-food") as HTMLElement | null;
+      const ctaEl = dialog.querySelector(".hub-cta") as HTMLAnchorElement | null;
+
+      const setText = (el: HTMLElement | null, val: string) => {
+        if (!el) return;
+        el.textContent = val;
+        el.hidden = val.trim().length === 0;
+      };
+
+      function fill(tile: HTMLElement) {
+        const d = tile.dataset;
+        if (img) {
+          if (d.img) { img.src = d.img; img.alt = d.title ?? ""; img.hidden = false; }
+          else { img.hidden = true; img.removeAttribute("src"); }
+        }
+        setText(tagEl, d.tag ?? "");
+        if (titleEl) titleEl.textContent = d.title ?? "";
+        setText(priceEl, d.price ?? "");
+
+        // dietary → chips
+        if (dietEl) {
+          dietEl.innerHTML = "";
+          const diet = (d.dietary ?? "").trim();
+          if (diet) {
+            diet.split("·").map((s) => s.trim()).filter(Boolean).forEach((code) => {
+              const chip = document.createElement("span");
+              chip.className = "tag";
+              chip.textContent = code;
+              dietEl.appendChild(chip);
+            });
+            dietEl.hidden = false;
+          } else {
+            dietEl.hidden = true;
+          }
+        }
+
+        setText(bodyEl, d.body ?? "");
+        setText(noteEl, d.note ?? "");
+        if (foodEl) foodEl.hidden = d.food !== "1";
+
+        if (ctaEl) {
+          if (d.href && d.cta) {
+            ctaEl.href = d.href;
+            ctaEl.textContent = d.cta;
+            ctaEl.hidden = false;
+          } else {
+            ctaEl.hidden = true;
+          }
+        }
+      }
+
+      // ONE delegated handler on the shared tile container
+      const root = document.querySelector(".wrap [data-panel]")?.closest(".wrap") ?? document;
+      root.addEventListener("click", (e) => {
+        const tile = (e.target as HTMLElement)?.closest<HTMLElement>("[data-modal]");
+        if (!tile) return;
+        fill(tile);
+        try { dialog.showModal(); } catch { /* already open */ }
+        dialog.focus();
+      });
+
+      const close = () => { try { dialog.close(); } catch { /* noop */ } };
+      dialog.querySelectorAll("[data-hub-close]").forEach((b) =>
+        b.addEventListener("click", close),
+      );
+      // backdrop click — the dialog element itself is the backdrop target
+      dialog.addEventListener("click", (e) => {
+        if (e.target === dialog) close();
+      });
+      // Esc is native to <dialog>; nothing extra needed.
+    }
+  })();
+</script>
