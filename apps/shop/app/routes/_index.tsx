@@ -49,23 +49,17 @@ export default function ShopHome() {
   return (
     <div className="wrap">
       <section className="shop-hero">
-        <img
-          src={MARK_PATH}
-          alt=""
-          width={56}
-          height={56}
-          style={{filter: 'drop-shadow(0 2px 14px color-mix(in oklab, var(--mark) 32%, transparent))'}}
-        />
+        <img src={MARK_PATH} alt="" width={80} height={80} className="shop-hero-mark" />
         <p className="mono">{BRAND_NAME} · shop</p>
-        <h1 className="kinetic blend-text">{SLOGAN}</h1>
-        <p style={{color: 'var(--muted)', maxWidth: '34rem'}}>{ONE_LINER}</p>
-        <div style={{display: 'flex', gap: '0.8rem', flexWrap: 'wrap'}}>
-          <Button href="/collections/all">Browse the catalog</Button>
+        <h1 className="kinetic blend-text shop-hero-title">{SLOGAN}</h1>
+        <p className="shop-hero-sub">{ONE_LINER}</p>
+        <div className="shop-hero-cta">
+          <Button href="/collections/all">Browse the catalog →</Button>
           <Button variant="ghost" href="https://slicedlabs.io">
             Back to slicedlabs.io
           </Button>
         </div>
-        <hr className="blade center" aria-hidden="true" />
+        <hr className="blade center shop-hero-blade" aria-hidden="true" />
       </section>
 
       <section aria-labelledby="featured" style={{paddingBlock: '1rem 4rem'}}>
