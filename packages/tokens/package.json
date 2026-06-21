@@ -1,0 +1,12 @@
+{
+  "name": "@slicedlabs/tokens",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "SlicedLabs design tokens — product SSOT (tokens.toml) → generated CSS + JS, consumed by all surfaces.",
+  "exports": {
+    "./tokens.css": "./dist/tokens.css",
+    "./p3.css": "./dist/p3.css",
+    "./tokens.js": "./dist/tokens.js"
+  }
+}

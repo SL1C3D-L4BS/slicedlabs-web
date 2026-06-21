@@ -1,0 +1,10 @@
+{
+  "name": "@slicedlabs/brand",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Non-visual brand constants — hue map, mark path, lead SOURCES registry, shared copy.",
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}

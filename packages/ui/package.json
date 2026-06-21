@@ -1,0 +1,10 @@
+{
+  "name": "@slicedlabs/ui",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Shared React primitives (GlassCard, Blade, PillBar, Button, forms) for the React surfaces (shop + app). Astro markup has twins here — two implementations, one contract.",
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}
