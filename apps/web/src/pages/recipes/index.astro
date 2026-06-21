@@ -1,0 +1,134 @@
+---
+// SlicedLabs · studio · © 2026 SlicedLabs — Recipes
+// The in-house "inspiration behind the food" blog. Every drop has a reason:
+// the technique, the source, and the story — laid out, in public.
+// Server-rendered from `recipes` (RLS: public read of published rows).
+export const prerender = false;
+import Base from "../../layouts/Base.astro";
+import { getServerSupabase } from "../../lib/supabase";
+
+const supabase = getServerSupabase(Astro.cookies, Astro.request);
+const { data: rows } = await supabase
+  .from("recipes")
+  .select("slug,title,sl_code,kicker,summary,dietary,season,section")
+  .eq("status", "published")
+  .order("section")
+  .order("sort");
+
+type RecipeCard = {
+  slug: string;
+  title: string;
+  sl_code: string | null;
+  kicker: string | null;
+  summary: string | null;
+  dietary: string[] | null;
+  season: string | null;
+  section: "anchor" | "drop" | "dough" | "sweet";
+};
+
+const recipes = (rows ?? []) as unknown as RecipeCard[];
+const hasRecipes = recipes.length > 0;
+
+// Dietary legend — code → label. Anything unknown falls through as-is.
+const DIET_LABEL: Record<string, string> = {
+  gf: "GF",
+  "gf-avail": "GF✓",
+  v: "V",
+  vg: "VG",
+  "vg-avail": "VG✓",
+};
+const dietLabel = (code: string): string => DIET_LABEL[code] ?? code.toUpperCase();
+
+// the section manifest — ordered, with the editorial labels
+const SECTIONS: Array<{ id: RecipeCard["section"]; label: string }> = [
+  { id: "anchor", label: "The Anchors" },
+  { id: "drop", label: "Seasonal Drops" },
+  { id: "dough", label: "The Dough Lab" },
+  { id: "sweet", label: "Sweet" },
+];
+const groups = SECTIONS.map((s) => ({
+  ...s,
+  items: recipes.filter((r) => r.section === s.id),
+})).filter((g) => g.items.length > 0);
+---
+<Base title="Recipes — SlicedLabs" description="The inspiration behind the food. The technique, the source, and the story — laid out, in public. Cook the season; show the source.">
+  {/* ── HERO ───────────────────────────────────────────────────────────── */}
+  <section class="wrap" style="padding-block:clamp(2.5rem,7vw,4rem) clamp(1.2rem,3vw,2rem);">
+    <p class="mono" data-reveal>the inspiration behind the food</p>
+    <h1 data-reveal style="--i:1; font-size:clamp(2.4rem,8vw,4.6rem);"><span class="blend-text">Recipes</span></h1>
+    <hr class="blade" data-reveal style="--i:2; max-width:16rem; margin:1.4rem 0 0;" />
+    <p data-reveal style="--i:3; font-size:clamp(1.1rem,2.4vw,1.4rem); color:var(--muted); max-width:48rem; margin-top:1.4rem;">
+      Every drop has a reason. The technique, the source, and the story — laid out, in public.
+    </p>
+    <p data-reveal style="--i:4; margin-top:1rem; max-width:48rem;"><span class="blend-text" style="font-weight:600;">Cook the season; show the source.</span></p>
+  </section>
+
+  {hasRecipes ? (
+    groups.map((g) => (
+      <section class="wrap" aria-labelledby={`sec-${g.id}`} style="padding-block:clamp(2rem,6vw,3.5rem);">
+        <h2 id={`sec-${g.id}`} data-reveal style="font-size:clamp(1.6rem,4.5vw,2.6rem); margin:0 0 1.4rem;">{g.label}</h2>
+        <div class="bento">
+          {g.items.map((r, i) => {
+            const diet = Array.isArray(r.dietary) ? r.dietary : [];
+            return (
+              <a
+                href={`/recipes/${r.slug}`}
+                class="recipe-tile glass island col-3"
+                data-reveal
+                style={`--i:${i};`}
+              >
+                {r.sl_code && <span class="tag" style="align-self:flex-start;">{r.sl_code}</span>}
+                {r.kicker && <p class="mono" style="margin:0; color:var(--muted);">{r.kicker}</p>}
+                <h3 style="font-size:1.35rem; margin:0;"><span class="blend-text">{r.title}</span></h3>
+                {r.summary && <p class="recipe-summary">{r.summary}</p>}
+                {(diet.length > 0 || r.season) && (
+                  <div style="display:flex; gap:.4rem; flex-wrap:wrap; margin-top:auto; padding-top:.4rem;">
+                    {r.season && <span class="tag">{r.season}</span>}
+                    {diet.map((d) => <span class="tag" style="font-size:.66rem;">{dietLabel(d)}</span>)}
+                  </div>
+                )}
+              </a>
+            );
+          })}
+        </div>
+      </section>
+    ))
+  ) : (
+    <section class="wrap" style="padding-block:clamp(2rem,6vw,3.5rem);">
+      <article class="glass glass-ultra island" data-reveal style="text-align:center;">
+        <p class="mono" style="margin:0 0 .4rem;">the lab's writing it up</p>
+        <h2 style="font-size:clamp(1.5rem,4vw,2.2rem); margin:.2rem 0 .5rem;"><span class="blend-text">Recipes drop soon</span></h2>
+        <p style="color:var(--muted); max-width:40rem; margin:0 auto 1.4rem;">The technique, the source, and the story — written up and shipped in public. Watch this space.</p>
+        <a class="btn" href="/menu">See the full menu →</a>
+      </article>
+    </section>
+  )}
+</Base>
+
+<style>
+  .recipe-tile {
+    display: flex; flex-direction: column; gap: .55rem;
+    text-decoration: none; color: inherit;
+    overflow: hidden;
+  }
+  .recipe-summary {
+    color: var(--muted); margin: 0;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  /* the hover signature — lift + a faint gradient edge from the spectrum */
+  @media (prefers-reduced-motion: no-preference) {
+    .recipe-tile {
+      transition: transform var(--t-quick) var(--ease), box-shadow var(--t-quick) var(--ease), border-color var(--t-quick);
+    }
+    .recipe-tile:hover {
+      transform: translateY(-4px);
+      border-color: color-mix(in oklab, var(--mark) 38%, var(--stroke));
+      box-shadow:
+        inset 0 1px 0 var(--rim),
+        inset 0 0 0 1px color-mix(in oklab, var(--coral) 16%, transparent),
+        0 18px 50px rgba(0,0,0,.34),
+        0 0 36px color-mix(in oklab, var(--teal) 14%, transparent);
+    }
+  }
+  .recipe-tile:focus-visible { outline: 2px solid var(--mark); outline-offset: 2px; }
+</style>

@@ -19,6 +19,7 @@ Each file = one applied migration, in order:
 9. `0009_truck_status.sql` — singleton live food-truck status (public read, service-role write) + added to the realtime publication for the live `/truck` map.
 10. `0010_workshops.sql` — paid workshops (published-read RLS); Stripe tickets grant a `workshop:<slug>` entitlement.
 11. `0011_menu_items.sql` — truck menu (display-only; published-read RLS) powering `/menu`.
+12. `0012_recipes.sql` — recipes data model + the in-house inspiration blog (published-read RLS) powering `/recipes`.
 
 ## RLS posture
 RLS is ON for every table (and auto-enforced on new `public` tables by the `ensure_rls`

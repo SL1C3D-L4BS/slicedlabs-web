@@ -65,6 +65,13 @@ type Workshop = {
   cover_image: string | null;
 };
 
+// ── RECIPES (which menu items have a published "build" write-up) ────────────
+const { data: recipeRows } = await supabase
+  .from("recipes")
+  .select("slug")
+  .eq("status", "published");
+const recipeSlugs = new Set((recipeRows ?? []).map((r: any) => r.slug));
+
 const menuItems = (menuRows ?? []) as unknown as MenuItem[];
 const products = (productRows ?? []) as unknown as Product[];
 const workshops = (workshopRows ?? []) as unknown as Workshop[];
@@ -112,13 +119,18 @@ const fmtPrice = (cents: number, currency: string): string =>
 
 const focalBorder = "color-mix(in oklab, var(--mark) 35%, var(--stroke))";
 
+// FOOD tiles: if a menu item has a published recipe ("the build"), the modal CTA
+// points at the recipe write-up; otherwise it falls back to the truck.
+const foodHref = (slug: string): string => (recipeSlugs.has(slug) ? `/recipes/${slug}` : "/truck");
+const foodCta = (slug: string): string => (recipeSlugs.has(slug) ? "Read the build →" : "Served at the truck →");
+
 // the static "where to find us" rota (no DB — these are recurring placements)
 const placements = [
-  { k: "Riverfront Eats", d: "Tuesdays, downtown — May–Aug" },
+  { k: "Riverfront Eats", d: "Tuesdays 11–2, June–August · Howard St Bridge" },
   { k: "Kendall Yards Night Market", d: "Wednesdays through the season" },
-  { k: "South Perry Thursday Market", d: "Thursdays, the South Perry district" },
+  { k: "South Perry Thursday Market", d: "Thursdays 3–7, May–October · 1000 S Perry" },
   { k: "Brewery partnerships", d: "Pop-ups with the local taprooms — watch the socials" },
-  { k: "Stuffed on the Bluff", d: "September — 100% Inland NW" },
+  { k: "Stuffed on the Bluff", d: "Sept 5–7, 2026 · Green Bluff · 100% Inland NW" },
 ];
 
 // the tab manifest (drives the tablist + panels)
@@ -203,8 +215,8 @@ const TABS = [
                     data-dietary={dietJoin(m.dietary)}
                     data-note={m.note ?? ""}
                     data-tag={m.season ?? ""}
-                    data-href="/truck"
-                    data-cta="Served at the truck →"
+                    data-href={foodHref(m.slug)}
+                    data-cta={foodCta(m.slug)}
                     data-food="1"
                   >
                     <div class="tile-row">
@@ -244,8 +256,8 @@ const TABS = [
                     data-dietary={dietJoin(m.dietary)}
                     data-note={m.note ?? ""}
                     data-tag={m.season ?? ""}
-                    data-href="/truck"
-                    data-cta="Served at the truck →"
+                    data-href={foodHref(m.slug)}
+                    data-cta={foodCta(m.slug)}
                     data-food="1"
                   >
                     <div class="tile-row">
@@ -284,8 +296,8 @@ const TABS = [
                     data-dietary={dietJoin(m.dietary)}
                     data-note={m.note ?? ""}
                     data-tag={m.season ?? ""}
-                    data-href="/truck"
-                    data-cta="Served at the truck →"
+                    data-href={foodHref(m.slug)}
+                    data-cta={foodCta(m.slug)}
                     data-food="1"
                   >
                     <div class="tile-row">
@@ -323,8 +335,8 @@ const TABS = [
                     data-dietary={dietJoin(m.dietary)}
                     data-note={m.note ?? ""}
                     data-tag={m.season ?? ""}
-                    data-href="/truck"
-                    data-cta="Served at the truck →"
+                    data-href={foodHref(m.slug)}
+                    data-cta={foodCta(m.slug)}
                     data-food="1"
                   >
                     <div class="tile-row">

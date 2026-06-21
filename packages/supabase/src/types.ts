@@ -396,6 +396,66 @@ export type Database = {
         }
         Relationships: []
       }
+      recipes: {
+        Row: {
+          created_at: string
+          dietary: string[]
+          hero_image: string | null
+          id: string
+          ingredients: Json
+          kicker: string | null
+          season: string | null
+          section: string
+          sl_code: string | null
+          slug: string
+          sort: number
+          status: string
+          steps: Json
+          story: string | null
+          summary: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          dietary?: string[]
+          hero_image?: string | null
+          id?: string
+          ingredients?: Json
+          kicker?: string | null
+          season?: string | null
+          section?: string
+          sl_code?: string | null
+          slug: string
+          sort?: number
+          status?: string
+          steps?: Json
+          story?: string | null
+          summary?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          dietary?: string[]
+          hero_image?: string | null
+          id?: string
+          ingredients?: Json
+          kicker?: string | null
+          season?: string | null
+          section?: string
+          sl_code?: string | null
+          slug?: string
+          sort?: number
+          status?: string
+          steps?: Json
+          story?: string | null
+          summary?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       saved_recipes: {
         Row: {
           id: string

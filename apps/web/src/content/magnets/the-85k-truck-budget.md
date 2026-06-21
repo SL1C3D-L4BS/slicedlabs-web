@@ -7,8 +7,8 @@ order: 1
 # The $85k Truck Budget
 
 *A real, line-item startup budget for a Spokane food truck — the kind nobody shows
-you. Ranges are honest; "verify" means call the agency. From SlicedLabs' actual
-research (`research/`). We don't pitch. We prove.*
+you. Ranges are honest; "verify" means call the agency. Sourced from the agencies +
+operators we called. We don't pitch. We prove.*
 
 ---
 
@@ -29,7 +29,7 @@ below uses a quality **mid-build** and disciplined choices.
 | 2 | Equipment not in the build | $6,000 | Refrigeration, cooking line extras, smallwares. |
 | 3 | Branding + vehicle wrap | $4,000 | The wrap is rolling media — don't cheap out. |
 | 4 | Permits + licensing | $1,500 | LLC $200 · WA license $50 · L&I insignia+review ~$430 · SRHD **verify** · Fire **verify**. |
-| 5 | Commissary (first 3 months) | $1,500 | ~$500/mo, **verify** local rate. Legally required daily base. |
+| 5 | Commissary (first 3 months) | $1,500 | ~$400–1,200/mo (Spokane), **verify** local rate. Legally required daily base. |
 | 6 | POS + tech | $1,500 | Square/Toast hardware + a month of fees. |
 | 7 | Insurance (initial) | $2,500 | General liability + auto + product. **Verify** a Spokane quote. |
 | 8 | Opening inventory | $2,500 | First food order — local-first (LINC Foods, etc.). |
@@ -40,15 +40,16 @@ below uses a quality **mid-build** and disciplined choices.
 | | **All-in to survive month one** | **~$93,000** | |
 
 ## The year-one shape (directional pro-forma)
+*Directional — replaced with real receipts as they land.*
 - **Revenue:** ~$233,000 (a single truck, real Spokane dayparts + catering).
-- **Operating net:** ~$85,000.
-- **Operating break-even:** ~month 2.
+- **Operating net:** ~$14k–$35k (the 6–15% range above).
+- **Operating break-even:** ~month 4–8, weather-dependent.
 > Directional — replace each line with real quotes as you get them. That's the
 > Build Receipts discipline.
 
 ## Why these numbers work
-- **Margins:** food trucks net **6–9%** (up to 15% owner-run) vs **1–3%** for
-  restaurants (Toast / Harvest). Lower entry, the truck moves to the crowd.
+- **Margins:** food trucks net **~6–15%** owner-run vs **~3–5%** for restaurants
+  (industry benchmarks). Lower entry, the truck moves to the crowd.
 - **The catering lever:** events fill the gap between services — higher ticket,
   booked ahead. The booking funnel is already live at slicedlabs.com/truck.
 
