@@ -29,7 +29,8 @@
         "TURNSTILE_SECRET_KEY",
         "SL_SHIPPING_FLAT_CENTS",
         "STRIPE_TAX_ENABLED",
-        "PRINTFUL_CONFIRM"
+        "PRINTFUL_CONFIRM",
+        "PUBLIC_MAPBOX_TOKEN"
       ]
     },
     "dev": {

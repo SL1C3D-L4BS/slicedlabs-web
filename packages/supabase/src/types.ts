@@ -377,6 +377,39 @@ export type Database = {
           },
         ]
       }
+      truck_status: {
+        Row: {
+          id: number
+          label: string | null
+          lat: number | null
+          lng: number | null
+          message: string | null
+          next_stop: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          id?: number
+          label?: string | null
+          lat?: number | null
+          lng?: number | null
+          message?: string | null
+          next_stop?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          label?: string | null
+          lat?: number | null
+          lng?: number | null
+          message?: string | null
+          next_stop?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       variants: {
         Row: {
           created_at: string

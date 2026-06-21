@@ -1,14 +1,36 @@
 ---
-// SlicedLabs · studio · © 2026 SlicedLabs — The Truck
+// SlicedLabs · studio · © 2026 SlicedLabs — The Truck (live status + map)
+export const prerender = false;
 import Base from "../layouts/Base.astro";
 import Newsletter from "../components/Newsletter.astro";
 import CateringForm from "../components/CateringForm.astro";
+import { getServerSupabase } from "../lib/supabase";
+
+// Live status (RLS: public read). SSR the latest; the client script keeps it live.
+const supabase = getServerSupabase(Astro.cookies, Astro.request);
+const { data: truck } = await supabase
+  .from("truck_status")
+  .select("status, label, message, lat, lng, next_stop, updated_at")
+  .eq("id", 1)
+  .maybeSingle();
+
+const MAPBOX = import.meta.env.PUBLIC_MAPBOX_TOKEN;
+const STATUS_LABEL: Record<string, string> = {
+  rolling: "Rolling now",
+  parked: "Parked & serving",
+  heading: "On the move",
+  closed: "Not open right now",
+};
+const st = truck?.status ?? "closed";
+const open = st !== "closed";
+const dotColor = open ? "var(--teal)" : "var(--muted)";
+const hasCoords = typeof truck?.lat === "number" && typeof truck?.lng === "number";
+
 const menu = [
   { k: "The rotating drop", d: "A chaos menu — a tight set that changes with what's good and local that week. Scarcity by design." },
   { k: "Sourced local-first", d: "The farms and breweries behind the food, named on the board. Buy the commodity, build the relationship." },
   { k: "Priced in the open", d: "The plate cost, the margin, the why — shown on camera. The receipts are the marketing." },
 ];
-// The real Spokane sequence — sourced in research/spokane-food-truck-licensing.md
 const steps = [
   ["Form the LLC + license", "WA Secretary of State (~$200), then the WA Business License / UBI from the Dept. of Revenue ($50)."],
   ["Plans to L&I", "Submit the unit plans to Labor & Industries early — the review can take 8+ weeks before a wrench turns."],
@@ -32,11 +54,34 @@ const steps = [
     </div>
   </section>
 
+  {/* LIVE STATUS — SSR'd from truck_status, kept live by Supabase Realtime */}
   <section class="wrap" style="padding-block:1rem 2rem;">
-    <article class="glass glass-ultra island" data-reveal style="text-align:center;">
-      <p class="mono">status — and we'll always tell you</p>
-      <h2 style="font-size:clamp(1.5rem,4vw,2.2rem); margin:.4rem 0 .3rem;">Not open yet.</h2>
-      <p style="color:var(--muted); max-width:40rem; margin:0 auto;">We're in the build — the permits, the ~$85k truck, the commissary. We never sell a future as a present. The day it opens, you'll have watched it happen.</p>
+    <article class="glass glass-ultra island" data-reveal data-truck-card style="text-align:center;">
+      <div style="display:flex; align-items:center; gap:.6rem; justify-content:center;">
+        <span
+          data-truck-dot
+          style={`width:.7rem; height:.7rem; border-radius:50%; background:${dotColor}; box-shadow:0 0 0 4px color-mix(in oklab, ${dotColor} 22%, transparent);`}
+        ></span>
+        <p class="mono" style="margin:0;">live truck status</p>
+      </div>
+      <h2 data-truck-status style="font-size:clamp(1.5rem,4vw,2.2rem); margin:.5rem 0 .2rem;">{STATUS_LABEL[st] ?? "Status"}</h2>
+      {truck?.label && <p data-truck-label style="font-weight:600; margin:0 0 .3rem;">{truck.label}</p>}
+      {!truck?.label && <p data-truck-label hidden style="font-weight:600; margin:0 0 .3rem;"></p>}
+      <p data-truck-message style="color:var(--muted); max-width:40rem; margin:0 auto;">
+        {truck?.message ?? "We never sell a future as a present. The day it opens, you'll have watched it happen."}
+      </p>
+      {truck?.next_stop && <p data-truck-next class="mono" style="margin:.7rem 0 0;">next stop — {truck.next_stop}</p>}
+      {hasCoords && MAPBOX && (
+        <div
+          id="truck-map"
+          data-lat={truck.lat}
+          data-lng={truck.lng}
+          style="height:340px; border-radius:var(--radius); margin-top:1.3rem; overflow:hidden; border:1px solid var(--stroke);"
+        ></div>
+      )}
+      {hasCoords && !MAPBOX && (
+        <p class="mono" style="color:var(--muted); margin-top:1rem;">live map appears once PUBLIC_MAPBOX_TOKEN is set</p>
+      )}
     </article>
   </section>
 
@@ -76,3 +121,93 @@ const steps = [
 
   <div class="wrap"><Newsletter /></div>
 </Base>
+
+<script>
+  // Live truck status — Supabase Realtime updates the SSR'd card + the Mapbox pin.
+  import { createClient } from "@supabase/supabase-js";
+  const SB_URL = import.meta.env.PUBLIC_SUPABASE_URL;
+  const SB_KEY = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+  const MAPBOX = import.meta.env.PUBLIC_MAPBOX_TOKEN;
+  const STATUS_LABEL: Record<string, string> = {
+    rolling: "Rolling now",
+    parked: "Parked & serving",
+    heading: "On the move",
+    closed: "Not open right now",
+  };
+
+  const card = document.querySelector("[data-truck-card]");
+  if (card && SB_URL && SB_KEY) {
+    let map: any = null;
+    let marker: any = null;
+    const mapEl = document.getElementById("truck-map");
+
+    async function ensureMapbox() {
+      if ((window as any).mapboxgl) return (window as any).mapboxgl;
+      if (!document.querySelector("link[data-mapbox]")) {
+        const l = document.createElement("link");
+        l.rel = "stylesheet";
+        l.href = "https://api.mapbox.com/mapbox-gl-js/v3.9.0/mapbox-gl.css";
+        l.setAttribute("data-mapbox", "1");
+        document.head.appendChild(l);
+      }
+      await new Promise<void>((res, rej) => {
+        const s = document.createElement("script");
+        s.src = "https://api.mapbox.com/mapbox-gl-js/v3.9.0/mapbox-gl.js";
+        s.onload = () => res();
+        s.onerror = () => rej(new Error("mapbox load failed"));
+        document.head.appendChild(s);
+      });
+      return (window as any).mapboxgl;
+    }
+
+    async function initMap(lat: number, lng: number) {
+      if (!MAPBOX || !mapEl || map) return;
+      try {
+        const gl = await ensureMapbox();
+        gl.accessToken = MAPBOX;
+        map = new gl.Map({ container: mapEl, style: "mapbox://styles/mapbox/dark-v11", center: [lng, lat], zoom: 13 });
+        marker = new gl.Marker({ color: "#CB6820" }).setLngLat([lng, lat]).addTo(map);
+      } catch {
+        /* leave the fallback */
+      }
+    }
+
+    function paint(t: any) {
+      if (!t) return;
+      const setText = (sel: string, val: any) => {
+        const el = card!.querySelector(sel) as HTMLElement | null;
+        if (el && val != null) {
+          el.textContent = String(val);
+          el.hidden = String(val).length === 0;
+        }
+      };
+      if (t.status) setText("[data-truck-status]", STATUS_LABEL[t.status] ?? "Status");
+      setText("[data-truck-label]", t.label ?? "");
+      setText("[data-truck-message]", t.message ?? "");
+      const dot = card!.querySelector("[data-truck-dot]") as HTMLElement | null;
+      if (dot && t.status) {
+        const c = t.status === "closed" ? "var(--muted)" : "var(--teal)";
+        dot.style.background = c;
+        dot.style.boxShadow = `0 0 0 4px color-mix(in oklab, ${c} 22%, transparent)`;
+      }
+      if (typeof t.lat === "number" && typeof t.lng === "number") {
+        if (!map) initMap(t.lat, t.lng);
+        else if (marker) {
+          marker.setLngLat([t.lng, t.lat]);
+          map.easeTo({ center: [t.lng, t.lat] });
+        }
+      }
+    }
+
+    if (mapEl?.dataset.lat && mapEl?.dataset.lng) {
+      initMap(Number(mapEl.dataset.lat), Number(mapEl.dataset.lng));
+    }
+
+    const sb = createClient(SB_URL, SB_KEY);
+    sb.channel("truck-status")
+      .on("postgres_changes", { event: "*", schema: "public", table: "truck_status" }, (payload: any) =>
+        paint(payload.new),
+      )
+      .subscribe();
+  }
+</script>

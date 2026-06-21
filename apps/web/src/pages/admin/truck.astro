@@ -1,0 +1,105 @@
+---
+// SlicedLabs · commerce · © 2026 SlicedLabs — Admin cockpit: Truck status
+export const prerender = false;
+import Base from "../../layouts/Base.astro";
+import { getServerSupabase, createServiceSupabase } from "../../lib/supabase";
+import { isAdmin } from "../../lib/admin";
+
+const supabase = getServerSupabase(Astro.cookies, Astro.request);
+const {
+  data: { user },
+} = await supabase.auth.getUser();
+if (!user) return Astro.redirect("/account/login?next=" + encodeURIComponent(Astro.url.pathname));
+if (!isAdmin(user.email)) return new Response("Forbidden", { status: 403 });
+
+let svc: ReturnType<typeof createServiceSupabase> | undefined;
+try {
+  svc = createServiceSupabase();
+} catch {
+  /* SUPABASE_SERVICE_ROLE_KEY not set */
+}
+
+type Truck = {
+  status: string;
+  label: string | null;
+  message: string | null;
+  lat: number | null;
+  lng: number | null;
+  next_stop: string | null;
+};
+let truck: Truck | null = null;
+if (svc) {
+  const { data } = await svc.from("truck_status").select("*").eq("id", 1).maybeSingle();
+  truck = (data as Truck) ?? null;
+}
+
+const STATUSES = ["rolling", "parked", "heading", "closed"];
+const v = (x: unknown) => (x == null ? "" : String(x));
+const ok = Astro.url.searchParams.get("ok");
+const err = Astro.url.searchParams.get("err");
+---
+<Base title="Truck — Admin" description="Update the live truck status." noindex={true}>
+  <section class="wrap" style="padding-block:clamp(2.5rem,7vw,4rem);">
+    <div
+      data-reveal
+      style="display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap; align-items:baseline; margin-bottom:1.4rem;"
+    >
+      <div>
+        <p class="mono" style="margin:0;">cockpit</p>
+        <h1 style="font-size:clamp(1.8rem,6vw,2.6rem); margin:.2rem 0 0;">
+          <span class="blend-text">Truck status</span>
+        </h1>
+      </div>
+      <nav style="display:flex; gap:1.2rem; align-items:center;">
+        <a href="/admin">Orders</a>
+        <a href="/admin/products">Products</a>
+        <a href="/admin/vault">Vault</a>
+      </nav>
+    </div>
+
+    {!svc && (
+      <p class="glass island" data-reveal style="color:var(--coral);">
+        Set <code>SUPABASE_SERVICE_ROLE_KEY</code> to manage truck status.
+      </p>
+    )}
+    {ok && <p class="mono" data-reveal style="color:var(--teal); margin-bottom:1rem;">Saved — the public map updates live.</p>}
+    {err && <p class="mono" data-reveal style="color:var(--coral); margin-bottom:1rem;">{err}</p>}
+
+    {svc && (
+      <form
+        method="POST"
+        action="/api/admin/truck"
+        class="glass island"
+        data-reveal
+        style="display:grid; gap:.9rem; max-width:36rem;"
+      >
+        <label>Status
+          <select class="fld" name="status" style="margin-top:.3rem;">
+            {STATUSES.map((s) => (
+              <option value={s} selected={truck?.status === s}>{s}</option>
+            ))}
+          </select>
+        </label>
+        <label>Location label
+          <input class="fld" name="label" value={v(truck?.label)} placeholder="Riverfront Park, Spokane" style="margin-top:.3rem;" />
+        </label>
+        <div class="row2">
+          <label>Latitude
+            <input class="fld" name="lat" value={v(truck?.lat)} placeholder="47.6588" inputmode="decimal" style="margin-top:.3rem;" />
+          </label>
+          <label>Longitude
+            <input class="fld" name="lng" value={v(truck?.lng)} placeholder="-117.4260" inputmode="decimal" style="margin-top:.3rem;" />
+          </label>
+        </div>
+        <label>Message
+          <textarea class="fld" name="message" rows="2" style="margin-top:.3rem;">{v(truck?.message)}</textarea>
+        </label>
+        <label>Next stop
+          <input class="fld" name="next_stop" value={v(truck?.next_stop)} placeholder="Tomorrow: Kendall Yards" style="margin-top:.3rem;" />
+        </label>
+        <p class="mono" style="color:var(--muted); margin:0;">Tip: right-click a spot in Google Maps to copy lat, lng.</p>
+        <button class="btn" type="submit">Update truck</button>
+      </form>
+    )}
+  </section>
+</Base>
