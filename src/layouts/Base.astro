@@ -2,6 +2,7 @@
 // SlicedLabs · studio · © 2026 SlicedLabs
 import "../styles/global.css";
 import Analytics from "@vercel/analytics/astro";
+import SpeedInsights from "@vercel/speed-insights/astro";
 import { MARK_PATH, OG_PATH } from "../lib/brand";
 import LeadForm from "../components/LeadForm.astro";
 import SocialRow from "../components/SocialRow.astro";
@@ -128,6 +129,7 @@ const isActive = (href: string) => (href === "/" ? path === "/" : path === href 
     </dialog>
 
     <Analytics />
+    <SpeedInsights />
 
     <script is:inline>
       // dark ↔ warm temperature (the two-temperature system). Persists; respects no-shimmer.
