@@ -21,6 +21,9 @@ export function perkForSource(source: string) {
   return PERKS[source] ?? null;
 }
 
+// Distinct vault drops, for the admin uploader (each ref_id = a Storage folder).
+export const VAULT_DROPS = Object.values(PERKS).filter((p) => p.kind === "vault_drops");
+
 export type PerkResult =
   | { granted: false; reason: string }
   | { granted: true; kind: string; refId: string; emailed: boolean };

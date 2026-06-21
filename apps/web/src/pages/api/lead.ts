@@ -58,6 +58,26 @@ export const POST: APIRoute = async ({ request }) => {
     });
 
   if (!EMAIL_RE.test(email)) return wantsJson ? json({ ok: false, error: "invalid_email" }, 400) : back("invalid");
+
+  // Bot wall (Cloudflare Turnstile) — env-gated. Verify the token BEFORE any downstream
+  // work (beehiiv / HubSpot / Supabase provisioning). No secret set → skipped.
+  const tsSecret = process.env.TURNSTILE_SECRET_KEY || import.meta.env.TURNSTILE_SECRET_KEY;
+  if (tsSecret) {
+    const token = String(form.get("cf-turnstile-response") ?? "");
+    let pass = false;
+    try {
+      const vr = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+        method: "POST",
+        headers: { "content-type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ secret: String(tsSecret), response: token }),
+      });
+      pass = ((await vr.json()) as { success?: boolean }).success === true;
+    } catch {
+      pass = false;
+    }
+    if (!pass) return wantsJson ? json({ ok: false, error: "captcha_failed" }, 400) : back("invalid");
+  }
+
   if (!key) return wantsJson ? json({ ok: false, error: "not_configured" }, 503) : back("error");
 
   // optional lead fields → beehiiv custom_fields (names must match SETUP.md)

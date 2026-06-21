@@ -101,9 +101,10 @@ const fmtDate = (iso: string) =>
           <span class="blend-text">Orders</span>
         </h1>
       </div>
-      <a href="/admin/products" class="btn-ghost btn" data-reveal style="--i:2;"
-        >Manage products →</a
-      >
+      <nav data-reveal style="--i:2; display:flex; gap:.6rem; flex-wrap:wrap;">
+        <a href="/admin/products" class="btn-ghost btn">Products →</a>
+        <a href="/admin/vault" class="btn-ghost btn">Vault →</a>
+      </nav>
     </div>
 
     {

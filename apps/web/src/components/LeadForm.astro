@@ -5,6 +5,8 @@
 interface Props { source: string; cta?: string; placeholder?: string; anchor?: string; }
 const { source, cta = "Get the receipts →", placeholder = "you@email.com", anchor = source } = Astro.props;
 const id = `em-${source}`;
+// Cloudflare Turnstile (bot wall) — only rendered when the public site key is set.
+const TURNSTILE = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
 ---
 <form action="/api/lead" method="post" style="display:flex; gap:.6rem; flex-wrap:wrap; justify-content:center;">
   <input type="hidden" name="source" value={source} />
@@ -14,5 +16,16 @@ const id = `em-${source}`;
   <input id={id} name="email" type="email" required placeholder={placeholder} autocomplete="email"
     style="flex:1; min-width:15rem; padding:.8rem 1rem; border-radius:999px; border:1px solid var(--stroke); background:var(--bg); color:var(--ink);" />
   <button class="btn" type="submit">{cta}</button>
+  {TURNSTILE && (
+    <div
+      class="cf-turnstile"
+      data-sitekey={TURNSTILE}
+      data-theme="auto"
+      style="flex-basis:100%; display:flex; justify-content:center; margin-top:.4rem;"
+    ></div>
+  )}
   <p data-lead-status data-src={source} role="status" aria-live="polite" class="mono" hidden style="flex-basis:100%; margin:.7rem 0 0; text-align:center;"></p>
 </form>
+{TURNSTILE && (
+  <script is:inline async src="https://challenges.cloudflare.com/turnstile/v0/api.js"></script>
+)}
