@@ -240,6 +240,30 @@ export type Database = {
         }
         Relationships: []
       }
+      perk_grant_log: {
+        Row: {
+          created_at: string
+          email: string
+          id: number
+          ip: string | null
+          source: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: never
+          ip?: string | null
+          source?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: never
+          ip?: string | null
+          source?: string | null
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           created_at: string

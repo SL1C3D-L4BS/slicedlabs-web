@@ -1,4 +1,5 @@
 import type { APIRoute } from "astro";
+import { grantPerkForLead } from "../../lib/perks";
 
 // SlicedLabs · studio · © 2026 SlicedLabs
 // The owned-list capture BACKBONE. Every intake (newsletter, catering, contact,
@@ -152,6 +153,18 @@ export const POST: APIRoute = async ({ request }) => {
         }),
       });
     } catch { /* non-fatal — the brain runs async; the capture already succeeded */ }
+  }
+
+  // perk WRITE pipeline — provision a Supabase user + grant the entitlement + email a
+  // branded magic-link, in-app (no n8n needed). Best-effort + env-gated (needs
+  // SUPABASE_SERVICE_ROLE_KEY); a no-perk source returns instantly. NEVER blocks capture.
+  try {
+    const origin = new URL(request.url).origin;
+    const xff = request.headers.get("x-forwarded-for");
+    const ip = (xff ? xff.split(",")[0] : request.headers.get("x-real-ip"))?.trim() || null;
+    await grantPerkForLead({ email, source, name: fields.Name ?? null, origin, ip });
+  } catch {
+    /* non-fatal — the lead is already captured */
   }
 
   return wantsJson ? json({ ok }, ok ? 200 : 502) : back(ok ? "success" : "error");

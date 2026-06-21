@@ -11,6 +11,10 @@ Each file = one applied migration, in order:
 1. `0001_phase1_core_schema.sql` — `profiles`, `leads`, `entitlements`, `saved_recipes` + RLS + the `auth.users → profiles` auto-provision trigger.
 2. `0002_phase1_harden_functions.sql` — pin `search_path`, revoke API-role EXECUTE on the trigger fns.
 3. `0003_phase1_harden_rls_auto_enable.sql` — harden the pre-existing `ensure_rls` event-trigger guardrail.
+4. `0004_commerce_core.sql` — `products`, `variants`, `orders`, `order_items`, `drops` + enums + `set_updated_at` triggers + RLS (storefront reads active rows; writes are service-role only).
+5. `0005_harden_set_updated_at.sql` — pin `search_path` on the commerce trigger fn.
+6. `0006_relax_entitlements_unique_ref.sql` — relax the entitlements unique key to `(user_id, kind, ref_id)` (NULLS NOT DISTINCT) so a user can hold multiple distinct vault drops, one `member` row.
+7. `0007_perk_grant_log.sql` — per-IP/email attempt log that rate-limits the public perk write-pipeline.
 
 ## RLS posture
 RLS is ON for every table (and auto-enforced on new `public` tables by the `ensure_rls`

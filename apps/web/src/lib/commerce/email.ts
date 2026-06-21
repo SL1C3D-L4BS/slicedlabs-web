@@ -81,3 +81,26 @@ export async function sendShippingUpdate(args: {
   });
   return { sent: !r.error };
 }
+
+export async function sendPerkDelivery(args: {
+  to: string;
+  perkLabel: string;
+  signInUrl: string;
+}): Promise<{ sent: boolean }> {
+  const resend = client();
+  if (!resend) return { sent: false };
+  const html = shell(`
+    <h1 style="font-size:22px;margin:0 0 4px">Your drop is ready</h1>
+    <p style="color:#7A6E5C;margin:0 0 18px"><strong>${args.perkLabel}</strong> is unlocked on your account. Tap to sign in — no password.</p>
+    <p style="margin:0 0 20px">
+      <a href="${args.signInUrl}" style="display:inline-block;background:#CB6820;color:#fff;text-decoration:none;padding:12px 22px;border-radius:999px;font-weight:600">Open my drop →</a>
+    </p>
+    <p style="color:#7A6E5C;font-size:13px;margin:0">This sign-in link expires shortly. If it lapses, sign in anytime at slicedlabs.io/account.</p>`);
+  const r = await resend.emails.send({
+    from: env.resendFrom(),
+    to: args.to,
+    subject: `${args.perkLabel} — your SlicedLabs drop`,
+    html,
+  });
+  return { sent: !r.error };
+}
