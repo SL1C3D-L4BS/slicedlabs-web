@@ -132,5 +132,27 @@ export const POST: APIRoute = async ({ request }) => {
     try { await fetch(hook, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload) }); } catch { /* non-fatal */ }
   }
 
+  // funnel BRAIN — hand the lead to the n8n "Lead Intake → Enrich → Score → Route"
+  // workflow (enrich + score + provision a Supabase account + deliver the perk via
+  // Resend + tag HubSpot). Best-effort, env-gated, NEVER blocks the visitor.
+  const n8nHook = process.env.N8N_LEAD_WEBHOOK_URL || import.meta.env.N8N_LEAD_WEBHOOK_URL;
+  if (n8nHook) {
+    const secret = process.env.N8N_WEBHOOK_SECRET || import.meta.env.N8N_WEBHOOK_SECRET;
+    try {
+      await fetch(n8nHook, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          ...(secret ? { "x-sl-secret": String(secret) } : {}),
+        },
+        body: JSON.stringify({
+          email, source, label: meta.label, inquiry: Boolean(meta.inquiry),
+          fields: Object.fromEntries(Object.entries(fields).filter(([, v]) => v)),
+          beehiiv_ok: ok, ts: new Date().toISOString(),
+        }),
+      });
+    } catch { /* non-fatal — the brain runs async; the capture already succeeded */ }
+  }
+
   return wantsJson ? json({ ok }, ok ? 200 : 502) : back(ok ? "success" : "error");
 };
