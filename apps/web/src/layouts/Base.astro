@@ -9,7 +9,7 @@ interface Props { title?: string; description?: string; temp?: "dark" | "warm"; 
 const {
   title = "SlicedLabs — own your slice",
   description = "A food · media · marketing company building a real food empire in public. We don't pitch. We prove.",
-  temp = "dark",
+  temp = "warm",
   noindex = false,
 } = Astro.props;
 const _op = (Astro.url.pathname.replace(/\/+$/, "") || "/");
@@ -59,7 +59,7 @@ const isActive = (href: string) => (href === "/" ? path === "/" : path === href 
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content={ogUrl} />
-    <meta name="theme-color" content="#1A1A1A" />
+    <meta name="theme-color" content="#FBF6EE" />
     {/* SlicedLabs favicon & icon pack — operator-provided handoff (public/) */}
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />

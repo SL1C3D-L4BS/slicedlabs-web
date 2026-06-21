@@ -1,0 +1,321 @@
+---
+// SlicedLabs · commerce · © 2026 SlicedLabs — Admin: edit product + variants
+export const prerender = false;
+import Base from "../../../layouts/Base.astro";
+import { getServerSupabase, createServiceSupabase } from "../../../lib/supabase";
+import { isAdmin } from "../../../lib/admin";
+
+const supabase = getServerSupabase(Astro.cookies, Astro.request);
+const {
+  data: { user },
+} = await supabase.auth.getUser();
+if (!user) return Astro.redirect("/account/login?next=" + encodeURIComponent(Astro.url.pathname));
+if (!isAdmin(user.email)) return new Response("Forbidden", { status: 403 });
+
+const { id } = Astro.params;
+if (!id) return Astro.redirect("/admin/products");
+
+let svc;
+try {
+  svc = createServiceSupabase();
+} catch {
+  /* SUPABASE_SERVICE_ROLE_KEY not set — render a friendly notice below */
+}
+
+const PRODUCT_STATUS = ["draft", "active", "archived"];
+const FULFILLMENT = ["pod", "in_house", "digital"];
+
+type Product = {
+  id: string;
+  slug: string;
+  title: string;
+  description: string | null;
+  status: string;
+  fulfillment_type: string;
+  printful_product_id: string | null;
+  images: unknown;
+};
+type Variant = {
+  id: string;
+  product_id: string;
+  title: string;
+  sku: string | null;
+  price_cents: number;
+  currency: string;
+  stripe_price_id: string | null;
+  printful_variant_id: string | null;
+  inventory_qty: number | null;
+  position: number | null;
+};
+
+let product: Product | null = null;
+let variants: Variant[] = [];
+let loadError: string | null = null;
+
+if (svc) {
+  const { data, error } = await svc.from("products").select("*").eq("id", id).maybeSingle();
+  if (error) loadError = error.message;
+  product = (data as Product) ?? null;
+  if (svc && !product && !error) return Astro.redirect("/admin/products");
+  if (product) {
+    const { data: vData, error: vErr } = await svc
+      .from("variants")
+      .select("*")
+      .eq("product_id", id)
+      .order("position");
+    if (vErr) loadError = vErr.message;
+    variants = (vData as Variant[]) ?? [];
+  }
+}
+
+const imageList = (() => {
+  const imgs = product?.images;
+  if (!Array.isArray(imgs)) return "";
+  return imgs.filter((u) => typeof u === "string").join("\n");
+})();
+
+const err = Astro.url.searchParams.get("err");
+const dollars = (cents: number) => (cents / 100).toFixed(2);
+// Stable const so narrowing holds inside JSX .map() closures (strict mode).
+const prod = product;
+---
+
+<Base
+  title={product ? `Admin — ${product.title} · SlicedLabs` : "Admin — Product · SlicedLabs"}
+  description="SlicedLabs operator cockpit — edit product."
+  noindex={true}
+>
+  <section class="wrap" style="padding-block:clamp(2rem,6vw,3rem)">
+    <a href="/admin/products" class="mono" data-reveal style="text-decoration:none;">← All products</a>
+
+    {
+      err && (
+        <p class="mono" data-reveal style="color:var(--coral); margin-top:1rem;">
+          {err}
+        </p>
+      )
+    }
+
+    {
+      !svc && (
+        <div class="glass island" data-reveal style="margin-top:1.6rem;">
+          <h2 style="font-size:1.2rem; margin:0 0 .4rem;">Service role key not set</h2>
+          <p style="color:var(--muted); margin:0;">
+            Set <code>SUPABASE_SERVICE_ROLE_KEY</code> so the cockpit can load and edit this product.
+          </p>
+        </div>
+      )
+    }
+
+    {
+      svc && prod && (
+        <>
+          <h1 data-reveal style="--i:1; font-size:clamp(1.8rem,5vw,3rem); margin:.6rem 0 0;">
+            <span class="blend-text">{prod.title}</span>
+          </h1>
+          <p class="mono" data-reveal style="--i:2; margin:.3rem 0 0;">{prod.slug}</p>
+
+          {loadError && (
+            <p class="mono" data-reveal style="color:var(--coral); margin-top:1rem;">
+              {loadError}
+            </p>
+          )}
+
+          {/* ---- product edit --------------------------------------------- */}
+          <div class="glass island" data-reveal style="--i:1; margin-top:1.6rem;">
+            <h2 style="font-size:1.2rem; margin:0 0 1rem;">Product details</h2>
+            <form
+              method="POST"
+              action="/api/admin/product"
+              style="display:flex; flex-direction:column; gap:.8rem;"
+            >
+              <input type="hidden" name="action" value="update" />
+              <input type="hidden" name="id" value={prod.id} />
+              <div class="row2">
+                <label>
+                  <span class="mono">Title *</span>
+                  <input class="fld" type="text" name="title" required value={prod.title} />
+                </label>
+                <label>
+                  <span class="mono">Slug</span>
+                  <input class="fld" type="text" name="slug" value={prod.slug} />
+                </label>
+              </div>
+              <label>
+                <span class="mono">Description</span>
+                <textarea class="fld" name="description">{prod.description ?? ""}</textarea>
+              </label>
+              <div class="row2">
+                <label>
+                  <span class="mono">Status</span>
+                  <select class="fld" name="status">
+                    {PRODUCT_STATUS.map((st) => (
+                      <option value={st} selected={st === prod.status}>
+                        {st}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  <span class="mono">Fulfillment</span>
+                  <select class="fld" name="fulfillment_type">
+                    {FULFILLMENT.map((f) => (
+                      <option value={f} selected={f === prod.fulfillment_type}>
+                        {f}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <label>
+                <span class="mono">Printful product id</span>
+                <input
+                  class="fld"
+                  type="text"
+                  name="printful_product_id"
+                  value={prod.printful_product_id ?? ""}
+                  placeholder="sync_product_id"
+                />
+              </label>
+              <label>
+                <span class="mono">Images (one URL per line, or comma-separated)</span>
+                <textarea class="fld" name="images" placeholder="https://…/front.png">{imageList}</textarea>
+              </label>
+              <div>
+                <button type="submit" class="btn">Save product</button>
+              </div>
+            </form>
+          </div>
+
+          {/* ---- variants -------------------------------------------------- */}
+          <div data-reveal style="--i:2; margin-top:2rem;">
+            <h2 style="font-size:1.3rem; margin:0 0 .8rem;">Variants</h2>
+            <div
+              style="overflow-x:auto; border:1px solid var(--stroke); border-radius:var(--radius);"
+            >
+              <table style="width:100%; border-collapse:collapse; min-width:54rem; font-size:.9rem;">
+                <thead>
+                  <tr style="text-align:left;">
+                    {["Title", "SKU", "Price (USD)", "Printful variant id", "Inventory", ""].map(
+                      (h) => (
+                        <th
+                          class="mono"
+                          style="padding:.6rem .7rem; border-bottom:1px solid var(--stroke); white-space:nowrap;"
+                        >
+                          {h}
+                        </th>
+                      ),
+                    )}
+                  </tr>
+                </thead>
+                <tbody>
+                  {variants.length === 0 && (
+                    <tr>
+                      <td colspan="6" style="padding:1rem .7rem; color:var(--muted);">
+                        No variants — add one below.
+                      </td>
+                    </tr>
+                  )}
+                  {variants.map((v) => (
+                    <tr style="border-bottom:1px solid var(--stroke);">
+                      <td colspan="6" style="padding:.6rem .7rem;">
+                        <form
+                          method="POST"
+                          action="/api/admin/product"
+                          style="display:flex; gap:.5rem; align-items:end; flex-wrap:wrap;"
+                        >
+                          <input type="hidden" name="action" value="update-variant" />
+                          <input type="hidden" name="id" value={v.id} />
+                          <input type="hidden" name="product_id" value={prod.id} />
+                          <label style="flex:1 1 9rem;">
+                            <span class="mono">Title</span>
+                            <input class="fld" type="text" name="title" value={v.title} />
+                          </label>
+                          <label style="flex:1 1 8rem;">
+                            <span class="mono">SKU</span>
+                            <input class="fld" type="text" name="sku" value={v.sku ?? ""} />
+                          </label>
+                          <label style="flex:0 1 7rem;">
+                            <span class="mono">Price</span>
+                            <input class="fld" type="number" name="price" step="0.01" min="0" value={dollars(v.price_cents)} />
+                          </label>
+                          <label style="flex:1 1 10rem;">
+                            <span class="mono">Printful id</span>
+                            <input class="fld" type="text" name="printful_variant_id" value={v.printful_variant_id ?? ""} />
+                          </label>
+                          <label style="flex:0 1 6rem;">
+                            <span class="mono">Inventory</span>
+                            <input class="fld" type="number" name="inventory_qty" step="1" value={v.inventory_qty ?? ""} />
+                          </label>
+                          <button type="submit" class="btn btn-ghost" style="padding:.5rem .9rem;">
+                            Save
+                          </button>
+                        </form>
+                        <form
+                          method="POST"
+                          action="/api/admin/product"
+                          style="margin-top:.4rem;"
+                        >
+                          <input type="hidden" name="action" value="delete-variant" />
+                          <input type="hidden" name="id" value={v.id} />
+                          <input type="hidden" name="product_id" value={prod.id} />
+                          <button
+                            type="submit"
+                            class="btn btn-ghost"
+                            style="padding:.35rem .8rem; font-size:.8rem; color:var(--coral); border-color:color-mix(in oklab, var(--coral) 50%, var(--stroke));"
+                          >
+                            Delete variant
+                          </button>
+                        </form>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* ---- add variant -------------------------------------------- */}
+            <div class="glass island" style="margin-top:1.4rem;">
+              <h3 style="font-size:1.05rem; margin:0 0 .8rem;">Add variant</h3>
+              <form
+                method="POST"
+                action="/api/admin/product"
+                style="display:flex; gap:.6rem; align-items:end; flex-wrap:wrap;"
+              >
+                <input type="hidden" name="action" value="add-variant" />
+                <input type="hidden" name="product_id" value={prod.id} />
+                <label style="flex:1 1 9rem;">
+                  <span class="mono">Title</span>
+                  <input class="fld" type="text" name="title" placeholder="Default" />
+                </label>
+                <label style="flex:0 1 7rem;">
+                  <span class="mono">Price (USD)</span>
+                  <input class="fld" type="number" name="price" step="0.01" min="0" placeholder="28.00" />
+                </label>
+                <label style="flex:1 1 8rem;">
+                  <span class="mono">SKU</span>
+                  <input class="fld" type="text" name="sku" />
+                </label>
+                <label style="flex:1 1 10rem;">
+                  <span class="mono">Printful variant id</span>
+                  <input class="fld" type="text" name="printful_variant_id" />
+                </label>
+                <label style="flex:0 1 6rem;">
+                  <span class="mono">Inventory</span>
+                  <input class="fld" type="number" name="inventory_qty" step="1" />
+                </label>
+                <button type="submit" class="btn">Add</button>
+              </form>
+            </div>
+
+            <p style="color:var(--muted); margin-top:1.2rem; max-width:42rem; font-size:.9rem;">
+              To sell a product it must be <strong>status = active</strong> and have at least one
+              variant with a price. The <strong>printful_variant_id</strong> (Printful
+              sync_variant_id) is required for POD auto-fulfillment.
+            </p>
+          </div>
+        </>
+      )
+    }
+  </section>
+</Base>

@@ -1,0 +1,235 @@
+---
+// SlicedLabs · studio · © 2026 SlicedLabs — Product detail
+// Server-rendered product page. Cart is client-side; the server reprices on add.
+export const prerender = false;
+import Base from "../../layouts/Base.astro";
+import { getServerSupabase } from "../../lib/supabase";
+import { formatMoney } from "../../lib/commerce/cart";
+
+const { handle } = Astro.params;
+
+const supabase = getServerSupabase(Astro.cookies, Astro.request);
+const { data } = await supabase
+  .from("products")
+  .select(
+    "id, slug, title, description, images, fulfillment_type, variants(id, title, sku, price_cents, currency, printful_variant_id, position)",
+  )
+  .eq("slug", handle ?? "")
+  .maybeSingle();
+
+type Variant = {
+  id: string;
+  title: string;
+  sku: string | null;
+  price_cents: number;
+  currency: string;
+  printful_variant_id: string | null;
+  position: number | null;
+};
+type Product = {
+  id: string;
+  slug: string;
+  title: string;
+  description: string | null;
+  images: unknown;
+  fulfillment_type: "pod" | "in_house" | "digital";
+  variants: Variant[];
+};
+
+const product = (data ?? null) as unknown as Product | null;
+
+const FULFILL_LABEL: Record<Product["fulfillment_type"], string> = {
+  pod: "made to order",
+  in_house: "limited drop",
+  digital: "digital",
+};
+
+function imageList(images: unknown): string[] {
+  if (!Array.isArray(images)) return [];
+  return images
+    .map((a) => {
+      if (typeof a === "string") return a;
+      if (a && typeof a === "object" && typeof (a as { url?: unknown }).url === "string") {
+        return (a as { url: string }).url;
+      }
+      return null;
+    })
+    .filter((x): x is string => Boolean(x));
+}
+
+if (!product) Astro.response.status = 404;
+
+// Sort variants by position, then pick the cheapest as the default selection.
+const variants = product
+  ? [...product.variants].sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
+  : [];
+const defaultVariant = variants.length
+  ? variants.reduce((lo, v) => (v.price_cents < lo.price_cents ? v : lo), variants[0])
+  : null;
+const images = product ? imageList(product.images) : [];
+---
+{product ? (
+  <Base
+    title={`${product.title} — SlicedLabs Shop`}
+    description={product.description ?? `${product.title} — order from SlicedLabs.`}
+  >
+    <section class="wrap" style="padding-block:clamp(1.5rem,5vw,2.5rem);">
+      <p class="mono" data-reveal><a href="/shop" style="color:var(--muted); text-decoration:none;">← back to shop</a></p>
+
+      <div
+        data-product-root
+        data-default-variant={defaultVariant?.id ?? ""}
+        data-default-currency={defaultVariant?.currency ?? "usd"}
+        style="display:grid; gap:clamp(1.5rem,4vw,2.5rem); grid-template-columns:1fr; margin-top:1rem;"
+      >
+        <div data-reveal>
+          <div style="aspect-ratio:1/1; border-radius:var(--radius); overflow:hidden; background:var(--panel); border:1px solid var(--stroke);">
+            {images[0] ? (
+              <img
+                id="hero-image"
+                src={images[0]}
+                alt={product.title}
+                style="width:100%; height:100%; object-fit:cover; display:block;"
+              />
+            ) : (
+              <span class="mono" style="display:grid; place-items:center; width:100%; height:100%; color:var(--muted);">SlicedLabs</span>
+            )}
+          </div>
+          {images.length > 1 && (
+            <div style="display:flex; gap:.6rem; margin-top:.8rem; flex-wrap:wrap;">
+              {images.map((src, i) => (
+                <button
+                  type="button"
+                  class="thumb"
+                  data-thumb={src}
+                  aria-label={`View image ${i + 1}`}
+                  style="width:5rem; height:5rem; padding:0; border-radius:12px; overflow:hidden; border:1px solid var(--stroke); background:var(--panel); cursor:pointer;"
+                >
+                  <img src={src} alt="" loading="lazy" style="width:100%; height:100%; object-fit:cover; display:block;" />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div data-reveal style="--i:1;">
+          <span class="tag">{FULFILL_LABEL[product.fulfillment_type]}</span>
+          <h1 style="font-size:clamp(1.9rem,6vw,3.2rem); margin:.6rem 0 .4rem;"><span class="blend-text">{product.title}</span></h1>
+
+          <p id="price" class="mono" style="font-size:1.4rem; margin:.2rem 0 1.2rem; color:var(--ink);">
+            {defaultVariant ? formatMoney(defaultVariant.price_cents, defaultVariant.currency) : "—"}
+          </p>
+
+          {product.description && (
+            <p style="color:var(--muted); max-width:42rem; line-height:1.6; margin:0 0 1.4rem; white-space:pre-line;">{product.description}</p>
+          )}
+
+          {variants.length > 1 && (
+            <div style="margin-bottom:1rem; max-width:24rem;">
+              <label class="mono" for="variant" style="display:block; margin-bottom:.4rem; color:var(--muted);">Option</label>
+              <select id="variant" class="fld">
+                {variants.map((v) => (
+                  <option
+                    value={v.id}
+                    data-price={v.price_cents}
+                    data-currency={v.currency}
+                    selected={defaultVariant?.id === v.id}
+                  >
+                    {v.title && v.title !== "Default" ? v.title : product.title}
+                    {" — "}
+                    {formatMoney(v.price_cents, v.currency)}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          <div style="margin-bottom:1.2rem; max-width:8rem;">
+            <label class="mono" for="qty" style="display:block; margin-bottom:.4rem; color:var(--muted);">Quantity</label>
+            <input id="qty" class="fld" type="number" min="1" max="99" value="1" inputmode="numeric" />
+          </div>
+
+          <div style="display:flex; gap:.7rem; flex-wrap:wrap; align-items:center;">
+            <button id="add" class="btn btn-ghost" type="button">Add to cart</button>
+            <button id="buy" class="btn" type="button">Buy now</button>
+            <span id="added" class="mono" role="status" aria-live="polite" hidden style="color:var(--teal);">Added ✓</span>
+          </div>
+
+          <p class="mono" style="margin-top:1.2rem; color:var(--muted);">
+            <a href="/cart" style="color:inherit; text-decoration:underline;">View cart →</a>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <script>
+      import * as cart from "../../scripts/cart";
+      import { formatMoney } from "../../lib/commerce/cart";
+
+      const root = document.querySelector("[data-product-root]") as HTMLElement | null;
+      const select = document.getElementById("variant") as HTMLSelectElement | null;
+      const qtyInput = document.getElementById("qty") as HTMLInputElement | null;
+      const priceEl = document.getElementById("price");
+      const heroImg = document.getElementById("hero-image") as HTMLImageElement | null;
+      const addedEl = document.getElementById("added");
+
+      function selectedVariant(): string {
+        if (select && select.value) return select.value;
+        return root?.dataset.defaultVariant ?? "";
+      }
+
+      function selectedQty(): number {
+        const n = Math.floor(Number(qtyInput?.value ?? "1"));
+        return Number.isFinite(n) && n > 0 ? Math.min(n, 99) : 1;
+      }
+
+      function syncPrice() {
+        if (!select || !priceEl) return;
+        const opt = select.selectedOptions[0];
+        const cents = Number(opt?.dataset.price ?? "0");
+        const currency = opt?.dataset.currency ?? root?.dataset.defaultCurrency ?? "usd";
+        if (Number.isFinite(cents)) priceEl.textContent = formatMoney(cents, currency);
+      }
+
+      select?.addEventListener("change", syncPrice);
+
+      // Thumbnail → swap hero image.
+      for (const btn of document.querySelectorAll<HTMLButtonElement>("[data-thumb]")) {
+        btn.addEventListener("click", () => {
+          const src = btn.dataset.thumb;
+          if (src && heroImg) heroImg.src = src;
+        });
+      }
+
+      let addedTimer: number | undefined;
+      document.getElementById("add")?.addEventListener("click", () => {
+        const id = selectedVariant();
+        if (!id) return;
+        cart.add(id, selectedQty());
+        if (addedEl) {
+          addedEl.hidden = false;
+          window.clearTimeout(addedTimer);
+          addedTimer = window.setTimeout(() => {
+            addedEl.hidden = true;
+          }, 2000);
+        }
+      });
+
+      document.getElementById("buy")?.addEventListener("click", () => {
+        const id = selectedVariant();
+        if (!id) return;
+        cart.add(id, selectedQty());
+        location.href = "/checkout";
+      });
+    </script>
+  </Base>
+) : (
+  <Base title="Not found — SlicedLabs Shop" description="We couldn't find that product." noindex={true}>
+    <section class="wrap" style="padding-block:clamp(3rem,9vw,6rem); text-align:center;">
+      <p class="mono" data-reveal>404</p>
+      <h1 data-reveal style="--i:1; font-size:clamp(2rem,7vw,3.4rem);"><span class="blend-text">Product not found</span></h1>
+      <p data-reveal style="--i:2; color:var(--muted); margin:1rem 0 1.6rem;">That one's not on the menu — at least not yet.</p>
+      <a class="btn" href="/shop" data-reveal style="--i:3;">Back to the shop →</a>
+    </section>
+  </Base>
+)}

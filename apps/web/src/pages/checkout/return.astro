@@ -1,0 +1,85 @@
+---
+// SlicedLabs · studio · © 2026 SlicedLabs — Post-payment return
+// Stripe redirects here with ?session_id=…; we retrieve the session to show the
+// real status. The webhook is the source of truth for fulfillment — this is UX.
+export const prerender = false;
+import Base from "../../layouts/Base.astro";
+import { formatMoney } from "../../lib/commerce/cart";
+import { getStripe, stripeConfigured } from "../../lib/commerce/stripe";
+
+const sessionId = Astro.url.searchParams.get("session_id");
+
+let state: "paid" | "processing" | "error" = "error";
+let email: string | null = null;
+let amountTotal = 0;
+let currency = "usd";
+
+if (stripeConfigured() && sessionId) {
+  try {
+    const session = await getStripe().checkout.sessions.retrieve(sessionId);
+    const paid = session.payment_status === "paid" || session.status === "complete";
+    state = paid ? "paid" : "processing";
+    email = session.customer_details?.email ?? null;
+    amountTotal = session.amount_total ?? 0;
+    currency = session.currency ?? "usd";
+  } catch {
+    state = "error";
+  }
+}
+---
+<Base title="Order status — SlicedLabs" description="Your order status." noindex={true}>
+  <section class="wrap" style="padding-block:clamp(2.5rem,7vw,4rem);">
+    {state === "paid" && (
+      <div data-paid="true" class="glass glass-ultra island" data-reveal style="text-align:center; max-width:36rem; margin:0 auto;">
+        <p class="mono" style="color:var(--teal);">payment received</p>
+        <h1 style="font-size:clamp(2rem,7vw,3.2rem); margin:.4rem 0 .6rem;"><span class="blend-text">Order confirmed</span></h1>
+        <p style="color:var(--muted); margin:0 0 1rem; line-height:1.6;">
+          You're in. A receipt{email ? ` is on its way to ` : " is on its way"}
+          {email && <strong style="color:var(--ink);">{email}</strong>}.
+          We'll send tracking the moment it ships.
+        </p>
+        {amountTotal > 0 && (
+          <p class="mono" style="font-size:1.4rem; margin:0 0 1.4rem;">{formatMoney(amountTotal, currency)}</p>
+        )}
+        <div style="display:flex; gap:.7rem; justify-content:center; flex-wrap:wrap;">
+          <a class="btn" href="/account">View your orders →</a>
+          <a class="btn btn-ghost" href="/shop">Keep shopping</a>
+        </div>
+        <p class="mono" style="margin-top:1.4rem; color:var(--muted); font-size:.8rem;">Thanks for backing the build. Own your slice.</p>
+      </div>
+    )}
+
+    {state === "processing" && (
+      <div class="glass island" data-reveal style="text-align:center; max-width:36rem; margin:0 auto;">
+        <p class="mono" style="color:var(--muted);">hang tight</p>
+        <h1 style="font-size:clamp(1.8rem,6vw,2.8rem); margin:.4rem 0 .6rem;"><span class="blend-text">Payment processing</span></h1>
+        <p style="color:var(--muted); margin:0 0 1.4rem; line-height:1.6;">
+          Your payment is still processing. If it goes through you'll get a confirmation email — no need to pay again.
+        </p>
+        <a class="btn btn-ghost" href="/cart">Back to cart</a>
+      </div>
+    )}
+
+    {state === "error" && (
+      <div class="glass island" data-reveal style="text-align:center; max-width:36rem; margin:0 auto;">
+        <p class="mono" style="color:var(--muted);">order status</p>
+        <h1 style="font-size:clamp(1.8rem,6vw,2.8rem); margin:.4rem 0 .6rem;"><span class="blend-text">We couldn't load your order</span></h1>
+        <p style="color:var(--muted); margin:0 0 1.4rem; line-height:1.6;">
+          We couldn't load your order details — but if you paid, you'll get a confirmation email. Reach out if anything looks off.
+        </p>
+        <div style="display:flex; gap:.7rem; justify-content:center; flex-wrap:wrap;">
+          <a class="btn btn-ghost" href="/shop">Back to shop</a>
+          <a class="btn btn-ghost" href="/contact">Contact us</a>
+        </div>
+      </div>
+    )}
+  </section>
+
+  <script>
+    import * as cart from "../../scripts/cart";
+    // Only clear the cart once we've confirmed a paid order rendered.
+    if (document.querySelector('[data-paid="true"]')) {
+      cart.clear();
+    }
+  </script>
+</Base>

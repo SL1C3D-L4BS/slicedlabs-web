@@ -1,0 +1,83 @@
+// SlicedLabs · commerce · © 2026 SlicedLabs
+// Resend = transactional email. Fully env-gated: with no RESEND_API_KEY every send
+// is a no-op ({ sent: false }) so checkout/webhooks never fail for lack of email.
+import { Resend } from "resend";
+import { env } from "./env";
+import { formatMoney } from "./cart";
+
+export function emailConfigured(): boolean {
+  return Boolean(env.resendKey());
+}
+
+function client(): Resend | null {
+  const key = env.resendKey();
+  return key ? new Resend(key) : null;
+}
+
+const shell = (inner: string) => `
+  <div style="font-family:Inter,system-ui,sans-serif;background:#FBF6EE;color:#1C1A17;padding:32px">
+    <div style="max-width:560px;margin:0 auto;background:#fff;border:1px solid #e7ddc9;border-radius:16px;padding:28px">
+      <p style="font:600 13px/1 ui-monospace,monospace;letter-spacing:.08em;color:#7A6E5C;margin:0 0 12px">SLICEDLABS</p>
+      ${inner}
+      <p style="color:#7A6E5C;font-size:13px;margin-top:24px">Own your slice. — slicedlabs.io</p>
+    </div>
+  </div>`;
+
+export async function sendOrderConfirmation(o: {
+  to: string;
+  orderId: string;
+  items: { title: string; qty: number; unitPriceCents: number }[];
+  totalCents: number;
+  currency: string;
+}): Promise<{ sent: boolean }> {
+  const resend = client();
+  if (!resend) return { sent: false };
+  const rows = o.items
+    .map(
+      (i) =>
+        `<tr><td style="padding:6px 0">${i.qty}× ${i.title}</td><td style="padding:6px 0;text-align:right">${formatMoney(
+          i.unitPriceCents * i.qty,
+          o.currency,
+        )}</td></tr>`,
+    )
+    .join("");
+  const html = shell(`
+    <h1 style="font-size:22px;margin:0 0 4px">Order confirmed</h1>
+    <p style="color:#7A6E5C;margin:0 0 16px">Thanks — we're on it. Order <strong>${o.orderId.slice(0, 8)}</strong>.</p>
+    <table style="width:100%;border-collapse:collapse;font-size:14px">${rows}
+      <tr><td style="padding:10px 0 0;border-top:1px solid #e7ddc9;font-weight:700">Total</td>
+      <td style="padding:10px 0 0;border-top:1px solid #e7ddc9;text-align:right;font-weight:700">${formatMoney(
+        o.totalCents,
+        o.currency,
+      )}</td></tr>
+    </table>`);
+  const r = await resend.emails.send({ from: env.resendFrom(), to: o.to, subject: "Your SlicedLabs order", html });
+  return { sent: !r.error };
+}
+
+export async function sendShippingUpdate(args: {
+  to: string;
+  orderId: string;
+  carrier?: string | null;
+  trackingNumber?: string | null;
+  trackingUrl?: string | null;
+}): Promise<{ sent: boolean }> {
+  const resend = client();
+  if (!resend) return { sent: false };
+  const track = args.trackingUrl
+    ? `<p><a href="${args.trackingUrl}" style="color:#CB6820">Track your package →</a></p>`
+    : args.trackingNumber
+      ? `<p>Tracking: <strong>${args.trackingNumber}</strong>${args.carrier ? ` (${args.carrier})` : ""}</p>`
+      : "";
+  const html = shell(`
+    <h1 style="font-size:22px;margin:0 0 4px">It's on the way</h1>
+    <p style="color:#7A6E5C;margin:0 0 16px">Order <strong>${args.orderId.slice(0, 8)}</strong> has shipped.</p>
+    ${track}`);
+  const r = await resend.emails.send({
+    from: env.resendFrom(),
+    to: args.to,
+    subject: "Your SlicedLabs order shipped",
+    html,
+  });
+  return { sent: !r.error };
+}

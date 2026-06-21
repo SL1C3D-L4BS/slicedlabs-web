@@ -1,0 +1,82 @@
+---
+// SlicedLabs · studio · © 2026 SlicedLabs — Checkout
+// Stripe Embedded Checkout. The client never sets prices: /api/checkout reprices
+// the cart server-side, creates the pending order, and returns a clientSecret.
+export const prerender = false;
+import Base from "../layouts/Base.astro";
+---
+<Base title="Checkout — SlicedLabs" description="Secure checkout." noindex={true}>
+  <section class="wrap" style="padding-block:clamp(2rem,6vw,3.5rem);">
+    <p class="mono" data-reveal>secure checkout</p>
+    <h1 data-reveal style="--i:1; font-size:clamp(2rem,7vw,3.4rem);"><span class="blend-text">Checkout</span></h1>
+    <hr class="blade" data-reveal style="--i:2; max-width:12rem; margin:1.2rem 0 1.8rem;" />
+
+    <p id="checkout-msg" class="mono" role="status" aria-live="polite" style="color:var(--muted);">Preparing your order…</p>
+    <div id="checkout" style="margin-top:1rem;"></div>
+  </section>
+
+  <script>
+    import * as cart from "../scripts/cart";
+    import { loadStripe } from "@stripe/stripe-js";
+
+    const msg = document.getElementById("checkout-msg");
+    const mount = document.getElementById("checkout");
+
+    function say(html: string) {
+      if (msg) msg.innerHTML = html;
+    }
+
+    async function start() {
+      const lines = cart.read();
+      if (lines.length === 0) {
+        say('Your cart is empty. <a href="/shop" style="color:inherit; text-decoration:underline;">Browse the shop →</a>');
+        return;
+      }
+
+      let data: { clientSecret?: string; orderId?: string; error?: string };
+      try {
+        const res = await fetch("/api/checkout", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ lines }),
+        });
+        data = await res.json();
+      } catch {
+        say('Something went wrong starting checkout. <a href="/cart" style="color:inherit; text-decoration:underline;">Back to cart →</a>');
+        return;
+      }
+
+      if (data.error || !data.clientSecret) {
+        const friendly: Record<string, string> = {
+          empty_cart: "Your cart is empty — nothing to check out.",
+          stripe_not_configured: "Payments aren't switched on yet. Check back soon.",
+          service_role_missing: "Payments aren't switched on yet. Check back soon.",
+        };
+        const text =
+          (data.error && friendly[data.error]) ||
+          "We couldn't start checkout right now.";
+        say(`${text} <a href="/cart" style="color:inherit; text-decoration:underline;">Back to cart →</a>`);
+        return;
+      }
+
+      const clientSecret = data.clientSecret;
+      const stripe = await loadStripe(import.meta.env.PUBLIC_STRIPE_PUBLISHABLE_KEY);
+      if (!stripe) {
+        say("Payments unavailable right now. Please try again later.");
+        return;
+      }
+
+      try {
+        const checkout = await stripe.initEmbeddedCheckout({
+          fetchClientSecret: async () => clientSecret,
+        });
+        if (msg) msg.hidden = true;
+        if (mount) checkout.mount("#checkout");
+      } catch {
+        say('We couldn\'t load the payment form. <a href="/cart" style="color:inherit; text-decoration:underline;">Back to cart →</a>');
+      }
+    }
+
+    start();
+  </script>
+</Base>

@@ -1,0 +1,145 @@
+---
+// SlicedLabs · account · © 2026 SlicedLabs — Customer dashboard
+// Shows the signed-in customer's own orders (RLS scopes the query to them).
+// Handles a sign-out POST. Gated: anonymous visitors bounce to the login page.
+export const prerender = false;
+import Base from "../../layouts/Base.astro";
+import { getServerSupabase } from "../../lib/supabase";
+import { formatMoney } from "../../lib/commerce/cart";
+
+const supabase = getServerSupabase(Astro.cookies, Astro.request);
+
+// Sign-out POST.
+if (Astro.request.method === "POST") {
+  const f = await Astro.request.formData();
+  if (f.get("intent") === "signout") {
+    await supabase.auth.signOut();
+    return Astro.redirect("/");
+  }
+}
+
+const {
+  data: { user },
+} = await supabase.auth.getUser();
+if (!user) return Astro.redirect("/account/login?next=/account");
+
+// Orders (RLS limits this to the signed-in user's own rows).
+const { data: orderRows } = await supabase
+  .from("orders")
+  .select(
+    "id,status,total_cents,currency,fulfillment_type,printful_order_id,tracking,created_at,order_items(title,qty,unit_price_cents)",
+  )
+  .order("created_at", { ascending: false });
+
+type LineItem = { title: string; qty: number; unit_price_cents: number };
+type Tracking = { carrier?: string; number?: string; url?: string } | null;
+type Order = {
+  id: string;
+  status: string;
+  total_cents: number;
+  currency: string;
+  fulfillment_type: string;
+  printful_order_id: string | null;
+  tracking: Tracking;
+  created_at: string;
+  order_items: LineItem[];
+};
+
+const orders = (orderRows ?? []) as unknown as Order[];
+
+const fmtDate = (iso: string) =>
+  new Date(iso).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+---
+<Base
+  title="Your account — SlicedLabs"
+  description="Your SlicedLabs orders and account."
+  noindex={true}
+>
+  <section class="wrap" style="padding-block:clamp(2.5rem,7vw,4rem);">
+    <div
+      data-reveal
+      style="display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-bottom:1.6rem;"
+    >
+      <div>
+        <p class="mono" style="margin:0;">your account</p>
+        <h1 style="font-size:clamp(1.8rem,6vw,2.8rem); margin:.2rem 0 0; line-height:1.05;">
+          <span class="blend-text">Welcome back</span>
+        </h1>
+        <p style="color:var(--muted); margin:.5rem 0 0;">{user.email}</p>
+      </div>
+      <form method="POST" style="margin-top:.4rem;">
+        <input type="hidden" name="intent" value="signout" />
+        <button class="btn-ghost" type="submit">Sign out</button>
+      </form>
+    </div>
+
+    <h2 data-reveal style="--i:1; font-size:clamp(1.3rem,4vw,1.8rem); margin:0 0 1rem;">
+      Orders
+    </h2>
+
+    {orders.length === 0 ? (
+      <div
+        class="glass island"
+        data-reveal
+        style="--i:2; display:flex; flex-direction:column; gap:1rem; align-items:flex-start;"
+      >
+        <p style="margin:0; color:var(--muted);">
+          No orders yet —
+        </p>
+        <a class="btn" href="/shop">Shop the drop</a>
+      </div>
+    ) : (
+      <div style="display:flex; flex-direction:column; gap:1rem;">
+        {orders.map((o, i) => (
+          <article
+            class="glass island"
+            data-reveal
+            style={`--i:${i}; display:flex; flex-direction:column; gap:.75rem;`}
+          >
+            <div
+              style="display:flex; align-items:center; justify-content:space-between; gap:.8rem; flex-wrap:wrap;"
+            >
+              <span class="mono" style="color:var(--muted);">{fmtDate(o.created_at)}</span>
+              <span class="tag">{o.status}</span>
+            </div>
+
+            <p
+              class="mono"
+              style="margin:0; font-size:1.15rem;"
+            >
+              {formatMoney(o.total_cents, o.currency)}
+            </p>
+
+            {o.order_items?.length > 0 && (
+              <ul
+                style="list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.3rem;"
+              >
+                {o.order_items.map((it) => (
+                  <li style="color:var(--muted); display:flex; gap:.6rem;">
+                    <span class="mono">{it.qty}×</span>
+                    <span>{it.title}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {o.tracking?.url && (
+              <a
+                href={o.tracking.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style="color:var(--teal); text-decoration:none; font-weight:600; align-self:flex-start;"
+              >
+                Track package →
+              </a>
+            )}
+          </article>
+        ))}
+      </div>
+    )}
+  </section>
+</Base>
