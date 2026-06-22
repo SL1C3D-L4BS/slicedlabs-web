@@ -3,6 +3,9 @@
 import Base from "../layouts/Base.astro";
 import Newsletter from "../components/Newsletter.astro";
 import HeroPass from "../components/HeroPass.astro";
+import { organizationLd } from "../lib/brand";
+
+const orgLd = organizationLd(Astro.site?.href ?? "https://slicedlabs.io");
 
 const pillars = [
   { k: "Food", t: "the empire", d: "The truck, then the lot, the venue, an owned commissary, the homestead. It makes the money — and the content.", tag: "make" },
@@ -17,7 +20,7 @@ const principles = [
 ];
 const climb = ["Brand + the channel", "One truck", "The first lot", "Venue + owned commissary", "The homestead", "The skills center"];
 ---
-<Base>
+<Base jsonLd={orgLd}>
   {/* HERO — "THE PASS": the receipts staged in Z-depth. LCP = the focal lockup. */}
   <HeroPass />
 

@@ -5,19 +5,33 @@ import Analytics from "@vercel/analytics/astro";
 import { MARK_PATH, OG_PATH } from "../lib/brand";
 import LeadForm from "../components/LeadForm.astro";
 import SocialRow from "../components/SocialRow.astro";
-interface Props { title?: string; description?: string; temp?: "dark" | "warm"; noindex?: boolean; }
+interface Props {
+  title?: string;
+  description?: string;
+  temp?: "dark" | "warm";
+  noindex?: boolean;
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+  /** Override the OG image path (e.g. SSR pages with no per-route static card). */
+  ogImage?: string;
+}
 const {
   title = "SlicedLabs — own your slice",
   description = "A food · media · marketing company building a real food empire in public. We don't pitch. We prove.",
   temp = "warm",
   noindex = false,
+  jsonLd,
+  ogImage,
 } = Astro.props;
+// Canonical = the trailing-slash-normalized URL on the live origin (Astro.site).
+// One canonical per page keeps /kitchen vs /recipes overlap from splitting authority.
+const _canonPath = Astro.url.pathname.replace(/\/+$/, "") || "/";
+const canonicalUrl = Astro.site ? new URL(_canonPath, Astro.site).href : _canonPath;
 const _op = (Astro.url.pathname.replace(/\/+$/, "") || "/");
 const ogRoute = _op === "/" ? "index" : _op.replace(/^\//, "");
-// noindex surfaces (e.g. /style) have no per-route OG card — fall back to the brand default.
-const ogUrl = noindex
-  ? (Astro.site ? new URL(OG_PATH, Astro.site).href : OG_PATH)
-  : (Astro.site ? new URL(`/og/${ogRoute}.png`, Astro.site).href : `/og/${ogRoute}.png`);
+// OG image: an explicit override wins; noindex surfaces (e.g. /style) and SSR pages with
+// no per-route static card fall back to the brand default; everything else uses its card.
+const ogPath = ogImage ?? (noindex ? OG_PATH : `/og/${ogRoute}.png`);
+const ogUrl = Astro.site ? new URL(ogPath, Astro.site).href : ogPath;
 const path = (Astro.url.pathname.replace(/\/+$/, "") || "/");
 const ic = {
   home: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.3 2.45a1 1 0 0 1 1.4 0l8.63 7.63A1 1 0 0 1 20.66 11.8H19.5V20a1 1 0 0 1-1 1H14.6v-5.6H9.4V21H5.5a1 1 0 0 1-1-1v-8.2H3.34A1 1 0 0 1 2.67 10.08l8.63-7.63Z"/></svg>`,
@@ -52,7 +66,9 @@ const isActive = (href: string) => (href === "/" ? path === "/" : path === href 
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalUrl} />
     {noindex && <meta name="robots" content="noindex, follow" />}
+    {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
@@ -69,6 +85,7 @@ const isActive = (href: string) => (href === "/" ? path === "/" : path === href 
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
+    <link rel="alternate" type="application/rss+xml" title="SlicedLabs — The Build" href="/rss.xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300..800&family=Inter:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap" rel="stylesheet" />
@@ -105,7 +122,7 @@ const isActive = (href: string) => (href === "/" ? path === "/" : path === href 
 
     <footer class="wrap" style="border-top:1px solid var(--stroke); margin-top:4rem; padding-block:2rem; color:var(--muted);">
       <nav aria-label="Footer" style="display:flex; gap:1.2rem; flex-wrap:wrap; margin-bottom:1.1rem;">
-        {[["/truck","Truck"],["/menu","Menu"],["/shop","Shop"],["/recipes","Recipes"],["/workshops","Workshops"],["/kitchen","Kitchen"],["/watch","Watch"],["/build","The Build"],["/numbers","The Numbers"],["/about","Manifesto"],["/contact","Contact"],["/free","Free Drops"],["/style","Design system"]].map(([h,l]) => (
+        {[["/truck","Truck"],["/menu","Menu"],["/shop","Shop"],["/recipes","Recipes"],["/workshops","Workshops"],["/playbooks","Playbooks"],["/kitchen","Kitchen"],["/watch","Watch"],["/build","The Build"],["/numbers","The Numbers"],["/about","Manifesto"],["/contact","Contact"],["/free","Free Drops"],["/style","Design system"]].map(([h,l]) => (
           <a href={h} style="color:var(--muted); text-decoration:none; font-size:.9rem;">{l}</a>
         ))}
       </nav>
@@ -193,6 +210,8 @@ const isActive = (href: string) => (href === "/" ? path === "/" : path === href 
           el.hidden = false;
           el.scrollIntoView({ block: "center", behavior: "smooth" });
         }
+        // conversion event (owned analytics) — measure signups by source
+        if (st === "success") { try { window.va && window.va("event", { name: "signup", data: { source: src } }); } catch (e) {} }
         history.replaceState({}, "", location.pathname + location.hash);
       })();
     </script>
@@ -212,7 +231,7 @@ const isActive = (href: string) => (href === "/" ? path === "/" : path === href 
               .then(function (r) { return r.json().catch(function () { return { ok: false }; }); })
               .then(function (j) {
                 if (s) { s.textContent = j.ok ? "You're in — check your inbox to confirm. The receipts are coming." : "Something hiccupped — try again in a moment."; s.style.color = j.ok ? "var(--ink)" : "var(--muted)"; s.hidden = false; }
-                if (j.ok) form.reset();
+                if (j.ok) { form.reset(); try { var srcEl = form.querySelector("[name=source]"); window.va && window.va("event", { name: "signup", data: { source: srcEl ? srcEl.value : "" } }); } catch (e) {} }
                 if (btn) btn.disabled = false;
               })
               .catch(function () { if (s) { s.textContent = "Something hiccupped — try again."; s.hidden = false; } if (btn) btn.disabled = false; });

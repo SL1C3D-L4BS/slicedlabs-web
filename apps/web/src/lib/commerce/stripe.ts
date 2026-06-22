@@ -27,7 +27,15 @@ export async function createEmbeddedCheckoutSession(args: {
 }): Promise<Stripe.Checkout.Session> {
   const stripe = getStripe();
   const currency = args.items[0]?.currency ?? "usd";
-  const shippingFlat = env.shippingFlatCents();
+  // Tiered shipping: free over the threshold, else flat. Digital-only carts skip shipping
+  // and the address form entirely. (Margin fix — replaces the old always-free default.)
+  const subtotalCents = args.items.reduce((s, i) => s + i.lineTotalCents, 0);
+  const allDigital =
+    args.items.length > 0 && args.items.every((i) => i.fulfillmentType === "digital");
+  const flat = env.shippingFlatCents();
+  const freeThreshold = env.freeShipThresholdCents();
+  const freeShip = flat === 0 || (freeThreshold > 0 && subtotalCents >= freeThreshold);
+  const shipAmount = freeShip ? 0 : flat;
 
   const line_items: Stripe.Checkout.SessionCreateParams.LineItem[] = args.items.map((i) => ({
     quantity: i.qty,
@@ -47,20 +55,24 @@ export async function createEmbeddedCheckoutSession(args: {
     mode: "payment",
     line_items,
     automatic_tax: { enabled: env.stripeTaxEnabled() },
-    shipping_address_collection: { allowed_countries: ["US"] },
-    shipping_options: [
-      {
-        shipping_rate_data: {
-          type: "fixed_amount",
-          display_name: shippingFlat === 0 ? "Standard shipping (free)" : "Standard shipping",
-          fixed_amount: { amount: shippingFlat, currency },
-          delivery_estimate: {
-            minimum: { unit: "business_day", value: 3 },
-            maximum: { unit: "business_day", value: 7 },
-          },
-        },
-      },
-    ],
+    ...(allDigital
+      ? {}
+      : {
+          shipping_address_collection: { allowed_countries: ["US"] },
+          shipping_options: [
+            {
+              shipping_rate_data: {
+                type: "fixed_amount",
+                display_name: shipAmount === 0 ? "Standard shipping (free)" : "Standard shipping",
+                fixed_amount: { amount: shipAmount, currency },
+                delivery_estimate: {
+                  minimum: { unit: "business_day", value: 3 },
+                  maximum: { unit: "business_day", value: 7 },
+                },
+              },
+            },
+          ],
+        }),
     ...(args.email ? { customer_email: args.email } : {}),
     metadata: { order_id: args.orderId },
     payment_intent_data: { metadata: { order_id: args.orderId } },

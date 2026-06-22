@@ -9,6 +9,8 @@ const build = defineCollection({
     date: z.coerce.date(),
     summary: z.string(),
     tags: z.array(z.string()).optional(),
+    // staging gate — drafts are hidden in prod (index/RSS/OG), visible in dev.
+    draft: z.boolean().default(false),
   }),
 });
 

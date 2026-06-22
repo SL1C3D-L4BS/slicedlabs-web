@@ -13,7 +13,7 @@ if (!slug) return Astro.redirect("/recipes");
 const supabase = getServerSupabase(Astro.cookies, Astro.request);
 const { data: row } = await supabase
   .from("recipes")
-  .select("slug,title,sl_code,kicker,summary,story,ingredients,steps,dietary,season,section")
+  .select("slug,title,sl_code,kicker,summary,story,ingredients,steps,dietary,season,section,hero_image")
   .eq("status", "published")
   .eq("slug", slug)
   .maybeSingle();
@@ -31,9 +31,25 @@ type Recipe = {
   dietary: string[] | null;
   season: string | null;
   section: "anchor" | "drop" | "dough" | "sweet";
+  hero_image: string | null;
 };
 
 const recipe = (row ?? null) as unknown as Recipe | null;
+
+// member "save" state — is this recipe already in the signed-in user's saved list?
+const {
+  data: { user },
+} = await supabase.auth.getUser();
+let isSaved = false;
+if (user && recipe) {
+  const { data: sv } = await supabase
+    .from("saved_recipes")
+    .select("recipe_slug")
+    .eq("user_id", user.id)
+    .eq("recipe_slug", recipe.slug)
+    .maybeSingle();
+  isSaved = Boolean(sv);
+}
 
 // Dietary legend — code → label. Anything unknown falls through as-is.
 const DIET_LABEL: Record<string, string> = {
@@ -80,8 +96,28 @@ if (hasGroups) {
 
 const pageTitle = recipe ? `${recipe.title} — Recipes — SlicedLabs` : "Recipe not found — SlicedLabs";
 const pageDesc = recipe?.summary ?? "The inspiration behind the food — the technique, the source, and the story.";
+
+// schema.org/Recipe — rich results in search (recipe cards are big organic traffic for food).
+const recipeLd = recipe
+  ? {
+      "@context": "https://schema.org",
+      "@type": "Recipe",
+      name: recipe.title,
+      ...(recipe.summary ? { description: recipe.summary } : {}),
+      ...(recipe.hero_image ? { image: [recipe.hero_image] } : {}),
+      author: { "@type": "Organization", name: "SlicedLabs" },
+      recipeCategory: SECTION_LABEL[recipe.section] ?? recipe.section,
+      ...(recipe.season ? { recipeCuisine: recipe.season } : {}),
+      ...(ingredients.length
+        ? { recipeIngredient: ingredients.map((i) => [i.amount, i.item].filter(Boolean).join(" ").trim()) }
+        : {}),
+      ...(steps.length
+        ? { recipeInstructions: steps.map((st, i) => ({ "@type": "HowToStep", position: i + 1, text: st })) }
+        : {}),
+    }
+  : undefined;
 ---
-<Base title={pageTitle} description={pageDesc} noindex={!recipe}>
+<Base title={pageTitle} description={pageDesc} noindex={!recipe} jsonLd={recipeLd} ogImage="/og/recipes.png">
   {recipe ? (
     <article>
       {/* ── HEADER ──────────────────────────────────────────────────────── */}
@@ -108,6 +144,15 @@ const pageDesc = recipe?.summary ?? "The inspiration behind the food — the tec
 
         <hr class="blade" data-reveal style="--i:5; max-width:11rem; margin:1.6rem 0 0;" />
       </section>
+
+      {/* ── HERO (only when a real image is set) ────────────────────────── */}
+      {recipe.hero_image && (
+        <section class="wrap" style="padding-block:clamp(1rem,3vw,1.8rem) 0; max-width:60rem;">
+          <div class="detail-hero" data-reveal>
+            <img src={recipe.hero_image} alt={recipe.title} width="1200" height="600" loading="eager" />
+          </div>
+        </section>
+      )}
 
       {/* ── STORY (the inspiration) ─────────────────────────────────────── */}
       {paragraphs.length > 0 && (
@@ -166,9 +211,16 @@ const pageDesc = recipe?.summary ?? "The inspiration behind the food — the tec
 
       {/* ── CTAs ────────────────────────────────────────────────────────── */}
       <section class="wrap" style="padding-block:clamp(1.5rem,5vw,3rem);">
-        <div data-reveal style="display:flex; gap:.8rem; flex-wrap:wrap;">
+        <div data-reveal style="display:flex; gap:.8rem; flex-wrap:wrap; align-items:center;">
           <a class="btn" href="/menu">See it on the menu →</a>
           <a class="btn btn-ghost" href="/truck">Where to find the truck →</a>
+          <form method="POST" action="/api/recipe" style="margin:0;">
+            <input type="hidden" name="slug" value={recipe.slug} />
+            <input type="hidden" name="action" value={isSaved ? "unsave" : "save"} />
+            <button class="btn btn-ghost" type="submit" aria-pressed={isSaved ? "true" : "false"}>
+              {isSaved ? "★ Saved" : "☆ Save recipe"}
+            </button>
+          </form>
         </div>
       </section>
     </article>
@@ -185,6 +237,13 @@ const pageDesc = recipe?.summary ?? "The inspiration behind the food — the tec
 </Base>
 
 <style>
+  /* hero banner — only rendered when a real image is set */
+  .detail-hero {
+    border-radius: var(--radius); overflow: hidden; aspect-ratio: 2 / 1;
+    border: 1px solid var(--stroke);
+  }
+  .detail-hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
   /* the editorial 2-col — ingredients beside the build, stacks on mobile */
   .recipe-cols {
     display: grid; gap: 1rem;

@@ -1,5 +1,6 @@
 import type { APIRoute } from "astro";
-import { grantPerkForLead } from "../../lib/perks";
+import { grantPerkForLead, perkForSource } from "../../lib/perks";
+import { sendListWelcome } from "../../lib/commerce/email";
 
 // SlicedLabs · studio · © 2026 SlicedLabs
 // The owned-list capture BACKBONE. Every intake (newsletter, catering, contact,
@@ -108,7 +109,16 @@ export const POST: APIRoute = async ({ request }) => {
       }),
     });
     ok = res.ok;
-  } catch { ok = false; }
+    // Observability: surface beehiiv rejections in the Vercel logs instead of
+    // swallowing them to a generic "error" (the signup-email black box).
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      console.error(`beehiiv subscribe failed (${source}): ${res.status} ${body.slice(0, 600)}`);
+    }
+  } catch (e) {
+    console.error(`beehiiv subscribe error (${source}): ${(e as Error).message}`);
+    ok = false;
+  }
 
   // HubSpot CRM — upsert the contact (best-effort, gated on a private-app token in
   // env: HUBSPOT_TOKEN). Create; on 409 (exists) PATCH by the id HubSpot returns.
@@ -185,6 +195,17 @@ export const POST: APIRoute = async ({ request }) => {
     await grantPerkForLead({ email, source, name: fields.Name ?? null, origin, ip });
   } catch {
     /* non-fatal — the lead is already captured */
+  }
+
+  // OWNED confirmation email — the fix for "I don't get emails when I sign up". beehiiv's
+  // welcome can be unconfigured/double-opt-gated/undelivered, so we ALSO send our own from
+  // Resend. Skip perk sources: grantPerkForLead already emailed a branded magic-link.
+  if (!perkForSource(source)) {
+    try {
+      await sendListWelcome({ to: email, label: meta.label, inquiry: Boolean(meta.inquiry) });
+    } catch {
+      /* non-fatal — capture already succeeded */
+    }
   }
 
   return wantsJson ? json({ ok }, ok ? 200 : 502) : back(ok ? "success" : "error");

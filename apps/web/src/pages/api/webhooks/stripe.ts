@@ -10,6 +10,8 @@ import { env } from "../../../lib/commerce/env";
 import { createPrintfulOrder, printfulConfigured } from "../../../lib/commerce/printful";
 import { sendOrderConfirmation } from "../../../lib/commerce/email";
 import { fulfillWorkshopTicket } from "../../../lib/workshops";
+import { fulfillPlaybookPurchase } from "../../../lib/playbooks";
+import { grantMembership, revokeMembership } from "../../../lib/membership";
 
 export const prerender = false;
 
@@ -32,6 +34,34 @@ export const POST: APIRoute = async ({ request }) => {
     return new Response(`bad signature: ${(e as Error).message}`, { status: 400 });
   }
 
+  // ── Membership subscription lifecycle (recurring revenue) ──────────────────
+  // invoice.paid extends the member entitlement to the paid period; subscription
+  // deletion lapses it. Both are best-effort and never throw back to Stripe.
+  if (event.type === "invoice.paid") {
+    const inv = event.data.object as unknown as Record<string, any>;
+    if (inv.subscription) {
+      const periodEnd = inv.lines?.data?.[0]?.period?.end;
+      try {
+        await grantMembership(inv.customer_email ?? null, {
+          untilMs: typeof periodEnd === "number" ? periodEnd * 1000 : null,
+        });
+      } catch (e) {
+        console.error("membership invoice.paid failed:", (e as Error).message);
+      }
+    }
+    return new Response("ok", { status: 200 });
+  }
+  if (event.type === "customer.subscription.deleted") {
+    const sub = event.data.object as unknown as Record<string, any>;
+    try {
+      const cust = (await getStripe().customers.retrieve(String(sub.customer))) as Record<string, any>;
+      await revokeMembership(cust?.deleted ? null : (cust?.email ?? null));
+    } catch (e) {
+      console.error("membership sub.deleted failed:", (e as Error).message);
+    }
+    return new Response("ok", { status: 200 });
+  }
+
   if (
     event.type !== "checkout.session.completed" &&
     event.type !== "checkout.session.async_payment_succeeded"
@@ -48,6 +78,28 @@ export const POST: APIRoute = async ({ request }) => {
       await fulfillWorkshopTicket(session);
     } catch (e) {
       console.error("workshop fulfill failed:", (e as Error).message);
+    }
+    return new Response("ok", { status: 200 });
+  }
+
+  // Playbook purchase (no order row) → grant the playbook entitlement + email.
+  if (session.metadata?.kind === "playbook") {
+    try {
+      await fulfillPlaybookPurchase(session);
+    } catch (e) {
+      console.error("playbook fulfill failed:", (e as Error).message);
+    }
+    return new Response("ok", { status: 200 });
+  }
+
+  // Membership subscription started → grant the member entitlement.
+  if (session.metadata?.kind === "membership") {
+    try {
+      await grantMembership(session.customer_details?.email ?? null, {
+        name: session.customer_details?.name ?? null,
+      });
+    } catch (e) {
+      console.error("membership start failed:", (e as Error).message);
     }
     return new Response("ok", { status: 200 });
   }

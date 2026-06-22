@@ -1,0 +1,180 @@
+---
+// SlicedLabs · commerce · © 2026 SlicedLabs — Admin cockpit: truck menu (menu_items).
+// Display-only menu (food sells at the window). Edit mode via ?edit=<id>. Mirrors
+// /admin/recipes. Replaces the previous DB-only management of this table.
+export const prerender = false;
+import Base from "../../layouts/Base.astro";
+import { getServerSupabase, createServiceSupabase } from "../../lib/supabase";
+import { isAdmin } from "../../lib/admin";
+
+const supabase = getServerSupabase(Astro.cookies, Astro.request);
+const {
+  data: { user },
+} = await supabase.auth.getUser();
+if (!user) return Astro.redirect("/account/login?next=" + encodeURIComponent(Astro.url.pathname));
+if (!isAdmin(user.email)) return new Response("Forbidden", { status: 403 });
+
+let svc: ReturnType<typeof createServiceSupabase> | undefined;
+try {
+  svc = createServiceSupabase();
+} catch {
+  /* no service role — friendly notice below */
+}
+
+type MenuRow = {
+  id: string;
+  slug: string;
+  name: string;
+  blurb: string | null;
+  section: string;
+  price_label: string | null;
+  dietary: string[] | null;
+  note: string | null;
+  season: string | null;
+  hero: boolean;
+  sort: number;
+  status: string;
+};
+
+const SECTIONS = [
+  { id: "anchor", label: "Anchor" },
+  { id: "drop", label: "Drop" },
+  { id: "side", label: "Side" },
+  { id: "sweet", label: "Sweet" },
+];
+const STATUS = ["draft", "published", "archived"];
+const statusHue = (st: string): string =>
+  st === "published" ? "var(--teal)" : st === "archived" ? "var(--muted)" : "var(--coral)";
+
+let items: MenuRow[] = [];
+let editing: MenuRow | null = null;
+let loadError: string | null = null;
+const editId = Astro.url.searchParams.get("edit");
+if (svc) {
+  const { data, error } = await svc
+    .from("menu_items")
+    .select("id,slug,name,blurb,section,price_label,dietary,note,season,hero,sort,status")
+    .order("section")
+    .order("sort");
+  if (error) loadError = error.message;
+  else items = (data as unknown as MenuRow[]) ?? [];
+  if (editId) editing = items.find((m) => m.id === editId) ?? null;
+}
+const err = Astro.url.searchParams.get("err");
+const ok = Astro.url.searchParams.get("ok");
+const e = editing;
+---
+<Base title="Admin — Menu · SlicedLabs" description="SlicedLabs operator cockpit — truck menu." noindex={true}>
+  <section class="wrap" style="padding-block:clamp(2rem,6vw,3rem)">
+    <div style="display:flex; align-items:baseline; gap:1rem; flex-wrap:wrap; justify-content:space-between;">
+      <div>
+        <p class="mono" data-reveal>operator cockpit</p>
+        <h1 data-reveal style="--i:1; font-size:clamp(2rem,6vw,3.4rem); margin:.2rem 0 0;"><span class="blend-text">Menu</span></h1>
+      </div>
+      <nav data-reveal style="--i:2; display:flex; gap:1.2rem; align-items:center; flex-wrap:wrap;">
+        <a href="/admin">Orders</a>
+        <a href="/admin/products">Products</a>
+        <a href="/admin/recipes">Recipes</a>
+        <a href="/admin/playbooks">Playbooks</a>
+        <a href="/admin/workshops">Workshops</a>
+        <a href="/admin/truck">Truck</a>
+      </nav>
+    </div>
+
+    {err && <p class="mono" data-reveal style="color:var(--coral); margin-top:1rem;">{err}</p>}
+    {ok && <p class="mono" data-reveal style="color:var(--teal); margin-top:1rem;">Saved · {ok}</p>}
+
+    {
+      !svc && (
+        <div class="glass island" data-reveal style="margin-top:1.6rem;">
+          <h2 style="font-size:1.2rem; margin:0 0 .4rem;">Service role key not set</h2>
+          <p style="color:var(--muted); margin:0;">Set <code>SUPABASE_SERVICE_ROLE_KEY</code> to manage the menu.</p>
+        </div>
+      )
+    }
+
+    {
+      svc && (
+        <>
+          <div class="glass island" data-reveal style="margin-top:1.6rem;">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; gap:1rem; flex-wrap:wrap;">
+              <h2 style="font-size:1.25rem; margin:0 0 1rem;">{e ? `Edit · ${e.name}` : "New menu item"}</h2>
+              {e && <a href="/admin/menu" class="mono" style="color:var(--muted);">+ new instead</a>}
+            </div>
+            <form method="POST" action="/api/admin/menu" style="display:flex; flex-direction:column; gap:.8rem;">
+              <input type="hidden" name="action" value={e ? "update" : "create"} />
+              {e && <input type="hidden" name="id" value={e.id} />}
+              <div class="row2">
+                <label><span class="mono">Name *</span><input class="fld" type="text" name="name" required value={e?.name ?? ""} placeholder="The Inland Cubano" /></label>
+                <label><span class="mono">Slug (optional)</span><input class="fld" type="text" name="slug" value={e?.slug ?? ""} placeholder="auto from name" /></label>
+              </div>
+              <label><span class="mono">Blurb</span><input class="fld" type="text" name="blurb" value={e?.blurb ?? ""} placeholder="One line for the board." /></label>
+              <div class="row2">
+                <label><span class="mono">Section</span>
+                  <select name="section" class="fld">{SECTIONS.map((sec) => (<option value={sec.id} selected={(e?.section ?? "anchor") === sec.id}>{sec.label}</option>))}</select>
+                </label>
+                <label><span class="mono">Status</span>
+                  <select name="status" class="fld">{STATUS.map((st) => (<option value={st} selected={(e?.status ?? "draft") === st}>{st}</option>))}</select>
+                </label>
+              </div>
+              <div class="row2">
+                <label><span class="mono">Price label</span><input class="fld" type="text" name="price_label" value={e?.price_label ?? ""} placeholder="$14" /></label>
+                <label><span class="mono">Dietary (comma)</span><input class="fld" type="text" name="dietary" value={(e?.dietary ?? []).join(", ")} placeholder="gf-avail, v" /></label>
+              </div>
+              <div class="row2">
+                <label><span class="mono">Season</span><input class="fld" type="text" name="season" value={e?.season ?? ""} placeholder="summer" /></label>
+                <label><span class="mono">Sort</span><input class="fld" type="number" name="sort" step="1" value={e?.sort ?? 0} /></label>
+              </div>
+              <label><span class="mono">Note</span><input class="fld" type="text" name="note" value={e?.note ?? ""} placeholder="Sub aioli for vegan mayo on request." /></label>
+              <label style="flex-direction:row; align-items:center; gap:.5rem;">
+                <input type="checkbox" name="hero" value="1" checked={e?.hero ?? false} />
+                <span class="mono">Hero item (feature on the board)</span>
+              </label>
+              <div><button type="submit" class="btn">{e ? "Save changes" : "Create item"}</button></div>
+            </form>
+          </div>
+
+          {loadError && <p class="mono" data-reveal style="color:var(--coral); margin-top:1.4rem;">Couldn't load menu: {loadError}</p>}
+
+          <div data-reveal style="--i:1; margin-top:1.8rem; overflow-x:auto; border:1px solid var(--stroke); border-radius:var(--radius);">
+            <table style="width:100%; border-collapse:collapse; min-width:46rem; font-size:.92rem;">
+              <thead>
+                <tr style="text-align:left;">
+                  {["Name", "Section", "Price", "Status", "Set status", "Edit"].map((h) => (<th class="mono" style="padding:.7rem .8rem; border-bottom:1px solid var(--stroke); white-space:nowrap;">{h}</th>))}
+                </tr>
+              </thead>
+              <tbody>
+                {items.length === 0 && (<tr><td colspan="6" style="padding:1.2rem .8rem; color:var(--muted);">No menu items yet — create one above.</td></tr>)}
+                {items.map((m) => (
+                  <tr style="border-bottom:1px solid var(--stroke);">
+                    <td style="padding:.7rem .8rem;">{m.name}{m.hero && <span class="tag" style="margin-left:.4rem;">hero</span>}</td>
+                    <td style="padding:.7rem .8rem; color:var(--muted); white-space:nowrap;">{m.section}</td>
+                    <td style="padding:.7rem .8rem; white-space:nowrap;">{m.price_label ?? "—"}</td>
+                    <td style="padding:.7rem .8rem;"><span class="tag" style={`color:${statusHue(m.status)}; border-color:${statusHue(m.status)};`}>{m.status}</span></td>
+                    <td style="padding:.7rem .8rem;">
+                      <form method="POST" action="/api/admin/menu" style="display:flex; gap:.4rem; align-items:center;">
+                        <input type="hidden" name="action" value="set-status" />
+                        <input type="hidden" name="id" value={m.id} />
+                        <label class="mono" for={`mst-${m.id}`} style="position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0);">Status for {m.name}</label>
+                        <select id={`mst-${m.id}`} name="status" class="fld" style="width:auto; padding:.4rem .6rem;">{STATUS.map((st) => (<option value={st} selected={st === m.status}>{st}</option>))}</select>
+                        <button type="submit" class="btn btn-ghost" style="padding:.45rem .8rem;">Save</button>
+                      </form>
+                    </td>
+                    <td style="padding:.7rem .8rem;"><a href={`/admin/menu?edit=${m.id}`} class="btn btn-ghost" style="padding:.45rem .8rem;">Edit</a></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )
+    }
+  </section>
+</Base>
+
+<style>
+  .row2 { display: grid; gap: .8rem; grid-template-columns: 1fr; }
+  @media (min-width: 640px) { .row2 { grid-template-columns: 1fr 1fr; } }
+  label { display: flex; flex-direction: column; gap: .35rem; }
+  label .mono { color: var(--muted); font-size: .8rem; }
+</style>

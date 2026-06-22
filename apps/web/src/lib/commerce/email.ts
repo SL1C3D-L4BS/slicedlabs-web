@@ -105,6 +105,35 @@ export async function sendPerkDelivery(args: {
   return { sent: !r.error };
 }
 
+// Owned, first-party confirmation for a list signup / inquiry. This is the
+// belt-and-suspenders behind beehiiv: beehiiv's welcome email can be unconfigured,
+// gated behind double-opt-in, or undelivered — so we ALSO send our own from Resend.
+// Env-gated (no RESEND_API_KEY → no-op) so /api/lead never fails for lack of email.
+export async function sendListWelcome(args: {
+  to: string;
+  label?: string | null;
+  inquiry?: boolean;
+}): Promise<{ sent: boolean }> {
+  const resend = client();
+  if (!resend) return { sent: false };
+  const inquiry = Boolean(args.inquiry);
+  const heading = inquiry ? "We got it" : "You're in";
+  const body = inquiry
+    ? `Thanks for reaching out${args.label ? ` about ${args.label.toLowerCase()}` : ""} — your note landed with us and a human will be in touch. Meanwhile, the receipts keep coming.`
+    : `You're on the SlicedLabs list — a food · media · marketing company building a real food empire in public. Expect the build, the recipes, and the receipts. We don't pitch. We prove.`;
+  const html = shell(`
+    <h1 style="font-size:22px;margin:0 0 4px">${heading}</h1>
+    <p style="color:#7A6E5C;margin:0 0 16px">${body}</p>
+    <p style="margin:0"><a href="https://slicedlabs.io" style="color:#CB6820;font-weight:600;text-decoration:none">Own your slice → slicedlabs.io</a></p>`);
+  const r = await resend.emails.send({
+    from: env.resendFrom(),
+    to: args.to,
+    subject: inquiry ? "We got your note — SlicedLabs" : "Welcome to SlicedLabs",
+    html,
+  });
+  return { sent: !r.error };
+}
+
 export async function sendWorkshopTicket(args: {
   to: string;
   title: string;
@@ -126,6 +155,28 @@ export async function sendWorkshopTicket(args: {
     from: env.resendFrom(),
     to: args.to,
     subject: `Ticket confirmed — ${args.title}`,
+    html,
+  });
+  return { sent: !r.error };
+}
+
+export async function sendPlaybookReady(args: {
+  to: string;
+  title: string;
+  slug: string;
+}): Promise<{ sent: boolean }> {
+  const resend = client();
+  if (!resend) return { sent: false };
+  const html = shell(`
+    <h1 style="font-size:22px;margin:0 0 4px">Your playbook is ready</h1>
+    <p style="color:#7A6E5C;margin:0 0 18px"><strong>${args.title}</strong> is unlocked on your account — the system, packaged. Tap to open it.</p>
+    <p style="margin:0 0 20px">
+      <a href="https://slicedlabs.io/account" style="display:inline-block;background:#CB6820;color:#fff;text-decoration:none;padding:12px 22px;border-radius:999px;font-weight:600">Open my playbook →</a>
+    </p>`);
+  const r = await resend.emails.send({
+    from: env.resendFrom(),
+    to: args.to,
+    subject: `Your playbook is ready — ${args.title}`,
     html,
   });
   return { sent: !r.error };

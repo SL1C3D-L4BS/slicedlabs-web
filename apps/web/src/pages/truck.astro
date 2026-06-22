@@ -5,6 +5,7 @@ import Base from "../layouts/Base.astro";
 import Newsletter from "../components/Newsletter.astro";
 import CateringForm from "../components/CateringForm.astro";
 import { getServerSupabase } from "../lib/supabase";
+import { foodTruckLd } from "../lib/brand";
 
 // Live status (RLS: public read). SSR the latest; the client script keeps it live.
 const supabase = getServerSupabase(Astro.cookies, Astro.request);
@@ -40,7 +41,7 @@ const steps = [
   ["Launch when it pays", "Permit in hand, we open when the numbers say go — not before. You'll see every figure."],
 ];
 ---
-<Base title="The Truck — SlicedLabs" description="The chaos-menu food truck — the first rung of the climb. Built in public, opened when the receipts say go.">
+<Base title="The Truck — SlicedLabs" description="The chaos-menu food truck — the first rung of the climb. Built in public, opened when the receipts say go." jsonLd={foodTruckLd(Astro.site?.href ?? "https://slicedlabs.io")}>
   <section class="wrap" style="padding-block:clamp(2.5rem,7vw,4rem);">
     <p class="mono" data-reveal>the first rung · phase 1</p>
     <h1 data-reveal style="--i:1; font-size:clamp(2.4rem,8vw,4.6rem);"><span class="blend-text">The Truck</span></h1>

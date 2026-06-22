@@ -55,6 +55,16 @@ if (svc) {
   else orders = (data as OrderRow[]) ?? [];
 }
 
+// recurring-revenue signal — count of `member` entitlements (the KPI that compounds).
+let memberCount = 0;
+if (svc) {
+  const { count } = await svc
+    .from("entitlements")
+    .select("id", { count: "exact", head: true })
+    .eq("kind", "member");
+  memberCount = count ?? 0;
+}
+
 const REVENUE_STATES = new Set(["paid", "fulfilling", "shipped", "delivered"]);
 const ACTION_STATES = new Set(["paid", "fulfilling"]);
 const totalOrders = orders.length;
@@ -103,6 +113,9 @@ const fmtDate = (iso: string) =>
       </div>
       <nav data-reveal style="--i:2; display:flex; gap:.6rem; flex-wrap:wrap;">
         <a href="/admin/products" class="btn-ghost btn">Products →</a>
+        <a href="/admin/recipes" class="btn-ghost btn">Recipes →</a>
+        <a href="/admin/menu" class="btn-ghost btn">Menu →</a>
+        <a href="/admin/playbooks" class="btn-ghost btn">Playbooks →</a>
         <a href="/admin/vault" class="btn-ghost btn">Vault →</a>
         <a href="/admin/truck" class="btn-ghost btn">Truck →</a>
         <a href="/admin/workshops" class="btn-ghost btn">Workshops →</a>
@@ -149,6 +162,12 @@ const fmtDate = (iso: string) =>
               <p class="mono" style="margin:0;">needs action</p>
               <p style="font-family:var(--font-display); font-weight:800; font-size:clamp(1.8rem,5vw,2.6rem); margin:.3rem 0 0;">
                 {needsAction}
+              </p>
+            </article>
+            <article class="glass island col-2" data-reveal style="--i:3;">
+              <p class="mono" style="margin:0;">members</p>
+              <p style="font-family:var(--font-display); font-weight:800; font-size:clamp(1.8rem,5vw,2.6rem); margin:.3rem 0 0;">
+                {memberCount}
               </p>
             </article>
           </div>

@@ -2,6 +2,7 @@
 import { defineConfig } from 'astro/config';
 import tailwindcss from '@tailwindcss/vite';
 import vercel from '@astrojs/vercel';
+import sitemap from '@astrojs/sitemap';
 
 // The website IS the Liquid Retina design language on the web (one body):
 // it consumes the same tokens as the desktop via src/styles/global.css.
@@ -14,6 +15,21 @@ export default defineConfig({
   site: SITE,
   vite: { plugins: [tailwindcss()] },
   output: 'static',
+  integrations: [
+    sitemap({
+      // keep private/transactional/noindex surfaces out of the index
+      filter: (page) =>
+        !/\/(admin|account|auth|checkout|cart|style)(\/|$)/.test(page) && !page.includes('/og/'),
+      // SSR (prerender:false) commerce pages aren't in the static build → add them
+      customPages: [
+        `${SITE}/recipes`,
+        `${SITE}/menu`,
+        `${SITE}/shop`,
+        `${SITE}/truck`,
+        `${SITE}/workshops`,
+      ],
+    }),
+  ],
   adapter: vercel({
     webAnalytics: { enabled: true }
   }),

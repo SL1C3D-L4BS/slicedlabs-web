@@ -22,8 +22,20 @@ export const env = {
   shippingFlatCents: () => {
     const raw = process.env.SL_SHIPPING_FLAT_CENTS ?? import.meta.env.SL_SHIPPING_FLAT_CENTS;
     const n = Number(raw);
-    return Number.isFinite(n) && n >= 0 ? Math.floor(n) : 0; // default: free shipping
+    return Number.isFinite(n) && n >= 0 ? Math.floor(n) : 0; // 0 = free; set e.g. 600 for $6 flat
+  },
+  // Free shipping once an order's subtotal clears this floor (0 = no threshold). Pairs with
+  // SL_SHIPPING_FLAT_CENTS for tiered shipping: flat below the floor, free at/above it.
+  freeShipThresholdCents: () => {
+    const raw =
+      process.env.SL_FREE_SHIP_THRESHOLD_CENTS ?? import.meta.env.SL_FREE_SHIP_THRESHOLD_CENTS;
+    const n = Number(raw);
+    return Number.isFinite(n) && n >= 0 ? Math.floor(n) : 0;
   },
   stripeTaxEnabled: () =>
     (process.env.STRIPE_TAX_ENABLED ?? import.meta.env.STRIPE_TAX_ENABLED) === "true",
+  // Recurring membership — a Stripe recurring Price id. Unset → the membership checkout
+  // stays dark (returns not_configured) until the operator creates the price.
+  stripeMembershipPriceId: () =>
+    process.env.STRIPE_MEMBERSHIP_PRICE_ID ?? import.meta.env.STRIPE_MEMBERSHIP_PRICE_ID,
 };

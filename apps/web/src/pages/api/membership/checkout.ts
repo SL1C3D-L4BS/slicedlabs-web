@@ -1,0 +1,42 @@
+import type { APIRoute } from "astro";
+// SlicedLabs · commerce · © 2026 SlicedLabs
+// Start a membership subscription via Stripe Embedded Checkout (mode: subscription).
+// The recurring Price lives in Stripe (STRIPE_MEMBERSHIP_PRICE_ID); on payment the
+// webhook grants the `member` entitlement (see lib/membership.ts). Dark until the
+// price id is configured — returns not_configured so the UI can hide the offer.
+import { getServerSupabase } from "../../../lib/supabase";
+import { getStripe, stripeConfigured } from "../../../lib/commerce/stripe";
+import { env } from "../../../lib/commerce/env";
+
+export const prerender = false;
+
+const json = (b: unknown, s: number) =>
+  new Response(JSON.stringify(b), { status: s, headers: { "content-type": "application/json" } });
+
+export const POST: APIRoute = async ({ request, cookies }) => {
+  if (!stripeConfigured()) return json({ error: "stripe_not_configured" }, 503);
+  const priceId = env.stripeMembershipPriceId();
+  if (!priceId) return json({ error: "not_configured" }, 503);
+
+  const supabase = getServerSupabase(cookies, request);
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const origin = new URL(request.url).origin;
+  const meta = { kind: "membership" };
+  try {
+    const session = await getStripe().checkout.sessions.create({
+      ui_mode: "embedded",
+      mode: "subscription",
+      line_items: [{ price: priceId, quantity: 1 }],
+      ...(user?.email ? { customer_email: user.email } : {}),
+      metadata: meta,
+      subscription_data: { metadata: meta },
+      return_url: `${origin}/account?member={CHECKOUT_SESSION_ID}`,
+    });
+    return json({ clientSecret: session.client_secret }, 200);
+  } catch (e) {
+    return json({ error: "stripe_session_failed", detail: (e as Error).message }, 502);
+  }
+};

@@ -81,6 +81,17 @@ const playbooks = activeEnts.filter((e) => e.kind.startsWith("playbook:"));
 const workshops = activeEnts.filter((e) => e.kind.startsWith("workshop:"));
 const recipes = (recipeRows ?? []) as unknown as SavedRecipe[];
 
+// Resolve saved-recipe titles (saved_recipes stores only the slug). Recipes RLS allows
+// public read of published rows, so the signed-in client can fetch the titles directly.
+const savedSlugs = recipes.map((r) => r.recipe_slug);
+let recipeTitle: Record<string, string> = {};
+if (savedSlugs.length) {
+  const { data: rt } = await supabase.from("recipes").select("slug,title").in("slug", savedSlugs);
+  recipeTitle = Object.fromEntries(
+    ((rt ?? []) as { slug: string; title: string }[]).map((r) => [r.slug, r.title]),
+  );
+}
+
 const fmtDate = (iso: string) =>
   new Date(iso).toLocaleDateString("en-US", {
     year: "numeric",
@@ -254,10 +265,10 @@ const fmtDate = (iso: string) =>
           {recipes.map((r) => (
             <a
               class="glass island"
-              href={`/kitchen/${r.recipe_slug}`}
+              href={`/recipes/${r.recipe_slug}`}
               style="text-decoration:none; display:block;"
             >
-              <span style="color:var(--ink);">{r.recipe_slug}</span>
+              <span style="color:var(--ink);">{recipeTitle[r.recipe_slug] ?? r.recipe_slug}</span>
               {r.note && <p style="color:var(--muted); margin:.3rem 0 0;">{r.note}</p>}
             </a>
           ))}

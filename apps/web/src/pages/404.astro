@@ -1,0 +1,20 @@
+---
+// SlicedLabs · studio · © 2026 SlicedLabs — branded 404 (served as 404.html by the static build)
+import Base from "../layouts/Base.astro";
+---
+<Base title="Off the board — 404 · SlicedLabs" description="That page isn't on the board — here's the way back." noindex={true}>
+  <section class="wrap" style="padding-block:clamp(3rem,10vw,6rem); max-width:42rem;">
+    <p class="mono" data-reveal>404 · off the board</p>
+    <h1 data-reveal style="--i:1; font-size:clamp(2.2rem,8vw,4rem); margin:.3rem 0 0;"><span class="blend-text">Off the board</span></h1>
+    <hr class="blade" data-reveal style="--i:2; max-width:10rem; margin:1.4rem 0 0;" />
+    <p data-reveal style="--i:3; color:var(--muted); margin-top:1.4rem; font-size:clamp(1.05rem,2.4vw,1.3rem);">
+      That page isn't here — it may have been a seasonal drop, or the link's off. No pitch — just the way back.
+    </p>
+    <div data-reveal style="--i:4; display:flex; gap:.8rem; flex-wrap:wrap; margin-top:1.8rem;">
+      <a class="btn" href="/">Home →</a>
+      <a class="btn btn-ghost" href="/recipes">Recipes</a>
+      <a class="btn btn-ghost" href="/build">The Build</a>
+      <a class="btn btn-ghost" href="/menu">Menu</a>
+    </div>
+  </section>
+</Base>

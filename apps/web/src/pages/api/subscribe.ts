@@ -5,6 +5,8 @@ import type { APIRoute } from "astro";
 // BEEHIIV_API_KEY never reaches the client. The native <form> posts here; we add the
 // subscriber via the beehiiv API, then 303 back to /?subscribe=<status>#newsletter.
 // Docs: https://developers.beehiiv.com/api-reference/subscriptions/create
+import { sendListWelcome } from "../../lib/commerce/email";
+
 export const prerender = false;
 
 const PUB =
@@ -27,6 +29,7 @@ export const POST: APIRoute = async ({ request }) => {
   if (!EMAIL_RE.test(email)) return wantsJson ? json({ ok: false, error: "invalid_email" }, 400) : back("invalid");
   if (!key) return wantsJson ? json({ ok: false, error: "not_configured" }, 503) : back("error");
 
+  let ok = false;
   try {
     const res = await fetch(`https://api.beehiiv.com/v2/publications/${PUB}/subscriptions`, {
       method: "POST",
@@ -35,13 +38,26 @@ export const POST: APIRoute = async ({ request }) => {
         email,
         reactivate_existing: true,
         send_welcome_email: true,
-        utm_source: String(form.get("utm_source") ?? "slicedlabs.com"),
+        utm_source: String(form.get("utm_source") ?? "slicedlabs.io"),
         utm_medium: "website",
-        referring_site: "slicedlabs.com",
+        referring_site: "slicedlabs.io",
       }),
     });
-    return wantsJson ? json({ ok: res.ok }, res.ok ? 200 : 502) : back(res.ok ? "success" : "error");
-  } catch {
-    return wantsJson ? json({ ok: false, error: "upstream" }, 502) : back("error");
+    ok = res.ok;
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      console.error(`beehiiv subscribe failed (newsletter): ${res.status} ${body.slice(0, 600)}`);
+    }
+  } catch (e) {
+    console.error(`beehiiv subscribe error (newsletter): ${(e as Error).message}`);
   }
+
+  // OWNED confirmation email (belt-and-suspenders behind beehiiv's welcome).
+  try {
+    await sendListWelcome({ to: email });
+  } catch {
+    /* non-fatal */
+  }
+
+  return wantsJson ? json({ ok }, ok ? 200 : 502) : back(ok ? "success" : "error");
 };

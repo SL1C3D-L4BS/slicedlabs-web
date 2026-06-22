@@ -1,0 +1,255 @@
+---
+// SlicedLabs · commerce · © 2026 SlicedLabs — Admin cockpit: Playbooks list + create
+export const prerender = false;
+import Base from "../../layouts/Base.astro";
+import { getServerSupabase, createServiceSupabase } from "../../lib/supabase";
+import { isAdmin } from "../../lib/admin";
+import { formatMoney } from "../../lib/commerce/cart";
+
+const supabase = getServerSupabase(Astro.cookies, Astro.request);
+const {
+  data: { user },
+} = await supabase.auth.getUser();
+if (!user) return Astro.redirect("/account/login?next=" + encodeURIComponent(Astro.url.pathname));
+if (!isAdmin(user.email)) return new Response("Forbidden", { status: 403 });
+
+let svc: ReturnType<typeof createServiceSupabase> | undefined;
+try {
+  svc = createServiceSupabase();
+} catch {
+  /* SUPABASE_SERVICE_ROLE_KEY not set — render a friendly notice below */
+}
+
+type PlaybookRow = {
+  id: string;
+  slug: string;
+  title: string;
+  status: string;
+  price_cents: number;
+  currency: string;
+  sort: number;
+  created_at: string;
+};
+
+let playbooks: PlaybookRow[] = [];
+let loadError: string | null = null;
+if (svc) {
+  const { data, error } = await svc
+    .from("playbooks")
+    .select("id,slug,title,status,price_cents,currency,sort,created_at")
+    .order("sort", { ascending: true })
+    .order("created_at", { ascending: false });
+  if (error) loadError = error.message;
+  else playbooks = (data as PlaybookRow[]) ?? [];
+}
+
+const PLAYBOOK_STATUS = ["draft", "published", "archived"];
+
+const statusHue = (st: string): string => {
+  switch (st) {
+    case "published":
+      return "var(--teal)";
+    case "archived":
+      return "var(--muted)";
+    default:
+      return "var(--coral)"; // draft
+  }
+};
+
+const fmtPrice = (cents: number, currency: string): string =>
+  cents > 0 ? formatMoney(cents, currency) : "Free";
+
+const err = Astro.url.searchParams.get("err");
+---
+
+<Base
+  title="Admin — Playbooks · SlicedLabs"
+  description="SlicedLabs operator cockpit — playbooks."
+  noindex={true}
+>
+  <section class="wrap" style="padding-block:clamp(2rem,6vw,3rem)">
+    <div
+      style="display:flex; align-items:baseline; gap:1rem; flex-wrap:wrap; justify-content:space-between;"
+    >
+      <div>
+        <p class="mono" data-reveal>operator cockpit</p>
+        <h1 data-reveal style="--i:1; font-size:clamp(2rem,6vw,3.4rem); margin:.2rem 0 0;">
+          <span class="blend-text">Playbooks</span>
+        </h1>
+      </div>
+      <nav data-reveal style="--i:2; display:flex; gap:1.2rem; align-items:center; flex-wrap:wrap;">
+        <a href="/admin">Orders</a>
+        <a href="/admin/products">Products</a>
+        <a href="/admin/recipes">Recipes</a>
+        <a href="/admin/workshops">Workshops</a>
+        <a href="/admin/vault">Vault</a>
+        <a href="/admin/truck">Truck</a>
+      </nav>
+    </div>
+
+    {
+      err && (
+        <p class="mono" data-reveal style="color:var(--coral); margin-top:1rem;">
+          {err}
+        </p>
+      )
+    }
+
+    {
+      !svc && (
+        <div class="glass island" data-reveal style="margin-top:1.6rem;">
+          <h2 style="font-size:1.2rem; margin:0 0 .4rem;">Service role key not set</h2>
+          <p style="color:var(--muted); margin:0;">
+            Set <code>SUPABASE_SERVICE_ROLE_KEY</code> so the cockpit can read drafts and write
+            playbooks.
+          </p>
+        </div>
+      )
+    }
+
+    {
+      svc && (
+        <>
+          {/* ---- new playbook ----------------------------------------------- */}
+          <div class="glass island" data-reveal style="margin-top:1.6rem;">
+            <h2 style="font-size:1.25rem; margin:0 0 1rem;">New playbook</h2>
+            <form
+              method="POST"
+              action="/api/admin/playbook"
+              style="display:flex; flex-direction:column; gap:.8rem;"
+            >
+              <input type="hidden" name="action" value="create" />
+              <div class="row2">
+                <label>
+                  <span class="mono">Title *</span>
+                  <input class="fld" type="text" name="title" required placeholder="The Atomise Machine" />
+                </label>
+                <label>
+                  <span class="mono">Slug (optional)</span>
+                  <input class="fld" type="text" name="slug" placeholder="auto from title" />
+                </label>
+              </div>
+              <label>
+                <span class="mono">Summary</span>
+                <input class="fld" type="text" name="summary" placeholder="One line — what it is and who it's for." />
+              </label>
+              <label>
+                <span class="mono">Description</span>
+                <textarea class="fld" name="description" placeholder="What it is, who it's for, what you leave with."></textarea>
+              </label>
+              <div class="row2">
+                <label>
+                  <span class="mono">Price (USD)</span>
+                  <input class="fld" type="number" name="price" step="0.01" min="0" placeholder="0.00 = free" />
+                </label>
+                <label>
+                  <span class="mono">Sort</span>
+                  <input class="fld" type="number" name="sort" min="0" step="1" placeholder="0" />
+                </label>
+              </div>
+              <div class="row2">
+                <label>
+                  <span class="mono">File ref (vault ref or URL)</span>
+                  <input class="fld" type="text" name="file_ref" placeholder="vault key or https://…" />
+                </label>
+                <label>
+                  <span class="mono">Cover image URL (optional)</span>
+                  <input class="fld" type="url" name="cover_image" placeholder="https://…" />
+                </label>
+              </div>
+              <div>
+                <button type="submit" class="btn">Create playbook</button>
+              </div>
+            </form>
+          </div>
+
+          {/* ---- playbooks table ------------------------------------------- */}
+          {loadError && (
+            <p class="mono" data-reveal style="color:var(--coral); margin-top:1.4rem;">
+              Couldn't load playbooks: {loadError}
+            </p>
+          )}
+
+          <div
+            data-reveal
+            style="--i:1; margin-top:1.8rem; overflow-x:auto; border:1px solid var(--stroke); border-radius:var(--radius);"
+          >
+            <table style="width:100%; border-collapse:collapse; min-width:48rem; font-size:.92rem;">
+              <thead>
+                <tr style="text-align:left;">
+                  {["Title", "Slug", "Status", "Price", "Sort", "Set status"].map((h) => (
+                    <th
+                      class="mono"
+                      style="padding:.7rem .8rem; border-bottom:1px solid var(--stroke); white-space:nowrap;"
+                    >
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {playbooks.length === 0 && (
+                  <tr>
+                    <td colspan="6" style="padding:1.2rem .8rem; color:var(--muted);">
+                      No playbooks yet — create one above.
+                    </td>
+                  </tr>
+                )}
+                {playbooks.map((p) => (
+                  <tr style="border-bottom:1px solid var(--stroke);">
+                    <td style="padding:.7rem .8rem;">
+                      <a href={`/playbooks/${p.slug}`} style="color:var(--mark);">
+                        {p.title}
+                      </a>
+                    </td>
+                    <td style="padding:.7rem .8rem; color:var(--muted); white-space:nowrap;">
+                      {p.slug}
+                    </td>
+                    <td style="padding:.7rem .8rem;">
+                      <span class="tag" style={`color:${statusHue(p.status)}; border-color:${statusHue(p.status)};`}>
+                        {p.status}
+                      </span>
+                    </td>
+                    <td style="padding:.7rem .8rem; white-space:nowrap;">
+                      {fmtPrice(p.price_cents, p.currency)}
+                    </td>
+                    <td style="padding:.7rem .8rem; white-space:nowrap; color:var(--muted);">
+                      {p.sort}
+                    </td>
+                    <td style="padding:.7rem .8rem;">
+                      <form
+                        method="POST"
+                        action="/api/admin/playbook"
+                        style="display:flex; gap:.4rem; align-items:center;"
+                      >
+                        <input type="hidden" name="action" value="set-status" />
+                        <input type="hidden" name="id" value={p.id} />
+                        <label
+                          class="mono"
+                          for={`pst-${p.id}`}
+                          style="position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0);"
+                        >
+                          Status for {p.title}
+                        </label>
+                        <select id={`pst-${p.id}`} name="status" class="fld" style="width:auto; padding:.4rem .6rem;">
+                          {PLAYBOOK_STATUS.map((st) => (
+                            <option value={st} selected={st === p.status}>
+                              {st}
+                            </option>
+                          ))}
+                        </select>
+                        <button type="submit" class="btn btn-ghost" style="padding:.45rem .8rem;">
+                          Save
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )
+    }
+  </section>
+</Base>

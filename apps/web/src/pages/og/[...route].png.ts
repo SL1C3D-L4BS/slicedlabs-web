@@ -20,6 +20,8 @@ const STATIC: Pg[] = [
   { route: "shop", title: "Shop", desc: "Food, merch, and the playbooks. Be first in line." },
   { route: "workshops", title: "Workshops", desc: "Cook it and build it — PNW in-person, virtual, group, 1-on-1, on-demand." },
   { route: "kitchen", title: "The Kitchen", desc: "A free recipe, every month. Cook the build at home." },
+  { route: "recipes", title: "Recipes", desc: "The inspiration behind the food — the technique, the source, and the story." },
+  { route: "menu", title: "The Menu", desc: "What's on the truck — the chaos menu, in full." },
   { route: "free", title: "Free Drops", desc: "The $85k budget, the Atomise Machine, the build receipts — free." },
   { route: "contact", title: "Get in touch", desc: "Catering, press, partnerships, or just a hello." },
   { route: "watch", title: "Watch & cook along", desc: "A full food channel and a business built in public." },
@@ -30,8 +32,10 @@ const STATIC: Pg[] = [
 ];
 
 export async function getStaticPaths() {
-  const builds = (await getCollection("build")).map((p) => ({ route: `build/${p.id}`, title: p.data.title, desc: p.data.summary }));
+  const builds = (await getCollection("build", ({ data }) => (import.meta.env.PROD ? !data.draft : true))).map((p) => ({ route: `build/${p.id}`, title: p.data.title, desc: p.data.summary }));
   const recipes = (await getCollection("recipes")).map((r) => ({ route: `kitchen/${r.id}`, title: r.data.title, desc: r.data.summary }));
+  // DB recipes (/recipes) are SSR with no build-time card; they share the static
+  // /og/recipes.png section card (set via Base's ogImage override) — robust, never 404s.
   return [...STATIC, ...builds, ...recipes].map((p) => ({ params: { route: p.route }, props: p }));
 }
 
