@@ -19,7 +19,9 @@ muted        = "#B8A789"
 muted-strong = "#D6C9AE"
 panel        = "rgba(31, 32, 36, 0.82)"
 stroke       = "rgba(255, 255, 255, 0.10)"
-rim          = "rgba(255, 255, 255, 0.22)"
+# softer top rim on dark glass (was 0.22 — the bright white edge made the navbar
+# + tiles read "milky/strange" in dark). Warm keeps its own dark rim below.
+rim          = "rgba(255, 255, 255, 0.14)"
 
 # ── WARM / FOOD (truck · menu · consumer) — cream, UNTOUCHED LAW ───────────────
 # All original cream values are byte-identical; --muted-strong is purely additive
@@ -70,9 +72,11 @@ maxw           = "72rem"
 [glass]
 glass-tint  = "0.82"
 glass-rim   = "0.18"
-glass-sheen = "0.10"
-focal-rim   = "0.22"
-ultra-rim   = "0.30"
+# dark specular sheen, softened (was 0.10). Warm overrides with its own 0.045 in
+# [color.warm], so this value is dark-only. Lower = less white haze on dark glass.
+glass-sheen = "0.06"
+focal-rim   = "0.18"
+ultra-rim   = "0.24"
 
 [motion]
 t-quick  = "120ms"
