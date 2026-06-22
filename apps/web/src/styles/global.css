@@ -120,13 +120,9 @@ a { color: inherit; text-decoration-color: color-mix(in oklab, var(--mark) 60%, 
     inset -1px 0 0 color-mix(in oklab, var(--teal)  22%, transparent),  /* rim */
     0 32px 90px rgba(0,0,0,.46);
 }
-/* true squircle where the browser supports it; rounded-rect fallback elsewhere.
- * Applied to EVERY rounded surface (cards, chips, fields, images, modal, prose) so the
- * corner language is consistent — no "some squircle, some round" mix in supporting browsers. */
-@supports (corner-shape: superellipse(4)) {
-  .glass, .glass-focal, .glass-ultra, .btn, .tag, .island,
-  .fld, .recipe-hero, .detail-hero, .gate-inner, .prose pre, .prose img { corner-shape: superellipse(4); }
-}
+/* Corners: plain rounded-rect (border-radius) everywhere — ONE consistent corner
+ * language across cards, chips, fields, images, modal and nav. The superellipse(4)
+ * squircle was removed so there's no "some squircle, some round" mix. */
 
 /* ── Constellation v4 · islands + bento ─────────────────────────────────── */
 .island { padding: 1.5rem; transition: transform var(--t-quick) var(--ease), border-color var(--t-quick); }
@@ -186,7 +182,6 @@ dialog.gate::backdrop { background: rgba(0,0,0,.6); backdrop-filter: blur(4px); 
   /* theme-aware sheen (was a hardcoded white 12% — too milky on dark). Uses the same
      --glass-sheen as .glass so the navbar matches the cards in both temperatures. */
   background: linear-gradient(177deg, color-mix(in oklab, white calc(var(--glass-sheen) * 100%), transparent), transparent 42%); }
-@supports (corner-shape: superellipse(4)) { .pillbar, .pb-chip { corner-shape: superellipse(4); } }
 
 .pb-brand { display:flex; align-items:center; gap:.5rem; text-decoration:none; height:34px; padding:0 .4rem 0 .5rem; }
 .pb-brand img { display:block; filter: drop-shadow(0 2px 8px color-mix(in oklab, var(--mark) 28%, transparent)); }

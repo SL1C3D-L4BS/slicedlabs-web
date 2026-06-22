@@ -643,7 +643,6 @@ const TABS = [
     white-space: nowrap;
     transition: color var(--t-quick), background-color var(--t-quick), border-color var(--t-quick);
   }
-  @supports (corner-shape: superellipse(4)) { .tab { corner-shape: superellipse(4); } }
   .tab:hover { color: var(--ink); background: color-mix(in oklab, var(--ink) 7%, transparent); }
   .tab[aria-selected="true"] {
     color: var(--ink);
