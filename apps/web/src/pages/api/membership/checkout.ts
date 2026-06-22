@@ -15,7 +15,17 @@ const json = (b: unknown, s: number) =>
 
 export const POST: APIRoute = async ({ request, cookies }) => {
   if (!stripeConfigured()) return json({ error: "stripe_not_configured" }, 503);
-  const priceId = env.stripeMembershipPriceId();
+
+  // plan = monthly (default) | annual — each maps to its own Stripe recurring Price.
+  let plan = "monthly";
+  try {
+    const body = (await request.json()) as { plan?: string };
+    if (body?.plan === "annual") plan = "annual";
+  } catch {
+    /* empty body → monthly */
+  }
+  const priceId =
+    plan === "annual" ? env.stripeMembershipAnnualPriceId() : env.stripeMembershipPriceId();
   if (!priceId) return json({ error: "not_configured" }, 503);
 
   const supabase = getServerSupabase(cookies, request);
@@ -24,7 +34,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
   } = await supabase.auth.getUser();
 
   const origin = new URL(request.url).origin;
-  const meta = { kind: "membership" };
+  const meta = { kind: "membership", plan };
   try {
     const session = await getStripe().checkout.sessions.create({
       ui_mode: "embedded",

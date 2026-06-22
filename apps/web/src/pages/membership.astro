@@ -13,19 +13,28 @@ import { formatMoney } from "../lib/commerce/cart";
 
 const supabase = getServerSupabase(Astro.cookies, Astro.request);
 
-// Price, live from Stripe — never hardcoded. If unconfigured/unreachable → "opens soon".
-const priceId = env.stripeMembershipPriceId();
-let price: { amountCents: number; interval: string; currency: string } | null = null;
-if (stripeConfigured() && priceId) {
+// Prices, live from Stripe — never hardcoded. Monthly + optional annual; either being
+// unconfigured/unreachable just hides that plan. Both null → "opens soon".
+type Plan = { amountCents: number; interval: string; currency: string } | null;
+async function fetchPrice(id: string | undefined): Promise<Plan> {
+  if (!stripeConfigured() || !id) return null;
   try {
-    const p = await getStripe().prices.retrieve(priceId);
+    const p = await getStripe().prices.retrieve(id);
     if (p.unit_amount != null && p.recurring) {
-      price = { amountCents: p.unit_amount, interval: p.recurring.interval, currency: p.currency };
+      return { amountCents: p.unit_amount, interval: p.recurring.interval, currency: p.currency };
     }
   } catch {
-    /* leave null → graceful "opens soon" state */
+    /* graceful fallback */
   }
+  return null;
 }
+const [monthly, annual] = await Promise.all([
+  fetchPrice(env.stripeMembershipPriceId()),
+  fetchPrice(env.stripeMembershipAnnualPriceId()),
+]);
+const anyPrice = monthly ?? annual;
+// annual savings vs 12× monthly (powers the "save" hint)
+const annualSaveCents = monthly && annual ? monthly.amountCents * 12 - annual.amountCents : 0;
 
 // Already a member? (active = no expiry, or expiry in the future)
 const {
@@ -41,10 +50,6 @@ if (user) {
     .maybeSingle();
   isMember = !!ent && (!ent.expires_at || new Date(ent.expires_at).getTime() > Date.now());
 }
-
-const priceLabel = price
-  ? `${formatMoney(price.amountCents, price.currency)} / ${price.interval}`
-  : null;
 
 const benefits = [
   ["Early access to every drop", "Recipes, merch, and seasonal drops land in your inbox before they go public."],
@@ -85,15 +90,26 @@ const benefits = [
           <p style="color:var(--muted); margin:0 0 1rem;">Everything's unlocked on your account — early drops, the playbooks, and the build updates.</p>
           <a class="btn" href="/account">Go to my account →</a>
         </article>
-      ) : price ? (
+      ) : anyPrice ? (
         <article class="glass glass-focal island" data-reveal style="max-width:42rem;">
-          <p class="mono" style="margin:0 0 .3rem;">membership</p>
-          <p style="font-family:var(--font-display); font-weight:800; font-size:clamp(2rem,6vw,3rem); line-height:1; margin:0 0 .2rem;">
-            <span class="blend-text">{priceLabel}</span>
-          </p>
-          <p style="color:var(--muted); margin:0 0 1.2rem;">Cancel any time. No lock-in — the same way we run everything.</p>
-          <button id="join" class="btn" type="button">Become a member →</button>
-          <p id="checkout-msg" class="mono" role="status" aria-live="polite" style="color:var(--muted); margin-top:1rem;" hidden></p>
+          <p class="mono" style="margin:0 0 .7rem;">pick your plan</p>
+          <div class="plans">
+            {monthly && (
+              <button class="plan-btn" type="button" data-plan="monthly">
+                <span class="plan-amt blend-text">{formatMoney(monthly.amountCents, monthly.currency)}</span>
+                <span class="plan-int mono">/ month</span>
+              </button>
+            )}
+            {annual && (
+              <button class="plan-btn" type="button" data-plan="annual">
+                {annualSaveCents > 0 && <span class="plan-save mono">save {formatMoney(annualSaveCents, annual.currency)}/yr</span>}
+                <span class="plan-amt blend-text">{formatMoney(annual.amountCents, annual.currency)}</span>
+                <span class="plan-int mono">/ year</span>
+              </button>
+            )}
+          </div>
+          <p style="color:var(--muted); margin:1rem 0 0;">Cancel any time. No lock-in — the same way we run everything.</p>
+          <p id="checkout-msg" class="mono" role="status" aria-live="polite" style="color:var(--muted); margin-top:.6rem;" hidden></p>
           <div id="checkout" style="margin-top:1rem;"></div>
           {!user && (
             <p class="mono" style="color:var(--muted); margin-top:1rem;">
@@ -116,7 +132,7 @@ const benefits = [
   <script>
     import { loadStripe } from "@stripe/stripe-js";
 
-    const btn = document.getElementById("join") as HTMLButtonElement | null;
+    const planBtns = Array.from(document.querySelectorAll("[data-plan]")) as HTMLButtonElement[];
     const msg = document.getElementById("checkout-msg");
     const mount = document.getElementById("checkout");
 
@@ -125,10 +141,10 @@ const benefits = [
       msg.innerHTML = html;
       msg.hidden = false;
     }
+    const setDisabled = (v: boolean) => planBtns.forEach((b) => (b.disabled = v));
 
-    async function start() {
-      if (!btn) return;
-      btn.disabled = true;
+    async function start(plan: string) {
+      setDisabled(true);
       say("Setting up your membership…");
 
       let data: { clientSecret?: string; error?: string };
@@ -136,22 +152,22 @@ const benefits = [
         const res = await fetch("/api/membership/checkout", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: "{}",
+          body: JSON.stringify({ plan }),
         });
         data = await res.json();
       } catch {
         say("Something went wrong. Please try again.");
-        btn.disabled = false;
+        setDisabled(false);
         return;
       }
 
       if (data.error || !data.clientSecret) {
         const friendly: Record<string, string> = {
-          not_configured: "Membership isn't switched on yet. Check back soon.",
+          not_configured: "That plan isn't switched on yet. Check back soon.",
           stripe_not_configured: "Payments aren't switched on yet. Check back soon.",
         };
         say((data.error && friendly[data.error]) || "We couldn't start checkout right now.");
-        btn.disabled = false;
+        setDisabled(false);
         return;
       }
 
@@ -159,7 +175,7 @@ const benefits = [
       const stripe = await loadStripe(import.meta.env.PUBLIC_STRIPE_PUBLISHABLE_KEY);
       if (!stripe) {
         say("Payments unavailable right now. Please try again later.");
-        btn.disabled = false;
+        setDisabled(false);
         return;
       }
 
@@ -168,10 +184,11 @@ const benefits = [
           fetchClientSecret: async () => clientSecret,
         });
         if (msg) msg.hidden = true;
-        btn.hidden = true;
+        planBtns.forEach((b) => (b.hidden = true));
         try {
           (window as unknown as { va?: (e: string, p: unknown) => void }).va?.("event", {
             name: "begin_membership",
+            data: { plan },
           });
         } catch (e) {
           /* analytics best-effort */
@@ -179,10 +196,36 @@ const benefits = [
         if (mount) checkout.mount("#checkout");
       } catch {
         say("We couldn't load the payment form. Please try again.");
-        btn.disabled = false;
+        setDisabled(false);
       }
     }
 
-    btn?.addEventListener("click", start);
+    planBtns.forEach((b) => b.addEventListener("click", () => start(b.dataset.plan || "monthly")));
   </script>
+
+  <style>
+    .plans { display: flex; gap: .7rem; flex-wrap: wrap; }
+    .plan-btn {
+      position: relative; flex: 1 1 9rem; min-width: 8.5rem;
+      display: flex; flex-direction: column; align-items: flex-start; gap: .1rem;
+      padding: 1rem 1.1rem; cursor: pointer; text-align: left;
+      border: 1px solid var(--stroke); border-radius: var(--radius);
+      background: color-mix(in oklab, var(--ink) 4%, transparent); color: inherit;
+      transition: border-color var(--t-quick) var(--ease), transform var(--t-quick) var(--ease), box-shadow var(--t-quick);
+    }
+    @supports (corner-shape: superellipse(4)) { .plan-btn { corner-shape: superellipse(4); } }
+    .plan-btn:hover, .plan-btn:focus-visible {
+      border-color: color-mix(in oklab, var(--mark) 50%, var(--stroke));
+      transform: translateY(-2px);
+      box-shadow: inset 0 1px 0 var(--rim), 0 14px 36px rgba(0,0,0,.28); outline: none;
+    }
+    .plan-btn:disabled { opacity: .55; cursor: default; transform: none; }
+    .plan-amt { font-family: var(--font-display); font-weight: 800; font-size: clamp(1.6rem,5vw,2.2rem); line-height: 1; }
+    .plan-int { color: var(--muted); font-size: .8rem; }
+    .plan-save {
+      align-self: flex-start; margin-bottom: .3rem; font-size: .66rem; font-weight: 600;
+      color: #0B0B0F; background: var(--blend); padding: .15rem .5rem; border-radius: 999px;
+    }
+    @media (prefers-reduced-motion: reduce) { .plan-btn { transition: none; } .plan-btn:hover { transform: none; } }
+  </style>
 </Base>

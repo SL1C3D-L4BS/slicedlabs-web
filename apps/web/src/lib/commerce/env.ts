@@ -34,8 +34,11 @@ export const env = {
   },
   stripeTaxEnabled: () =>
     (process.env.STRIPE_TAX_ENABLED ?? import.meta.env.STRIPE_TAX_ENABLED) === "true",
-  // Recurring membership — a Stripe recurring Price id. Unset → the membership checkout
-  // stays dark (returns not_configured) until the operator creates the price.
+  // Recurring membership — Stripe recurring Price ids (monthly + optional annual). Unset →
+  // that plan stays dark (returns not_configured) until the operator creates the price.
   stripeMembershipPriceId: () =>
     process.env.STRIPE_MEMBERSHIP_PRICE_ID ?? import.meta.env.STRIPE_MEMBERSHIP_PRICE_ID,
+  stripeMembershipAnnualPriceId: () =>
+    process.env.STRIPE_MEMBERSHIP_ANNUAL_PRICE_ID ??
+    import.meta.env.STRIPE_MEMBERSHIP_ANNUAL_PRICE_ID,
 };
