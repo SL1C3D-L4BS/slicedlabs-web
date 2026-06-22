@@ -27,6 +27,8 @@ export default defineConfig({
         `${SITE}/shop`,
         `${SITE}/truck`,
         `${SITE}/workshops`,
+        `${SITE}/playbooks`,
+        `${SITE}/membership`,
       ],
     }),
   ],

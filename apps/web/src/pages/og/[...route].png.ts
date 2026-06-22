@@ -22,6 +22,7 @@ const STATIC: Pg[] = [
   { route: "kitchen", title: "The Kitchen", desc: "A free recipe, every month. Cook the build at home." },
   { route: "recipes", title: "Recipes", desc: "The inspiration behind the food — the technique, the source, and the story." },
   { route: "menu", title: "The Menu", desc: "What's on the truck — the chaos menu, in full." },
+  { route: "membership", title: "Become a member", desc: "The inner circle — early drops, every playbook, member-only build updates." },
   { route: "free", title: "Free Drops", desc: "The $85k budget, the Atomise Machine, the build receipts — free." },
   { route: "contact", title: "Get in touch", desc: "Catering, press, partnerships, or just a hello." },
   { route: "watch", title: "Watch & cook along", desc: "A full food channel and a business built in public." },

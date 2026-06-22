@@ -130,6 +130,21 @@ const fmtDate = (iso: string) =>
       </form>
     </div>
 
+    {!isMember && (
+      <a
+        href="/membership"
+        class="glass glass-focal island"
+        data-reveal
+        style="display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; text-decoration:none; margin-bottom:1.8rem;"
+      >
+        <span>
+          <span class="mono" style="color:var(--muted);">the inner circle</span>
+          <span style="display:block; font-weight:600; color:var(--ink); margin-top:.2rem;">Become a member — early drops, every playbook, the build updates.</span>
+        </span>
+        <span class="btn">Become a member →</span>
+      </a>
+    )}
+
     <h2 data-reveal style="--i:1; font-size:clamp(1.3rem,4vw,1.8rem); margin:0 0 1rem;">
       Orders
     </h2>

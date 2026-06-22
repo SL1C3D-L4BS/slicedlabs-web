@@ -1,0 +1,188 @@
+---
+// SlicedLabs · commerce · © 2026 SlicedLabs — Become a member (recurring).
+// Server-rendered. The price is read LIVE from Stripe (STRIPE_MEMBERSHIP_PRICE_ID) so the
+// displayed amount always matches the real Price — one source of truth. Signed-in members
+// see the "you're in" panel; everyone else gets the offer + Stripe Embedded Checkout
+// (subscription mode → /api/membership/checkout → webhook grants the `member` entitlement).
+export const prerender = false;
+import Base from "../layouts/Base.astro";
+import { getServerSupabase } from "../lib/supabase";
+import { getStripe, stripeConfigured } from "../lib/commerce/stripe";
+import { env } from "../lib/commerce/env";
+import { formatMoney } from "../lib/commerce/cart";
+
+const supabase = getServerSupabase(Astro.cookies, Astro.request);
+
+// Price, live from Stripe — never hardcoded. If unconfigured/unreachable → "opens soon".
+const priceId = env.stripeMembershipPriceId();
+let price: { amountCents: number; interval: string; currency: string } | null = null;
+if (stripeConfigured() && priceId) {
+  try {
+    const p = await getStripe().prices.retrieve(priceId);
+    if (p.unit_amount != null && p.recurring) {
+      price = { amountCents: p.unit_amount, interval: p.recurring.interval, currency: p.currency };
+    }
+  } catch {
+    /* leave null → graceful "opens soon" state */
+  }
+}
+
+// Already a member? (active = no expiry, or expiry in the future)
+const {
+  data: { user },
+} = await supabase.auth.getUser();
+let isMember = false;
+if (user) {
+  const { data: ent } = await supabase
+    .from("entitlements")
+    .select("expires_at")
+    .eq("kind", "member")
+    .eq("ref_id", "member")
+    .maybeSingle();
+  isMember = !!ent && (!ent.expires_at || new Date(ent.expires_at).getTime() > Date.now());
+}
+
+const priceLabel = price
+  ? `${formatMoney(price.amountCents, price.currency)} / ${price.interval}`
+  : null;
+
+const benefits = [
+  ["Early access to every drop", "Recipes, merch, and seasonal drops land in your inbox before they go public."],
+  ["All the playbooks, included", "The systems we run — packaged — included with membership instead of bought one at a time."],
+  ["Member-only build updates", "The real numbers and behind-the-scenes of the build, for the people backing it."],
+];
+---
+<Base
+  title="Become a member — SlicedLabs"
+  description="Join the inner circle: early access to every drop, all the playbooks included, and member-only build updates. We don't pitch. We prove."
+>
+  <section class="wrap" style="padding-block:clamp(2.5rem,7vw,4rem) clamp(1.2rem,3vw,2rem);">
+    <p class="mono" data-reveal>the inner circle</p>
+    <h1 data-reveal style="--i:1; font-size:clamp(2.4rem,8vw,4.6rem); margin:.3rem 0 0;"><span class="blend-text">Become a member</span></h1>
+    <hr class="blade" data-reveal style="--i:2; max-width:16rem; margin:1.4rem 0 0;" />
+    <p data-reveal style="--i:3; font-size:clamp(1.1rem,2.4vw,1.4rem); color:var(--muted); max-width:46rem; margin-top:1.4rem;">
+      Back the build and get the inside lane — early drops, every playbook, and the real numbers. The newsletter is free forever; membership is for the people who want all of it.
+    </p>
+  </section>
+
+  <section class="wrap" style="padding-block:clamp(1rem,3vw,2rem);">
+    <div class="bento">
+      {benefits.map(([h, d], i) => (
+        <article class="glass island col-3" data-reveal style={`--i:${i};`}>
+          <h2 style="font-size:1.25rem; margin:0 0 .4rem;"><span class="blend-text">{h}</span></h2>
+          <p style="color:var(--muted); margin:0;">{d}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section class="wrap" style="padding-block:clamp(1.5rem,5vw,3rem);">
+    {
+      isMember ? (
+        <article class="glass island" data-reveal style="border-color:var(--teal); max-width:42rem;">
+          <p class="mono" style="color:var(--teal); margin:0 0 .3rem;">you're in</p>
+          <h2 style="font-size:1.4rem; margin:0 0 .5rem;"><span class="blend-text">You're a member</span></h2>
+          <p style="color:var(--muted); margin:0 0 1rem;">Everything's unlocked on your account — early drops, the playbooks, and the build updates.</p>
+          <a class="btn" href="/account">Go to my account →</a>
+        </article>
+      ) : price ? (
+        <article class="glass glass-focal island" data-reveal style="max-width:42rem;">
+          <p class="mono" style="margin:0 0 .3rem;">membership</p>
+          <p style="font-family:var(--font-display); font-weight:800; font-size:clamp(2rem,6vw,3rem); line-height:1; margin:0 0 .2rem;">
+            <span class="blend-text">{priceLabel}</span>
+          </p>
+          <p style="color:var(--muted); margin:0 0 1.2rem;">Cancel any time. No lock-in — the same way we run everything.</p>
+          <button id="join" class="btn" type="button">Become a member →</button>
+          <p id="checkout-msg" class="mono" role="status" aria-live="polite" style="color:var(--muted); margin-top:1rem;" hidden></p>
+          <div id="checkout" style="margin-top:1rem;"></div>
+          {!user && (
+            <p class="mono" style="color:var(--muted); margin-top:1rem;">
+              Have an account? <a href="/account/login?next=/membership" style="color:var(--mark);">Sign in first</a> so your membership lands on it.
+            </p>
+          )}
+        </article>
+      ) : (
+        <article class="glass island" data-reveal style="max-width:42rem;">
+          <p class="mono" style="margin:0 0 .3rem;">opening soon</p>
+          <h2 style="font-size:1.3rem; margin:0 0 .5rem;"><span class="blend-text">Membership opens soon</span></h2>
+          <p style="color:var(--muted); margin:0 0 1.2rem;">We're switching it on. Get on the list and you'll be first to know.</p>
+          <a class="btn" href="/free">Get the free drops →</a>
+        </article>
+      )
+    }
+  </section>
+
+  {/* Embedded Stripe Checkout (subscription) — mirrors the workshop/playbook buy flow. */}
+  <script>
+    import { loadStripe } from "@stripe/stripe-js";
+
+    const btn = document.getElementById("join") as HTMLButtonElement | null;
+    const msg = document.getElementById("checkout-msg");
+    const mount = document.getElementById("checkout");
+
+    function say(html: string) {
+      if (!msg) return;
+      msg.innerHTML = html;
+      msg.hidden = false;
+    }
+
+    async function start() {
+      if (!btn) return;
+      btn.disabled = true;
+      say("Setting up your membership…");
+
+      let data: { clientSecret?: string; error?: string };
+      try {
+        const res = await fetch("/api/membership/checkout", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: "{}",
+        });
+        data = await res.json();
+      } catch {
+        say("Something went wrong. Please try again.");
+        btn.disabled = false;
+        return;
+      }
+
+      if (data.error || !data.clientSecret) {
+        const friendly: Record<string, string> = {
+          not_configured: "Membership isn't switched on yet. Check back soon.",
+          stripe_not_configured: "Payments aren't switched on yet. Check back soon.",
+        };
+        say((data.error && friendly[data.error]) || "We couldn't start checkout right now.");
+        btn.disabled = false;
+        return;
+      }
+
+      const clientSecret = data.clientSecret;
+      const stripe = await loadStripe(import.meta.env.PUBLIC_STRIPE_PUBLISHABLE_KEY);
+      if (!stripe) {
+        say("Payments unavailable right now. Please try again later.");
+        btn.disabled = false;
+        return;
+      }
+
+      try {
+        const checkout = await stripe.initEmbeddedCheckout({
+          fetchClientSecret: async () => clientSecret,
+        });
+        if (msg) msg.hidden = true;
+        btn.hidden = true;
+        try {
+          (window as unknown as { va?: (e: string, p: unknown) => void }).va?.("event", {
+            name: "begin_membership",
+          });
+        } catch (e) {
+          /* analytics best-effort */
+        }
+        if (mount) checkout.mount("#checkout");
+      } catch {
+        say("We couldn't load the payment form. Please try again.");
+        btn.disabled = false;
+      }
+    }
+
+    btn?.addEventListener("click", start);
+  </script>
+</Base>
