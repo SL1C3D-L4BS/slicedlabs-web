@@ -14,11 +14,15 @@ const SIGN_TTL = 60 * 60; // signed URLs valid 1h
 const esc = (s: string) =>
   s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c] ?? c);
 
-const pending = () =>
-  new Response("Your drop is being prepared — check back shortly.", {
-    status: 200,
-    headers: { "content-type": "text/plain; charset=utf-8" },
-  });
+// When a drop's files aren't uploaded yet, send the entitled member to a readable
+// fallback page instead of a dead "being prepared" end. The operator can upload real
+// files to the vault bucket any time — those then serve INSTEAD of this fallback.
+const VAULT_FALLBACK: Record<string, string> = {
+  "recipe-drop": "/recipes",
+  "founders-vault": "/free",
+  "debt-in-order": "/free",
+};
+const fallbackFor = (r: string) => VAULT_FALLBACK[r] ?? "/free";
 const unavailable = () =>
   new Response("Vault temporarily unavailable.", { status: 503 });
 
@@ -56,7 +60,7 @@ export const GET: APIRoute = async ({ params, cookies, request, redirect }) => {
     .list(ref, { limit: 100, sortBy: { column: "name", order: "asc" } });
   if (listErr) return unavailable();
   const files = (listed ?? []).filter((o) => o.id && !o.name.startsWith("."));
-  if (files.length === 0) return pending();
+  if (files.length === 0) return redirect(fallbackFor(ref));
 
   const paths = files.map((f) => `${ref}/${f.name}`);
   const { data: signed, error: signErr } = await svc.storage
@@ -69,7 +73,7 @@ export const GET: APIRoute = async ({ params, cookies, request, redirect }) => {
   const links = signed
     .filter((s) => s.signedUrl && !s.error)
     .map((s) => ({ url: s.signedUrl as string, name: s.path?.slice(ref.length + 1) || "download" }));
-  if (links.length === 0) return pending();
+  if (links.length === 0) return redirect(fallbackFor(ref));
 
   // single asset → direct download; multiple → a small branded index. These responses
   // carry live signed URLs → never cache them.

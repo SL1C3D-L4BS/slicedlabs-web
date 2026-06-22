@@ -55,6 +55,7 @@ export async function createEmbeddedCheckoutSession(args: {
     mode: "payment",
     line_items,
     automatic_tax: { enabled: env.stripeTaxEnabled() },
+    allow_promotion_codes: true,
     ...(allDigital
       ? {}
       : {

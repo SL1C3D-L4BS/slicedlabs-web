@@ -20,16 +20,12 @@ export default defineConfig({
       // keep private/transactional/noindex surfaces out of the index
       filter: (page) =>
         !/\/(admin|account|auth|checkout|cart|style)(\/|$)/.test(page) && !page.includes('/og/'),
-      // SSR (prerender:false) commerce pages aren't in the static build → add them
-      customPages: [
-        `${SITE}/recipes`,
-        `${SITE}/menu`,
-        `${SITE}/shop`,
-        `${SITE}/truck`,
-        `${SITE}/workshops`,
-        `${SITE}/playbooks`,
-        `${SITE}/membership`,
-      ],
+      // normalize to NO trailing slash so the sitemap matches <link rel="canonical">
+      // (Base strips trailing slashes) and the /x vs /x/ duplicate pairs collapse to one.
+      serialize(item) {
+        item.url = item.url.replace(/([^/])\/$/, '$1');
+        return item;
+      },
     }),
   ],
   adapter: vercel({

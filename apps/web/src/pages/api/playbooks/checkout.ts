@@ -54,6 +54,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
         },
       ],
       automatic_tax: { enabled: false },
+      allow_promotion_codes: true,
       ...(user?.email ? { customer_email: user.email } : {}),
       metadata: meta,
       payment_intent_data: { metadata: meta },

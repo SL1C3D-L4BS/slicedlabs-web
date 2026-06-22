@@ -40,6 +40,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       ui_mode: "embedded",
       mode: "subscription",
       line_items: [{ price: priceId, quantity: 1 }],
+      allow_promotion_codes: true,
       ...(user?.email ? { customer_email: user.email } : {}),
       metadata: meta,
       subscription_data: { metadata: meta },

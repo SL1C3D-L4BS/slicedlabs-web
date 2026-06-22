@@ -130,6 +130,11 @@ const isActive = (href: string) => (href === "/" ? path === "/" : path === href 
         <SocialRow />
         <span class="mono">one handle · @slicedlabs everywhere</span>
       </div>
+      <nav aria-label="Legal" style="display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:1rem;">
+        {[["/privacy","Privacy"],["/terms","Terms"],["/refunds","Refunds"],["/shipping","Shipping"]].map(([h,l]) => (
+          <a href={h} style="color:var(--muted); text-decoration:none; font-size:.82rem;">{l}</a>
+        ))}
+      </nav>
       <div style="display:flex; gap:1rem; flex-wrap:wrap; justify-content:space-between; align-items:center;">
         <span class="mono">own your slice · build it in public · show the math</span>
         <span class="mono">© 2026 SlicedLabs</span>
