@@ -7,13 +7,8 @@
 export const prerender = false;
 import Base from "../../layouts/Base.astro";
 import Newsletter from "../../components/Newsletter.astro";
-import { getServerSupabase } from "../../lib/supabase";
-
-const supabase = getServerSupabase(Astro.cookies, Astro.request);
-const {
-  data: { user },
-} = await supabase.auth.getUser();
-const authed = Boolean(user);
+const { userId } = Astro.locals.auth();
+const authed = Boolean(userId);
 
 const DIETS = ["Vegan", "Vegetarian", "Gluten-free", "Dairy-free", "Nut-free", "Keto", "Pescatarian", "Halal", "Kosher"];
 const ALLERGENS = ["Peanuts", "Tree nuts", "Milk", "Eggs", "Soy", "Wheat", "Fish", "Shellfish", "Sesame"];

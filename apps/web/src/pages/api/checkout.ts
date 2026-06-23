@@ -2,7 +2,8 @@ import type { APIRoute } from "astro";
 // SlicedLabs · commerce · © 2026 SlicedLabs
 // Creates a pending order from the SERVER-repriced cart, then a Stripe Embedded
 // Checkout session. The client never sets prices; RLS hides inactive products.
-import { getServerSupabase, createServiceSupabase } from "../../lib/supabase";
+import { getClerkSupabase, createServiceSupabase } from "../../lib/supabase";
+import { ensureClerkProfile } from "../../lib/clerkProfile";
 import { repriceCart, dominantFulfillment } from "../../lib/commerce/cart";
 import { createEmbeddedCheckoutSession, stripeConfigured } from "../../lib/commerce/stripe";
 
@@ -11,7 +12,7 @@ export const prerender = false;
 const json = (b: unknown, s: number) =>
   new Response(JSON.stringify(b), { status: s, headers: { "content-type": "application/json" } });
 
-export const POST: APIRoute = async ({ request, cookies }) => {
+export const POST: APIRoute = async ({ request, locals }) => {
   if (!stripeConfigured()) return json({ error: "stripe_not_configured" }, 503);
 
   let body: unknown;
@@ -23,11 +24,13 @@ export const POST: APIRoute = async ({ request, cookies }) => {
   const b = (body ?? {}) as Record<string, unknown>;
   const lines = (b.lines ?? b.cart ?? b.items ?? []) as unknown;
 
-  // RLS-scoped reprice as the (possibly anonymous) visitor.
-  const supabase = getServerSupabase(cookies, request);
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Reprice as the (possibly anonymous) visitor; link the order to the Clerk profile if signed in.
+  const supabase = getClerkSupabase(locals);
+  const { userId } = locals.auth();
+  const email = userId
+    ? ((await locals.currentUser())?.primaryEmailAddress?.emailAddress ?? null)
+    : null;
+  const pid = userId ? await ensureClerkProfile(userId, email) : null;
   const { items, subtotalCents, currency } = await repriceCart(supabase, lines as never);
   if (items.length === 0) return json({ error: "empty_cart" }, 400);
 
@@ -38,11 +41,10 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     return json({ error: "service_role_missing" }, 503);
   }
 
-  const email = user?.email ?? null;
   const { data: order, error: oErr } = await svc
     .from("orders")
     .insert({
-      user_id: user?.id ?? null,
+      user_id: pid,
       email: email ?? "",
       status: "pending",
       subtotal_cents: subtotalCents,

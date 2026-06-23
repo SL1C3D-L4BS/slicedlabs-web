@@ -3,7 +3,7 @@ import type { APIRoute } from "astro";
 // Buy a workshop ticket via Stripe Embedded Checkout. Price comes from the published
 // workshop row (server-side, never the client). On payment, the Stripe webhook grants
 // a `workshop:<slug>` entitlement (see lib/workshops.ts).
-import { getServerSupabase } from "../../../lib/supabase";
+import { getClerkSupabase } from "../../../lib/supabase";
 import { getStripe, stripeConfigured } from "../../../lib/commerce/stripe";
 
 export const prerender = false;
@@ -11,7 +11,7 @@ export const prerender = false;
 const json = (b: unknown, s: number) =>
   new Response(JSON.stringify(b), { status: s, headers: { "content-type": "application/json" } });
 
-export const POST: APIRoute = async ({ request, cookies }) => {
+export const POST: APIRoute = async ({ request, locals }) => {
   if (!stripeConfigured()) return json({ error: "stripe_not_configured" }, 503);
 
   let body: unknown;
@@ -23,10 +23,11 @@ export const POST: APIRoute = async ({ request, cookies }) => {
   const slug = String((body as Record<string, unknown>)?.slug ?? "").trim();
   if (!slug) return json({ error: "bad_request" }, 400);
 
-  const supabase = getServerSupabase(cookies, request);
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const supabase = getClerkSupabase(locals);
+  const { userId } = locals.auth();
+  const email = userId
+    ? ((await locals.currentUser())?.primaryEmailAddress?.emailAddress ?? null)
+    : null;
 
   // RLS: only published workshops are readable.
   const { data: ws } = await supabase
@@ -55,7 +56,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       ],
       automatic_tax: { enabled: false },
       allow_promotion_codes: true,
-      ...(user?.email ? { customer_email: user.email } : {}),
+      ...(email ? { customer_email: email } : {}),
       metadata: meta,
       payment_intent_data: { metadata: meta },
       return_url: `${origin}/workshops/${ws.slug}?ticket={CHECKOUT_SESSION_ID}`,

@@ -4,7 +4,6 @@ import type { APIRoute } from "astro";
 // The recurring Price lives in Stripe (STRIPE_MEMBERSHIP_PRICE_ID); on payment the
 // webhook grants the `member` entitlement (see lib/membership.ts). Dark until the
 // price id is configured — returns not_configured so the UI can hide the offer.
-import { getServerSupabase } from "../../../lib/supabase";
 import { getStripe, stripeConfigured } from "../../../lib/commerce/stripe";
 import { env } from "../../../lib/commerce/env";
 
@@ -13,7 +12,7 @@ export const prerender = false;
 const json = (b: unknown, s: number) =>
   new Response(JSON.stringify(b), { status: s, headers: { "content-type": "application/json" } });
 
-export const POST: APIRoute = async ({ request, cookies }) => {
+export const POST: APIRoute = async ({ request, locals }) => {
   if (!stripeConfigured()) return json({ error: "stripe_not_configured" }, 503);
 
   // plan = monthly (default) | annual — each maps to its own Stripe recurring Price.
@@ -28,10 +27,10 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     plan === "annual" ? env.stripeMembershipAnnualPriceId() : env.stripeMembershipPriceId();
   if (!priceId) return json({ error: "not_configured" }, 503);
 
-  const supabase = getServerSupabase(cookies, request);
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { userId } = locals.auth();
+  const email = userId
+    ? ((await locals.currentUser())?.primaryEmailAddress?.emailAddress ?? null)
+    : null;
 
   const origin = new URL(request.url).origin;
   const meta = { kind: "membership", plan };
@@ -41,7 +40,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       mode: "subscription",
       line_items: [{ price: priceId, quantity: 1 }],
       allow_promotion_codes: true,
-      ...(user?.email ? { customer_email: user.email } : {}),
+      ...(email ? { customer_email: email } : {}),
       metadata: meta,
       subscription_data: { metadata: meta },
       return_url: `${origin}/account?member={CHECKOUT_SESSION_ID}`,
