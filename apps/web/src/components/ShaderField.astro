@@ -1,12 +1,11 @@
 ---
 // SlicedLabs · studio · © 2026 SlicedLabs — ShaderField
-// A real-time GPU "living backdrop": a flowing, domain-warped color field in the brand
-// blend. THEME-AWARE — bold/cinematic on dark, washed toward cream + softer on warm — so
-// it never clashes with the cream theme. Use `fixed` to mount it once site-wide behind a
-// transparent header (fills every page, no seam); omit for a contained hero background.
-// Progressive enhancement + heavily gated:
+// The real-time GPU "living backdrop" (theme-aware brand-blend / Italian-latte field).
+// Renders OFF the main thread via an OffscreenCanvas WORKER when supported (so it can't
+// stutter scroll/input), with a robust main-thread fallback (shared shaderGL.ts). Use
+// `fixed` to mount it once site-wide behind a transparent header. Heavily gated:
 //   · prefers-reduced-motion / prefers-reduced-data / Save-Data / low-power → NEVER runs
-//   · paused on tab blur; capped DPR + half-res; one fullscreen triangle; no per-frame allocs
+//   · paused on tab blur + off-screen; capped DPR + half-res; scroll velocity is SMOOTHED
 // Fallback (no-WebGL / no-JS / reduced-motion) = a static, theme-tinted CSS gradient.
 interface Props { class?: string; fixed?: boolean }
 const { class: cls = "", fixed = false } = Astro.props;
@@ -19,7 +18,6 @@ const { class: cls = "", fixed = false } = Astro.props;
 <style>
   .shaderfield { position: absolute; inset: 0; overflow: hidden; z-index: -1; pointer-events: none; }
   .shaderfield.is-fixed { position: fixed; }
-  /* static base — the brand blend, calm. Softer on the warm (cream) theme. */
   .shaderfield-fallback {
     position: absolute; inset: -10%;
     background:
@@ -34,6 +32,8 @@ const { class: cls = "", fixed = false } = Astro.props;
 </style>
 
 <script>
+  import { initGL } from "./shaderGL";
+
   (function () {
     const canvas = document.querySelector<HTMLCanvasElement>("[data-shaderfield]");
     if (!canvas) return;
@@ -49,103 +49,51 @@ const { class: cls = "", fixed = false } = Astro.props;
       (navigator.deviceMemory && navigator.deviceMemory <= 4);
     if (mq.matches || lowData || weak) return;
 
-    const gl = canvas.getContext("webgl2", { antialias: false, alpha: true, premultipliedAlpha: false, powerPreference: "low-power" });
-    if (!gl) return;
-
-    const VERT = `#version 300 es
-    void main(){ vec2 p = vec2((gl_VertexID<<1)&2, gl_VertexID&2); gl_Position = vec4(p*2.0-1.0,0,1); }`;
-
-    const FRAG = `#version 300 es
-    precision highp float;
-    out vec4 o;
-    uniform vec2 u_res;
-    uniform float u_time;
-    uniform float u_warm;   // 0 = dark/cinematic, 1 = warm/cream
-    uniform float u_vel;    // 0..1 scroll velocity → the field goes liquid as you move
-    const vec3 CORAL=vec3(0.851,0.345,0.235);
-    const vec3 ORANGE=vec3(0.796,0.408,0.125);
-    const vec3 TEAL=vec3(0.184,0.608,0.502);
-    const vec3 BLUE=vec3(0.188,0.545,0.859);
-    const vec3 MARK=vec3(0.298,0.714,1.0);
-    const vec3 L_TAN=vec3(0.74,0.58,0.42);    // espresso-caramel (latte lows)
-    const vec3 L_MILK=vec3(0.88,0.80,0.68);   // steamed milk
-    const vec3 L_FOAM=vec3(0.975,0.95,0.90);  // foam (near cream)
-    float hash(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }
-    float noise(vec2 p){ vec2 i=floor(p), f=fract(p); vec2 u=f*f*(3.0-2.0*f);
-      return mix(mix(hash(i),hash(i+vec2(1,0)),u.x), mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),u.x), u.y); }
-    float fbm(vec2 p){ float v=0.0,a=0.5; mat2 m=mat2(1.6,1.2,-1.2,1.6);
-      for(int i=0;i<5;i++){ v+=a*noise(p); p=m*p; a*=0.5; } return v; }
-    vec3 ramp(float t){ t=clamp(t,0.0,1.0);
-      if(t<0.25) return mix(CORAL,ORANGE,t/0.25);
-      if(t<0.5)  return mix(ORANGE,TEAL,(t-0.25)/0.25);
-      if(t<0.75) return mix(TEAL,BLUE,(t-0.5)/0.25);
-      return mix(BLUE,MARK,(t-0.75)/0.25); }
-    vec3 latteRamp(float t){ t=clamp(t,0.0,1.0);
-      if(t<0.5) return mix(L_TAN,L_MILK,t/0.5);
-      return mix(L_MILK,L_FOAM,(t-0.5)/0.5); }
-    void main(){
-      vec2 uv=(gl_FragCoord.xy-0.5*u_res)/min(u_res.x,u_res.y);
-      float t=u_time*0.042;
-      vec2 q=vec2(fbm(uv*1.4+vec2(0.0,t)), fbm(uv*1.4+vec2(5.2,-t)));
-      vec2 r=vec2(fbm(uv*1.4+3.0*q+vec2(1.7,9.2)+t*0.7), fbm(uv*1.4+3.0*q+vec2(8.3,2.8)-t*0.7));
-      float f=fbm(uv*1.2+2.2*r*(1.0+u_vel*0.8));
-      vec3 col=ramp(f*0.85+0.18*r.x+0.1);
-      col*=0.85+0.5*smoothstep(0.2,0.9,f);
-      // warm theme → a VISIBLE Italian-latte swirl (tan/espresso → milk → foam) with a
-      // hint of brand. Tan lows read as warm shapes on the cream base; foam blends out.
-      vec3 latte=mix(latteRamp(f*0.9+0.12*r.y+0.05), col, 0.16);
-      col=mix(col, latte, u_warm);
-      float vig=smoothstep(1.3,0.2,length(uv));
-      col*=mix(0.55,1.0,vig);
-      col+=(hash(gl_FragCoord.xy+u_time)-0.5)*0.022;
-      // alpha — more presence on warm so the latte is actually visible on cream
-      float a=mix(0.80, 0.66, u_warm);
-      o=vec4(col, a);
-    }`;
-
-    function compile(type: number, src: string) {
-      const s = gl!.createShader(type)!; gl!.shaderSource(s, src); gl!.compileShader(s); return s;
-    }
-    const prog = gl.createProgram()!;
-    gl.attachShader(prog, compile(gl.VERTEX_SHADER, VERT));
-    gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, FRAG));
-    gl.linkProgram(prog);
-    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return;
-    gl.useProgram(prog);
-    const uRes = gl.getUniformLocation(prog, "u_res");
-    const uTime = gl.getUniformLocation(prog, "u_time");
-    const uWarm = gl.getUniformLocation(prog, "u_warm");
-    const uVel = gl.getUniformLocation(prog, "u_vel");
-
-    // theme: read data-temp now + watch for the toggle (default is warm)
     const root = document.documentElement;
-    let warm = root.getAttribute("data-temp") !== "dark";
-    new MutationObserver(() => { warm = root.getAttribute("data-temp") !== "dark"; })
-      .observe(root, { attributes: true, attributeFilter: ["data-temp"] });
-
+    const warmVal = () => (root.getAttribute("data-temp") !== "dark" ? 1 : 0);
     const DPR = Math.min(window.devicePixelRatio || 1, 1.5);
-    function resize() {
-      const w = Math.max(1, Math.floor(canvas!.clientWidth * DPR * 0.6));
-      const h = Math.max(1, Math.floor(canvas!.clientHeight * DPR * 0.6));
-      if (canvas!.width !== w || canvas!.height !== h) { canvas!.width = w; canvas!.height = h; gl!.viewport(0, 0, w, h); }
-    }
-    new ResizeObserver(resize).observe(canvas);
-    resize();
+    const sizeOf = () => ({
+      w: Math.max(1, Math.floor(canvas!.clientWidth * DPR * 0.6)),
+      h: Math.max(1, Math.floor(canvas!.clientHeight * DPR * 0.6)),
+    });
+    const velNow = () => (window as unknown as { __slVel?: number }).__slVel || 0;
 
-    let raf = 0, t0 = 0, onScreen = true;
+    // ── OffscreenCanvas worker path — render OFF the main thread ──────────────
+    if (typeof OffscreenCanvas !== "undefined" && "transferControlToOffscreen" in canvas) {
+      try {
+        const worker = new Worker(new URL("./shader.worker.ts", import.meta.url), { type: "module" });
+        const off = (canvas as HTMLCanvasElement).transferControlToOffscreen();
+        const s = sizeOf();
+        worker.postMessage({ canvas: off, w: s.w, h: s.h, warm: warmVal() }, [off]);
+        worker.onmessage = (e) => { if (e.data && e.data.started) canvas!.classList.add("is-on"); };
+        new ResizeObserver(() => { const s2 = sizeOf(); worker.postMessage({ size: true, w: s2.w, h: s2.h }); }).observe(canvas);
+        new MutationObserver(() => worker.postMessage({ warm: warmVal() })).observe(root, { attributes: true, attributeFilter: ["data-temp"] });
+        let vraf = 0;
+        const pump = () => { vraf = 0; worker.postMessage({ vel: velNow() }); };
+        addEventListener("scroll", () => { if (!vraf) vraf = requestAnimationFrame(pump); }, { passive: true });
+        document.addEventListener("visibilitychange", () => worker.postMessage({ pause: document.hidden }));
+        new IntersectionObserver((en) => worker.postMessage({ pause: !en[0].isIntersecting }), { threshold: 0 }).observe(canvas);
+        mq.addEventListener?.("change", (e) => { if (e.matches) { worker.postMessage({ pause: true }); canvas!.classList.remove("is-on"); } });
+        return;
+      } catch (err) {
+        /* worker / transfer unsupported → main-thread fallback below */
+      }
+    }
+
+    // ── main-thread fallback (shared initGL) ─────────────────────────────────
+    const r = initGL(canvas);
+    if (!r) return;
+    let raf = 0, t0 = 0, vel = 0, onScreen = true;
     function frame(now: number) {
       if (!t0) t0 = now;
-      resize();
-      gl!.uniform2f(uRes, canvas!.width, canvas!.height);
-      gl!.uniform1f(uTime, (now - t0) / 1000);
-      gl!.uniform1f(uWarm, warm ? 1 : 0);
-      gl!.uniform1f(uVel, (window as unknown as { __slVel?: number }).__slVel || 0);
-      gl!.drawArrays(gl!.TRIANGLES, 0, 3);
+      const s = sizeOf();
+      r!.resize(s.w, s.h);
+      vel += (velNow() - vel) * 0.05; // smooth → no glitchy jumps on fast scroll
+      r!.draw((now - t0) / 1000, warmVal(), vel);
       raf = requestAnimationFrame(frame);
     }
     function start() { if (!raf && onScreen && !document.hidden) { canvas!.classList.add("is-on"); raf = requestAnimationFrame(frame); } }
     function stop() { if (raf) { cancelAnimationFrame(raf); raf = 0; } }
-
     new IntersectionObserver((e) => { onScreen = e[0].isIntersecting; onScreen ? start() : stop(); }, { threshold: 0 }).observe(canvas);
     document.addEventListener("visibilitychange", () => (document.hidden ? stop() : start()));
     mq.addEventListener?.("change", (e) => { if (e.matches) { stop(); canvas!.classList.remove("is-on"); } });

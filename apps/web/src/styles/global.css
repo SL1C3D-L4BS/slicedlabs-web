@@ -71,22 +71,20 @@ body {
 }
 @media (prefers-reduced-transparency: reduce) { .sl-grain { display: none; } }
 
-/* ── labeled cursor-follower — spring-lagged ring; expands over interactives, shows a
- * label over tagged media ([data-cursor]). Mouse + fine-pointer + motion only. ── */
-.sl-cursor {
-  position: fixed; top: 0; left: 0; z-index: 9998; pointer-events: none;
-  width: 30px; height: 30px; border-radius: 999px; display: grid; place-items: center;
-  border: 1.5px solid color-mix(in oklab, var(--specular) 55%, var(--stroke));
-  background: color-mix(in oklab, var(--specular) 7%, transparent);
-  opacity: 0; will-change: transform;
-  transition: width .26s var(--ease), height .26s var(--ease), background-color .26s, border-color .26s, opacity .3s;
-}
-.sl-cursor.is-active { opacity: 1; }
-.sl-cursor.is-near { width: 44px; height: 44px; border-color: var(--specular); }
-.sl-cursor.is-hot { width: 80px; height: 80px; border-color: transparent; background: color-mix(in oklab, var(--specular) 18%, transparent); }
-.sl-cursor-label { font-family: var(--font-mono); font-size: .68rem; letter-spacing: .04em; text-transform: uppercase; color: var(--ink); white-space: nowrap; opacity: 0; transition: opacity .2s; }
-.sl-cursor.is-hot .sl-cursor-label { opacity: 1; }
-@media (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) { .sl-cursor { display: none !important; } }
+/* ── progressive-blur header — Apple's toolbar fade. A fixed top strip of stacked
+ * backdrop-blur layers (heaviest at the very top, ramping to crisp below) so the content +
+ * field blur gracefully behind the floating glass pill instead of meeting a hard edge. ── */
+.sl-topblur { position: fixed; inset: 0 0 auto 0; height: 92px; z-index: 40; pointer-events: none; }
+.sl-topblur > i { position: absolute; inset: 0; display: block; }
+.sl-topblur > i:nth-child(1) { backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  -webkit-mask: linear-gradient(to bottom, #000 0%, #000 18%, transparent 42%); mask: linear-gradient(to bottom, #000 0%, #000 18%, transparent 42%); }
+.sl-topblur > i:nth-child(2) { backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+  -webkit-mask: linear-gradient(to bottom, transparent 18%, #000 38%, #000 56%, transparent 74%); mask: linear-gradient(to bottom, transparent 18%, #000 38%, #000 56%, transparent 74%); }
+.sl-topblur > i:nth-child(3) { backdrop-filter: blur(1.4px); -webkit-backdrop-filter: blur(1.4px);
+  -webkit-mask: linear-gradient(to bottom, transparent 44%, #000 64%, #000 80%, transparent 94%); mask: linear-gradient(to bottom, transparent 44%, #000 64%, #000 80%, transparent 94%); }
+.sl-topblur > i:nth-child(4) { backdrop-filter: blur(0.5px); -webkit-backdrop-filter: blur(0.5px);
+  -webkit-mask: linear-gradient(to bottom, transparent 70%, #000 90%); mask: linear-gradient(to bottom, transparent 70%, #000 90%); }
+@media (prefers-reduced-transparency: reduce) { .sl-topblur { display: none; } }
 h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.02; letter-spacing: -0.02em; }
 /* hierarchy rides WEIGHT, not colour (the design law) */
 h2 { font-weight: 700; } h3 { font-weight: 600; }
