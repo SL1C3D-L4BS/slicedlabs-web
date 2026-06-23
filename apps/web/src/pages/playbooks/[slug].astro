@@ -6,13 +6,13 @@
 // from the server, never the client).
 export const prerender = false;
 import Base from "../../layouts/Base.astro";
-import { getServerSupabase } from "../../lib/supabase";
+import { getClerkSupabase } from "../../lib/supabase";
 import { formatMoney } from "../../lib/commerce/cart";
 
 const { slug } = Astro.params;
 if (!slug) return Astro.redirect("/playbooks");
 
-const supabase = getServerSupabase(Astro.cookies, Astro.request);
+const supabase = getClerkSupabase(Astro.locals);
 
 type Playbook = {
   slug: string;
@@ -41,10 +41,8 @@ if (!pb) {
 // --- ownership / entitlement state (only when the playbook exists) -------
 let owned = false;
 if (pb) {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (user) {
+  const { userId } = Astro.locals.auth();
+  if (userId) {
     const { data: ent } = await supabase
       .from("entitlements")
       .select("id")

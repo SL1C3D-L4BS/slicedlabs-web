@@ -5,12 +5,12 @@
 // published rows). Voice: confident, plain, receipts-first.
 export const prerender = false;
 import Base from "../../layouts/Base.astro";
-import { getServerSupabase } from "../../lib/supabase";
+import { getClerkSupabase } from "../../lib/supabase";
 
 const { slug } = Astro.params;
 if (!slug) return Astro.redirect("/recipes");
 
-const supabase = getServerSupabase(Astro.cookies, Astro.request);
+const supabase = getClerkSupabase(Astro.locals);
 const { data: row } = await supabase
   .from("recipes")
   .select("slug,title,sl_code,kicker,summary,story,ingredients,steps,dietary,season,section,hero_image")
@@ -37,15 +37,12 @@ type Recipe = {
 const recipe = (row ?? null) as unknown as Recipe | null;
 
 // member "save" state — is this recipe already in the signed-in user's saved list?
-const {
-  data: { user },
-} = await supabase.auth.getUser();
+const { userId } = Astro.locals.auth();
 let isSaved = false;
-if (user && recipe) {
+if (userId && recipe) {
   const { data: sv } = await supabase
     .from("saved_recipes")
     .select("recipe_slug")
-    .eq("user_id", user.id)
     .eq("recipe_slug", recipe.slug)
     .maybeSingle();
   isSaved = Boolean(sv);

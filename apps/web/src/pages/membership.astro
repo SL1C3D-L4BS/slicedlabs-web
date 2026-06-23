@@ -6,12 +6,12 @@
 // (subscription mode → /api/membership/checkout → webhook grants the `member` entitlement).
 export const prerender = false;
 import Base from "../layouts/Base.astro";
-import { getServerSupabase } from "../lib/supabase";
+import { getClerkSupabase } from "../lib/supabase";
 import { getStripe, stripeConfigured } from "../lib/commerce/stripe";
 import { env } from "../lib/commerce/env";
 import { formatMoney } from "../lib/commerce/cart";
 
-const supabase = getServerSupabase(Astro.cookies, Astro.request);
+const supabase = getClerkSupabase(Astro.locals);
 
 // Prices, live from Stripe — never hardcoded. Monthly + optional annual; either being
 // unconfigured/unreachable just hides that plan. Both null → "opens soon".
@@ -37,11 +37,9 @@ const anyPrice = monthly ?? annual;
 const annualSaveCents = monthly && annual ? monthly.amountCents * 12 - annual.amountCents : 0;
 
 // Already a member? (active = no expiry, or expiry in the future)
-const {
-  data: { user },
-} = await supabase.auth.getUser();
+const { userId } = Astro.locals.auth();
 let isMember = false;
-if (user) {
+if (userId) {
   const { data: ent } = await supabase
     .from("entitlements")
     .select("expires_at")
@@ -111,7 +109,7 @@ const benefits = [
           <p style="color:var(--muted); margin:1rem 0 0;">Cancel any time. No lock-in — the same way we run everything.</p>
           <p id="checkout-msg" class="mono" role="status" aria-live="polite" style="color:var(--muted); margin-top:.6rem;" hidden></p>
           <div id="checkout" style="margin-top:1rem;"></div>
-          {!user && (
+          {!userId && (
             <p class="mono" style="color:var(--muted); margin-top:1rem;">
               Have an account? <a href="/account/login?next=/membership" style="color:var(--mark);">Sign in first</a> so your membership lands on it.
             </p>

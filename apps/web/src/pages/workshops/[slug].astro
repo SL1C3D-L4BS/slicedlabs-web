@@ -6,13 +6,13 @@
 // from the server, never the client).
 export const prerender = false;
 import Base from "../../layouts/Base.astro";
-import { getServerSupabase } from "../../lib/supabase";
+import { getClerkSupabase } from "../../lib/supabase";
 import { formatMoney } from "../../lib/commerce/cart";
 
 const { slug } = Astro.params;
 if (!slug) return Astro.redirect("/workshops");
 
-const supabase = getServerSupabase(Astro.cookies, Astro.request);
+const supabase = getClerkSupabase(Astro.locals);
 
 type Workshop = {
   slug: string;
@@ -46,10 +46,8 @@ if (!ws) {
 // --- ticket / entitlement state (only when the workshop exists) ----------
 let hasTicket = false;
 if (ws) {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (user) {
+  const { userId } = Astro.locals.auth();
+  if (userId) {
     const { data: ticket } = await supabase
       .from("entitlements")
       .select("id")
