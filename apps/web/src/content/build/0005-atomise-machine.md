@@ -24,6 +24,6 @@ Honest caveat: six cuts from one shoot is the goal, not a guarantee. Some shoots
 
 So the engine is: live the build, film it as a documentary, atomise one shoot into six, point all of it at a list we own. The work makes the content, the content fills the list, and the list is the thing nobody can rent us.
 
-We don't pitch. We prove.
+The future, sliced.
 
 Own your slice.

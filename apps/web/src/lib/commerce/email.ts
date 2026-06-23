@@ -120,7 +120,7 @@ export async function sendListWelcome(args: {
   const heading = inquiry ? "We got it" : "You're in";
   const body = inquiry
     ? `Thanks for reaching out${args.label ? ` about ${args.label.toLowerCase()}` : ""} — your note landed with us and a human will be in touch. Meanwhile, the receipts keep coming.`
-    : `You're on the SlicedLabs list — a food · media · marketing company building a real food empire in public. Expect the build, the recipes, and the receipts. We don't pitch. We prove.`;
+    : `You're on the SlicedLabs list — a food · media · marketing company building a real food empire in public. Expect the build, the recipes, and the receipts. The future, sliced.`;
   const html = shell(`
     <h1 style="font-size:22px;margin:0 0 4px">${heading}</h1>
     <p style="color:#7A6E5C;margin:0 0 16px">${body}</p>

@@ -29,7 +29,7 @@ export async function GET(context: APIContext) {
   return rss({
     title: "SlicedLabs — The Build",
     description:
-      "The build-in-public journal and the free monthly recipe — real numbers, real receipts. We don't pitch. We prove.",
+      "The build-in-public journal and the free monthly recipe — real numbers, real receipts. The future, sliced.",
     site: context.site ?? "https://slicedlabs.io",
     items,
   });

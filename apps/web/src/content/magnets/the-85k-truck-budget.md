@@ -8,7 +8,7 @@ order: 1
 
 *A real, line-item startup budget for a Spokane food truck — the kind nobody shows
 you. Ranges are honest; "verify" means call the agency. Sourced from the agencies +
-operators we called. We don't pitch. We prove.*
+operators we called. The future, sliced.*
 
 ---
 

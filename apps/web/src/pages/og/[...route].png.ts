@@ -26,7 +26,7 @@ const STATIC: Pg[] = [
   { route: "free", title: "Free Drops", desc: "The $85k budget, the Atomise Machine, the build receipts — free." },
   { route: "contact", title: "Get in touch", desc: "Catering, press, partnerships, or just a hello." },
   { route: "watch", title: "Watch & cook along", desc: "A full food channel and a business built in public." },
-  { route: "about", title: "We don't pitch. We prove.", desc: "The SlicedLabs manifesto." },
+  { route: "about", title: "The future, sliced.", desc: "The SlicedLabs manifesto." },
   { route: "work", title: "Work with us", desc: "The marketing arm — we build audiences, owned lists, and content machines in public. Ours first, now yours." },
   { route: "numbers", title: "The Numbers", desc: "The real market data behind a PNW food + media + marketing company." },
   { route: "build", title: "The Build", desc: "The build-in-public journal — real numbers, real receipts." },

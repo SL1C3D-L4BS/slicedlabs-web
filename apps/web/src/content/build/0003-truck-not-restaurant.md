@@ -22,6 +22,6 @@ Honest caveat: Spokane isn't on anyone's "best food city" list. We know. It's a 
 
 A truck is the cheapest way to prove the food, the operator, and the audience all at once. So that's the first rung.
 
-We don't pitch. We prove.
+The future, sliced.
 
 Own your slice.

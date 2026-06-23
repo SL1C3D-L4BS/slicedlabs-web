@@ -22,6 +22,6 @@ Honest caveat: owning the stack is more work. We wrote the checkout flow. We wir
 
 This is the same bet underneath everything we're building. The truck is owned. The list is owned. The audience is the one asset nobody can rent us, so we refuse to build it on land we don't hold.
 
-We don't pitch. We prove.
+The future, sliced.
 
 Own your slice.

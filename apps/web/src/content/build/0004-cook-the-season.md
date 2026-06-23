@@ -24,6 +24,6 @@ Honest caveat: 29 recipes is a start, not a library. The Anchors will hold; the 
 
 So that's the system. Cook what the season gives us, show exactly where it came from, and let the recipe carry both the meal and the message.
 
-We don't pitch. We prove.
+The future, sliced.
 
 Own your slice.

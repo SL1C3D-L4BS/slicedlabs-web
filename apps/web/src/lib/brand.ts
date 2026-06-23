@@ -28,7 +28,7 @@ export function organizationLd(site: string) {
     url: b + "/",
     logo: b + MARK_PATH,
     description:
-      "A food · media · marketing company building a real food empire in public. We don't pitch. We prove.",
+      "A food · media · marketing company building a real food empire in public. The future, sliced.",
     sameAs: SOCIAL_URLS,
   };
 }

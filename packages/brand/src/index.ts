@@ -5,7 +5,7 @@
 export const MARK_PATH = "/slicedlabs-mark.svg";
 
 export const BRAND_NAME = "SlicedLabs";
-export const SLOGAN = "We don't pitch. We prove.";
+export const SLOGAN = "The future, sliced.";
 export const ONE_LINER =
   "A 2026 food · media · marketing brand building a real food empire in public.";
 
