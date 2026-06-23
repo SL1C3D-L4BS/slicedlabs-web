@@ -4,15 +4,13 @@
 // /admin/recipes. Replaces the previous DB-only management of this table.
 export const prerender = false;
 import Base from "../../layouts/Base.astro";
-import { getServerSupabase, createServiceSupabase } from "../../lib/supabase";
+import { createServiceSupabase } from "../../lib/supabase";
 import { isAdmin } from "../../lib/admin";
 
-const supabase = getServerSupabase(Astro.cookies, Astro.request);
-const {
-  data: { user },
-} = await supabase.auth.getUser();
-if (!user) return Astro.redirect("/account/login?next=" + encodeURIComponent(Astro.url.pathname));
-if (!isAdmin(user.email)) return new Response("Forbidden", { status: 403 });
+const { userId } = Astro.locals.auth();
+if (!userId) return Astro.redirect("/account/login?next=" + encodeURIComponent(Astro.url.pathname));
+const cu = await Astro.locals.currentUser();
+if (!isAdmin(cu?.primaryEmailAddress?.emailAddress)) return new Response("Forbidden", { status: 403 });
 
 let svc: ReturnType<typeof createServiceSupabase> | undefined;
 try {

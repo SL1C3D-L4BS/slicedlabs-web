@@ -5,7 +5,7 @@ import type { APIRoute } from "astro";
 // POST-only; redirects 303 back to /admin/recipes so the operator stays in the no-JS
 // form flow. Mirrors api/admin/workshop.ts; adds parsers for the JSONB ingredients/
 // steps and the text[] dietary so the operator edits plain text, never raw JSON.
-import { getServerSupabase, createServiceSupabase } from "../../../lib/supabase";
+import { createServiceSupabase } from "../../../lib/supabase";
 import { isAdmin } from "../../../lib/admin";
 
 export const prerender = false;
@@ -70,14 +70,12 @@ function parseList(raw: string | undefined): string[] {
     .filter(Boolean);
 }
 
-export const POST: APIRoute = async ({ request, cookies }) => {
+export const POST: APIRoute = async ({ request, locals }) => {
   // --- auth gate -----------------------------------------------------------
-  const supabase = getServerSupabase(cookies, request);
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return json({ error: "unauthorized" }, 401);
-  if (!isAdmin(user.email)) return json({ error: "forbidden" }, 403);
+  const { userId } = locals.auth();
+  if (!userId) return json({ error: "unauthorized" }, 401);
+  const cu = await locals.currentUser();
+  if (!isAdmin(cu?.primaryEmailAddress?.emailAddress)) return json({ error: "forbidden" }, 403);
 
   let svc: ReturnType<typeof createServiceSupabase>;
   try {

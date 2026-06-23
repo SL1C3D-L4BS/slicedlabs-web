@@ -1,33 +1,11 @@
-// SlicedLabs · auth · © 2026 SlicedLabs — Magic-link landing
-// The server Supabase client exchanges the OTP code / token_hash for a session
-// and writes the session cookies via the Astro cookie adapter, then redirects
-// the visitor to their validated `next` destination (defaults to /account).
 import type { APIRoute } from "astro";
-import { getServerSupabase } from "../../lib/supabase";
-
+// SlicedLabs · auth · © 2026 SlicedLabs — RETIRED Supabase magic-link callback.
+// Sign-in is now Clerk (which handles its own callbacks). This stub bounces any old
+// emailed magic-links to a safe destination so they don't 404. Remove after a release.
 export const prerender = false;
 
-export const GET: APIRoute = async ({ request, cookies, redirect, url }) => {
-  const code = url.searchParams.get("code");
-  const token_hash = url.searchParams.get("token_hash");
-  const type = url.searchParams.get("type");
+export const GET: APIRoute = ({ url }) => {
   const nextRaw = url.searchParams.get("next") || "/account";
-  const next =
-    nextRaw.startsWith("/") && !nextRaw.startsWith("//") ? nextRaw : "/account";
-
-  const supabase = getServerSupabase(cookies, request);
-  let error: string | null = null;
-
-  if (code) {
-    const r = await supabase.auth.exchangeCodeForSession(code);
-    error = r.error?.message ?? null;
-  } else if (token_hash && type) {
-    const r = await supabase.auth.verifyOtp({ type: type as any, token_hash });
-    error = r.error?.message ?? null;
-  } else {
-    error = "Missing auth code.";
-  }
-
-  if (error) return redirect("/account/login?error=" + encodeURIComponent(error));
-  return redirect(next);
+  const next = nextRaw.startsWith("/") && !nextRaw.startsWith("//") ? nextRaw : "/account";
+  return new Response(null, { status: 302, headers: { location: next } });
 };

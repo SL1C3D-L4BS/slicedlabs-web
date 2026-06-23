@@ -3,7 +3,7 @@ import type { APIRoute } from "astro";
 // Admin uploader for the private `vault` bucket. Auth-gated (signed-in admin), then
 // writes via the service-role client. Files land at vault/<ref>/<name>; the
 // entitlement-gated /api/vault/[ref] serves them via signed URLs.
-import { getServerSupabase, createServiceSupabase } from "../../../lib/supabase";
+import { createServiceSupabase } from "../../../lib/supabase";
 import { isAdmin } from "../../../lib/admin";
 
 export const prerender = false;
@@ -14,13 +14,11 @@ const json = (b: unknown, s: number) =>
 const back = (q = "") => new Response(null, { status: 303, headers: { location: `/admin/vault${q}` } });
 const safe = (n: string) => n.replace(/[^a-zA-Z0-9._-]/g, "_").replace(/^\.+/, "").slice(0, 120);
 
-export const POST: APIRoute = async ({ request, cookies }) => {
-  const supabase = getServerSupabase(cookies, request);
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return json({ error: "unauthorized" }, 401);
-  if (!isAdmin(user.email)) return json({ error: "forbidden" }, 403);
+export const POST: APIRoute = async ({ request, locals }) => {
+  const { userId } = locals.auth();
+  if (!userId) return json({ error: "unauthorized" }, 401);
+  const cu = await locals.currentUser();
+  if (!isAdmin(cu?.primaryEmailAddress?.emailAddress)) return json({ error: "forbidden" }, 403);
 
   let svc: ReturnType<typeof createServiceSupabase>;
   try {

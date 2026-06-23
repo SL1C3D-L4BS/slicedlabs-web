@@ -5,21 +5,18 @@
 // plus a one-click "send myself a test email" that proves the owned Resend path.
 export const prerender = false;
 import Base from "../../layouts/Base.astro";
-import { getServerSupabase } from "../../lib/supabase";
 import { isAdmin } from "../../lib/admin";
 import { integrationStatus } from "../../lib/integrations";
 
-const supabase = getServerSupabase(Astro.cookies, Astro.request);
-const {
-  data: { user },
-} = await supabase.auth.getUser();
-if (!user) return Astro.redirect("/account/login?next=" + encodeURIComponent(Astro.url.pathname));
-if (!isAdmin(user.email)) return new Response("Forbidden", { status: 403 });
+const { userId } = Astro.locals.auth();
+if (!userId) return Astro.redirect("/account/login?next=" + encodeURIComponent(Astro.url.pathname));
+const cu = await Astro.locals.currentUser();
+if (!isAdmin(cu?.primaryEmailAddress?.emailAddress)) return new Response("Forbidden", { status: 403 });
 
 const groups = integrationStatus();
 const test = Astro.url.searchParams.get("test");
 const TEST_MSG: Record<string, { ok: boolean; text: string }> = {
-  sent: { ok: true, text: `Test email sent to ${user.email}. Check your inbox (and spam).` },
+  sent: { ok: true, text: `Test email sent to ${(cu?.primaryEmailAddress?.emailAddress ?? "")}. Check your inbox (and spam).` },
   failed: { ok: false, text: "Resend reported a failure — check the Vercel runtime logs for details." },
   not_configured: { ok: false, text: "RESEND_API_KEY is unset, so no email can send yet." },
   no_address: { ok: false, text: "Your signed-in account has no email address." },
@@ -60,7 +57,7 @@ const missingRequired = groups.flatMap((g) => g.items).filter((i) => i.required 
       </p>
       <form method="POST" action="/api/admin/test-email" style="display:flex; gap:.6rem; align-items:center; flex-wrap:wrap;">
         <button type="submit" class="btn">Send myself a test email →</button>
-        <span class="mono">delivers the owned Resend welcome to {user.email}</span>
+        <span class="mono">delivers the owned Resend welcome to {(cu?.primaryEmailAddress?.emailAddress ?? "")}</span>
       </form>
       {
         testMsg && (

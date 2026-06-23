@@ -3,7 +3,7 @@ import type { APIRoute } from "astro";
 // Admin write endpoint for truck menu_items (display only; food sells at the window).
 // Auth-gated admin; service-role writes. POST-only; 303 back to /admin/menu. Mirrors
 // api/admin/recipe.ts.
-import { getServerSupabase, createServiceSupabase } from "../../../lib/supabase";
+import { createServiceSupabase } from "../../../lib/supabase";
 import { isAdmin } from "../../../lib/admin";
 
 export const prerender = false;
@@ -23,13 +23,11 @@ function parseList(raw: string | undefined): string[] {
   return String(raw ?? "").split(",").map((s) => s.trim().toLowerCase()).filter(Boolean);
 }
 
-export const POST: APIRoute = async ({ request, cookies }) => {
-  const supabase = getServerSupabase(cookies, request);
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return json({ error: "unauthorized" }, 401);
-  if (!isAdmin(user.email)) return json({ error: "forbidden" }, 403);
+export const POST: APIRoute = async ({ request, locals }) => {
+  const { userId } = locals.auth();
+  if (!userId) return json({ error: "unauthorized" }, 401);
+  const cu = await locals.currentUser();
+  if (!isAdmin(cu?.primaryEmailAddress?.emailAddress)) return json({ error: "forbidden" }, 403);
 
   let svc: ReturnType<typeof createServiceSupabase>;
   try {

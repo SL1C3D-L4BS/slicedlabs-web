@@ -6,7 +6,7 @@ import type { APIRoute } from "astro";
 // tracking and emails the customer — POD ships are emailed by the Printful webhook, so we
 // only fire here for in_house to avoid double-emailing.
 import type { TablesUpdate } from "@slicedlabs/supabase";
-import { getServerSupabase, createServiceSupabase } from "../../../lib/supabase";
+import { createServiceSupabase } from "../../../lib/supabase";
 import { isAdmin } from "../../../lib/admin";
 import { sendShippingUpdate } from "../../../lib/commerce/email";
 
@@ -25,13 +25,11 @@ const ORDER_STATUS = [
   "canceled",
 ] as const;
 
-export const POST: APIRoute = async ({ request, cookies }) => {
-  const supabase = getServerSupabase(cookies, request);
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return json({ error: "unauthorized" }, 401);
-  if (!isAdmin(user.email)) return json({ error: "forbidden" }, 403);
+export const POST: APIRoute = async ({ request, locals }) => {
+  const { userId } = locals.auth();
+  if (!userId) return json({ error: "unauthorized" }, 401);
+  const cu = await locals.currentUser();
+  if (!isAdmin(cu?.primaryEmailAddress?.emailAddress)) return json({ error: "forbidden" }, 403);
 
   let svc: ReturnType<typeof createServiceSupabase>;
   try {

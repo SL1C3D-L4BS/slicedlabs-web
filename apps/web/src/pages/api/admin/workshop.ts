@@ -3,7 +3,7 @@ import type { APIRoute } from "astro";
 // Admin write endpoint for workshops. Auth-gated (signed-in admin only), then
 // writes via the service-role client (bypasses RLS). POST-only; redirects 303
 // back to /admin/workshops so the operator stays in the no-JS form flow.
-import { getServerSupabase, createServiceSupabase } from "../../../lib/supabase";
+import { createServiceSupabase } from "../../../lib/supabase";
 import { isAdmin } from "../../../lib/admin";
 
 export const prerender = false;
@@ -24,14 +24,12 @@ function slugify(t: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
-export const POST: APIRoute = async ({ request, cookies }) => {
+export const POST: APIRoute = async ({ request, locals }) => {
   // --- auth gate -----------------------------------------------------------
-  const supabase = getServerSupabase(cookies, request);
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return json({ error: "unauthorized" }, 401);
-  if (!isAdmin(user.email)) return json({ error: "forbidden" }, 403);
+  const { userId } = locals.auth();
+  if (!userId) return json({ error: "unauthorized" }, 401);
+  const cu = await locals.currentUser();
+  if (!isAdmin(cu?.primaryEmailAddress?.emailAddress)) return json({ error: "forbidden" }, 403);
 
   let svc: ReturnType<typeof createServiceSupabase>;
   try {
