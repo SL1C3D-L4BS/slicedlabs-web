@@ -48,6 +48,17 @@ export function createServerSupabase(cookies: ServerCookies) {
   });
 }
 
+/** Supabase client whose RLS identity is a Clerk session token (Supabase Third-Party Auth).
+ *  Pass a getter for the current Clerk token; reads/writes then run as that Clerk user
+ *  (RLS resolves auth.jwt()->>'sub' → profiles.clerk_id → profiles.id via current_profile_id()).
+ *  A null token (anonymous) → anon role, so public-read RLS still works. */
+export function createClerkSupabase(accessToken: () => Promise<string | null>) {
+  return createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    accessToken: async () => (await accessToken()) ?? "",
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+}
+
 /** Service-role Supabase for trusted server contexts (webhooks, n8n). BYPASSES RLS.
  *  Never import this where SUPABASE_SERVICE_ROLE_KEY could reach the browser. */
 export function createServiceSupabase() {

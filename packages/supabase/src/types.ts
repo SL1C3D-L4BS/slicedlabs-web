@@ -493,6 +493,7 @@ export type Database = {
       profiles: {
         Row: {
           beehiiv_id: string | null
+          clerk_id: string | null
           created_at: string
           email: string | null
           full_name: string | null
@@ -505,11 +506,12 @@ export type Database = {
         }
         Insert: {
           beehiiv_id?: string | null
+          clerk_id?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
           hubspot_id?: string | null
-          id: string
+          id?: string
           lead_score?: number
           shopify_customer_id?: string | null
           stripe_customer_id?: string | null
@@ -517,6 +519,7 @@ export type Database = {
         }
         Update: {
           beehiiv_id?: string | null
+          clerk_id?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
