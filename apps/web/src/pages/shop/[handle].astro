@@ -3,6 +3,7 @@
 // Server-rendered product page. Cart is client-side; the server reprices on add.
 export const prerender = false;
 import Base from "../../layouts/Base.astro";
+import ProductViewer from "../../components/ProductViewer.astro";
 import { getServerSupabase } from "../../lib/supabase";
 import { formatMoney } from "../../lib/commerce/cart";
 
@@ -12,7 +13,7 @@ const supabase = getServerSupabase(Astro.cookies, Astro.request);
 const { data } = await supabase
   .from("products")
   .select(
-    "id, slug, title, description, images, fulfillment_type, variants(id, title, sku, price_cents, currency, printful_variant_id, position)",
+    "id, slug, title, subtitle, description, images, model_url, materials, fulfillment_type, variants(id, title, sku, price_cents, currency, printful_variant_id, position)",
   )
   .eq("slug", handle ?? "")
   .maybeSingle();
@@ -30,8 +31,11 @@ type Product = {
   id: string;
   slug: string;
   title: string;
+  subtitle: string | null;
   description: string | null;
   images: unknown;
+  model_url: string | null;
+  materials: string[] | null;
   fulfillment_type: "pod" | "in_house" | "digital";
   variants: Variant[];
 };
@@ -82,16 +86,24 @@ const images = product ? imageList(product.images) : [];
         data-default-currency={defaultVariant?.currency ?? "usd"}
         style="display:grid; gap:clamp(1.5rem,4vw,2.5rem); grid-template-columns:1fr; margin-top:1rem;"
       >
-        <div data-reveal>
-          <div style="aspect-ratio:1/1; border-radius:var(--radius); overflow:hidden; background:var(--panel); border:1px solid var(--stroke);">
-            <img
-              id="hero-image"
-              src={images[0] ?? "/placeholder-product.svg"}
-              alt={product.title}
-              style="width:100%; height:100%; object-fit:cover; display:block;"
+        <div data-reveal style={`view-transition-name: tile-${product.slug};`}>
+          {product.model_url ? (
+            <ProductViewer
+              src={product.model_url}
+              poster={images[0] ?? "/placeholder-product.svg"}
+              alt={`${product.title} — interactive 3D preview`}
             />
-          </div>
-          {images.length > 1 && (
+          ) : (
+            <div style="aspect-ratio:1/1; border-radius:var(--radius); overflow:hidden; background:var(--panel); border:1px solid var(--stroke);">
+              <img
+                id="hero-image"
+                src={images[0] ?? "/placeholder-product.svg"}
+                alt={product.title}
+                style="width:100%; height:100%; object-fit:cover; display:block;"
+              />
+            </div>
+          )}
+          {!product.model_url && images.length > 1 && (
             <div style="display:flex; gap:.6rem; margin-top:.8rem; flex-wrap:wrap;">
               {images.map((src, i) => (
                 <button
@@ -110,14 +122,23 @@ const images = product ? imageList(product.images) : [];
 
         <div data-reveal style="--i:1;">
           <span class="tag">{FULFILL_LABEL[product.fulfillment_type]}</span>
-          <h1 style="font-size:clamp(1.9rem,6vw,3.2rem); margin:.6rem 0 .4rem;"><span class="blend-text">{product.title}</span></h1>
+          <h1 style="font-size:clamp(1.9rem,6vw,3.2rem); margin:.6rem 0 .2rem;"><span class="blend-text">{product.title}</span></h1>
+          {product.subtitle && (
+            <p class="mono" style="margin:0 0 .5rem; color:var(--muted);">{product.subtitle}</p>
+          )}
 
-          <p id="price" class="mono" style="font-size:1.4rem; margin:.2rem 0 1.2rem; color:var(--ink);">
+          <p id="price" class="mono" style="font-size:1.4rem; margin:.4rem 0 1.2rem; color:var(--ink);">
             {defaultVariant ? formatMoney(defaultVariant.price_cents, defaultVariant.currency) : "—"}
           </p>
 
           {product.description && (
             <p style="color:var(--muted); max-width:42rem; line-height:1.6; margin:0 0 1.4rem; white-space:pre-line;">{product.description}</p>
+          )}
+
+          {product.materials && product.materials.length > 0 && (
+            <div style="display:flex; gap:.4rem; flex-wrap:wrap; margin:0 0 1.4rem;">
+              {product.materials.map((m) => <span class="tag">{m}</span>)}
+            </div>
           )}
 
           {variants.length > 1 && (

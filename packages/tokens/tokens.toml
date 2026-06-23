@@ -63,6 +63,14 @@ ok     = "#C7D42B"
 warn   = "#D9892B"
 danger = "#D95C5C"
 
+# ── section accents — the new platform destinations get their own hue (tile rims,
+# icon tints, accent rules). Defined in :root and shared across both temperatures, like
+# the brand accents. Used decoratively (never body text), so they ride the UI floor (3.0),
+# not AA-normal. NOT logo/mark colors — those are operator-owned and never generated here.
+[section]
+freshsave = "#2FA56B"   # regenerative green — FreshSave / waste-as-mission
+community = "#6C7BE8"    # warm indigo — community · outreach · sponsorship
+
 [material]
 radius         = "16px"
 radius-lg      = "28px"

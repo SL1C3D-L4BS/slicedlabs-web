@@ -16,6 +16,35 @@ export type Database = {
   }
   public: {
     Tables: {
+      dietary_prefs: {
+        Row: {
+          allergens: string[]
+          diets: string[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          allergens?: string[]
+          diets?: string[]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          allergens?: string[]
+          diets?: string[]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dietary_prefs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       drops: {
         Row: {
           created_at: string
@@ -83,6 +112,53 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "entitlements_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      food_logs: {
+        Row: {
+          cost_cents: number | null
+          dietary: string[]
+          id: string
+          item: string
+          kind: string
+          logged_at: string
+          meta: Json
+          qty: number | null
+          unit: string | null
+          user_id: string
+        }
+        Insert: {
+          cost_cents?: number | null
+          dietary?: string[]
+          id?: string
+          item: string
+          kind?: string
+          logged_at?: string
+          meta?: Json
+          qty?: number | null
+          unit?: string | null
+          user_id: string
+        }
+        Update: {
+          cost_cents?: number | null
+          dietary?: string[]
+          id?: string
+          item?: string
+          kind?: string
+          logged_at?: string
+          meta?: Json
+          qty?: number | null
+          unit?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "food_logs_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -370,10 +446,13 @@ export type Database = {
           fulfillment_type: Database["public"]["Enums"]["fulfillment_type"]
           id: string
           images: Json
+          materials: string[]
           metadata: Json
+          model_url: string | null
           printful_product_id: string | null
           slug: string
           status: Database["public"]["Enums"]["product_status"]
+          subtitle: string | null
           title: string
           updated_at: string
         }
@@ -383,10 +462,13 @@ export type Database = {
           fulfillment_type?: Database["public"]["Enums"]["fulfillment_type"]
           id?: string
           images?: Json
+          materials?: string[]
           metadata?: Json
+          model_url?: string | null
           printful_product_id?: string | null
           slug: string
           status?: Database["public"]["Enums"]["product_status"]
+          subtitle?: string | null
           title: string
           updated_at?: string
         }
@@ -396,10 +478,13 @@ export type Database = {
           fulfillment_type?: Database["public"]["Enums"]["fulfillment_type"]
           id?: string
           images?: Json
+          materials?: string[]
           metadata?: Json
+          model_url?: string | null
           printful_product_id?: string | null
           slug?: string
           status?: Database["public"]["Enums"]["product_status"]
+          subtitle?: string | null
           title?: string
           updated_at?: string
         }

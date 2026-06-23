@@ -41,7 +41,8 @@ import Base from "../layouts/Base.astro";
           body: JSON.stringify({ lines }),
         });
         data = await res.json();
-      } catch {
+      } catch (e) {
+        console.error("checkout start failed:", e);
         say('Something went wrong starting checkout. <a href="/cart" style="color:inherit; text-decoration:underline;">Back to cart →</a>');
         return;
       }
@@ -72,7 +73,8 @@ import Base from "../layouts/Base.astro";
         });
         if (msg) msg.hidden = true;
         if (mount) checkout.mount("#checkout");
-      } catch {
+      } catch (e) {
+        console.error("embedded checkout mount failed:", e);
         say('We couldn\'t load the payment form. <a href="/cart" style="color:inherit; text-decoration:underline;">Back to cart →</a>');
       }
     }

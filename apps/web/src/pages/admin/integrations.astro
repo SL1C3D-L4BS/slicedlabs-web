@@ -1,0 +1,119 @@
+---
+// SlicedLabs · studio · © 2026 SlicedLabs — Admin cockpit: Integrations health
+// The cure for "beehiiv never sent my email": a single screen that shows which pipelines
+// are actually wired, so a missing key can't hide. Pure env presence checks (no network),
+// plus a one-click "send myself a test email" that proves the owned Resend path.
+export const prerender = false;
+import Base from "../../layouts/Base.astro";
+import { getServerSupabase } from "../../lib/supabase";
+import { isAdmin } from "../../lib/admin";
+import { integrationStatus } from "../../lib/integrations";
+
+const supabase = getServerSupabase(Astro.cookies, Astro.request);
+const {
+  data: { user },
+} = await supabase.auth.getUser();
+if (!user) return Astro.redirect("/account/login?next=" + encodeURIComponent(Astro.url.pathname));
+if (!isAdmin(user.email)) return new Response("Forbidden", { status: 403 });
+
+const groups = integrationStatus();
+const test = Astro.url.searchParams.get("test");
+const TEST_MSG: Record<string, { ok: boolean; text: string }> = {
+  sent: { ok: true, text: `Test email sent to ${user.email}. Check your inbox (and spam).` },
+  failed: { ok: false, text: "Resend reported a failure — check the Vercel runtime logs for details." },
+  not_configured: { ok: false, text: "RESEND_API_KEY is unset, so no email can send yet." },
+  no_address: { ok: false, text: "Your signed-in account has no email address." },
+};
+const testMsg = test ? TEST_MSG[test] : null;
+
+// roll-up: any REQUIRED integration missing → the headline reads amber
+const missingRequired = groups.flatMap((g) => g.items).filter((i) => i.required && !i.configured);
+---
+
+<Base
+  title="Admin — Integrations · SlicedLabs"
+  description="SlicedLabs operator cockpit — integration health."
+  noindex={true}
+>
+  <section class="wrap" style="padding-block:clamp(2rem,6vw,3rem)">
+    <div style="display:flex; align-items:baseline; gap:1rem; flex-wrap:wrap; justify-content:space-between;">
+      <div>
+        <p class="mono" data-reveal>operator cockpit</p>
+        <h1 data-reveal style="--i:1; font-size:clamp(2rem,6vw,3.4rem); margin:.2rem 0 0;">
+          <span class="blend-text">Integrations</span>
+        </h1>
+      </div>
+      <nav data-reveal style="--i:2; display:flex; gap:.6rem; flex-wrap:wrap;" aria-label="Admin sections">
+        <a href="/admin" class="btn-ghost btn">Orders →</a>
+        <a href="/admin/products" class="btn-ghost btn">Products →</a>
+        <a href="/admin/vault" class="btn-ghost btn">Vault →</a>
+      </nav>
+    </div>
+
+    <div class="glass island" data-reveal style="--i:1; margin-top:1.4rem;">
+      <p style="margin:0 0 .8rem; color:var(--muted);">
+        {
+          missingRequired.length === 0
+            ? "All required pipelines are configured. Anything amber below is optional or a deliberate safe default."
+            : `${missingRequired.length} required ${missingRequired.length === 1 ? "key is" : "keys are"} missing — those pipelines won't run until set in the Vercel project env.`
+        }
+      </p>
+      <form method="POST" action="/api/admin/test-email" style="display:flex; gap:.6rem; align-items:center; flex-wrap:wrap;">
+        <button type="submit" class="btn">Send myself a test email →</button>
+        <span class="mono">delivers the owned Resend welcome to {user.email}</span>
+      </form>
+      {
+        testMsg && (
+          <p
+            role="status"
+            aria-live="polite"
+            style={`margin:.8rem 0 0; color:${testMsg.ok ? "var(--teal)" : "var(--coral)"};`}
+          >
+            {testMsg.text}
+          </p>
+        )
+      }
+    </div>
+
+    {
+      groups.map((g) => (
+        <section style="margin-top:1.8rem;" aria-label={g.group}>
+          <h2 class="mono" data-reveal style="color:var(--muted); margin:0 0 .8rem;">
+            {g.group}
+          </h2>
+          <div class="bento">
+            {g.items.map((item, i) => {
+              const hue = item.configured
+                ? "var(--teal)"
+                : item.required
+                  ? "var(--coral)"
+                  : "var(--muted)";
+              const label = item.configured ? "live" : item.required ? "missing" : "optional";
+              return (
+                <article class="glass island col-3" data-reveal style={`--i:${i};`}>
+                  <div style="display:flex; align-items:center; justify-content:space-between; gap:.6rem;">
+                    <h3 style="font-size:1.05rem; margin:0;">{item.name}</h3>
+                    <span class="tag" style={`color:${hue}; border-color:${hue}; white-space:nowrap;`}>
+                      {label}
+                    </span>
+                  </div>
+                  <p style="color:var(--muted); margin:.5rem 0 0; font-size:.92rem;">{item.detail}</p>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+      ))
+    }
+
+    <div class="glass island" data-reveal style="margin-top:1.8rem;">
+      <h2 style="font-size:1.15rem; margin:0 0 .5rem;">Make email arrive (runbook)</h2>
+      <ol style="color:var(--muted); margin:0; padding-left:1.2rem; line-height:1.7;">
+        <li>Set <code>BEEHIIV_API_KEY</code>, <code>BEEHIIV_PUBLICATION_ID</code>, and <code>RESEND_API_KEY</code> in the Vercel project env (all environments), then redeploy.</li>
+        <li>Buy the domain → verify it in Resend → add SPF/DKIM/DMARC DNS → set <code>RESEND_FROM</code> (see <code>MAIL-DELIVERABILITY.md</code>). The owned welcome sends even before the domain verifies.</li>
+        <li>In beehiiv: enable the welcome email and build the automations filtered by <code>utm_campaign</code> (see <code>BEEHIIV-WALKTHROUGH.md</code>).</li>
+        <li>Use "Send myself a test email" above, then submit the live newsletter form to confirm both paths land.</li>
+      </ol>
+    </div>
+  </section>
+</Base>

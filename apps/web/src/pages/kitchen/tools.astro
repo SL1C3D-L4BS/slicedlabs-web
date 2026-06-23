@@ -1,0 +1,131 @@
+---
+// SlicedLabs · kitchen · © 2026 SlicedLabs — Free food tools (waste log + dietary profile)
+// Public + free (works in localStorage for anyone → SEO + lead capture). Signed-in users
+// sync to their account (RLS-scoped /api/food/*). prerender=false so the page knows whether
+// you're signed in (data-authed) for the sync handshake. No-JS still gets the full,
+// indexable explainer below.
+export const prerender = false;
+import Base from "../../layouts/Base.astro";
+import Newsletter from "../../components/Newsletter.astro";
+import { getServerSupabase } from "../../lib/supabase";
+
+const supabase = getServerSupabase(Astro.cookies, Astro.request);
+const {
+  data: { user },
+} = await supabase.auth.getUser();
+const authed = Boolean(user);
+
+const DIETS = ["Vegan", "Vegetarian", "Gluten-free", "Dairy-free", "Nut-free", "Keto", "Pescatarian", "Halal", "Kosher"];
+const ALLERGENS = ["Peanuts", "Tree nuts", "Milk", "Eggs", "Soy", "Wheat", "Fish", "Shellfish", "Sesame"];
+---
+<Base
+  title="Free food tools — track food waste & your diet · SlicedLabs"
+  description="Free tools to cut your food waste and remember your dietary needs. Log what gets tossed, see the monthly cost, and save your diet + allergens. Works free in your browser; sign in to sync across devices."
+>
+  <section class="wrap" style="padding-block:clamp(2.5rem,7vw,4rem) clamp(1rem,3vw,2rem);">
+    <p class="mono" data-reveal>free · no catch · yours</p>
+    <h1 data-reveal style="--i:1; font-size:clamp(2.2rem,7vw,4rem);"><span class="blend-text">Food tools</span></h1>
+    <hr class="blade" data-reveal style="--i:2; max-width:13rem; margin:1.3rem 0 0;" />
+    <p data-reveal style="--i:3; font-size:clamp(1.05rem,2.3vw,1.35rem); color:var(--muted); max-width:46rem; margin-top:1.3rem;">
+      The average household tosses real money in the trash every week. These two tools fix the small things that compound: <strong>log what you waste</strong> to see the monthly cost, and <strong>save your dietary needs</strong> so the recipes and menu meet you where you are. Free, private, and yours — it all works right here in your browser{authed ? "" : ", and signing in syncs it across your devices"}.
+    </p>
+  </section>
+
+  <section
+    class="wrap"
+    data-foodtools
+    data-authed={authed ? "true" : "false"}
+    style="padding-block:clamp(1rem,3vw,2rem);"
+  >
+    <div class="bento dense">
+      {/* ── FOOD-WASTE LOG ─────────────────────────────────────────────── */}
+      <article class="glass glass-focal island col-4" data-reveal aria-labelledby="fw-h">
+        <h2 id="fw-h" style="font-size:1.4rem; margin:0 0 .2rem;">Food-waste log</h2>
+        <p class="mono" style="color:var(--muted); margin:0 0 1rem;">what got tossed — and what it cost you</p>
+
+        <div style="display:flex; gap:1.4rem; flex-wrap:wrap; margin-bottom:1rem;">
+          <div>
+            <p class="mono" style="margin:0; color:var(--muted);">tossed this month</p>
+            <p id="fw-count" class="count" style="font-family:var(--font-display); font-weight:800; font-size:clamp(1.6rem,5vw,2.4rem); margin:.1rem 0 0;">0</p>
+          </div>
+          <div>
+            <p class="mono" style="margin:0; color:var(--muted);">cost this month</p>
+            <p id="fw-cost" class="count" style="font-family:var(--font-display); font-weight:800; font-size:clamp(1.6rem,5vw,2.4rem); margin:.1rem 0 0;"><span class="blend-text">$0.00</span></p>
+          </div>
+        </div>
+
+        <form id="fw-form" style="display:flex; gap:.6rem; flex-wrap:wrap; align-items:end; margin-bottom:1.2rem;">
+          <label style="flex:2 1 12rem;">
+            <span class="mono">Item *</span>
+            <input class="fld" type="text" name="item" required placeholder="Half a loaf of sourdough" />
+          </label>
+          <label style="flex:0 1 5rem;">
+            <span class="mono">Qty</span>
+            <input class="fld" type="number" name="qty" step="any" min="0" inputmode="decimal" />
+          </label>
+          <label style="flex:0 1 6rem;">
+            <span class="mono">Unit</span>
+            <input class="fld" type="text" name="unit" placeholder="lb / ea" />
+          </label>
+          <label style="flex:0 1 6rem;">
+            <span class="mono">Cost ($)</span>
+            <input class="fld" type="number" name="cost" step="0.01" min="0" inputmode="decimal" placeholder="3.50" />
+          </label>
+          <button class="btn" type="submit">Log it</button>
+        </form>
+
+        <ul id="fw-list" style="list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.5rem;">
+          <li class="mono" style="color:var(--muted); padding:.4rem 0;">Loading…</li>
+        </ul>
+      </article>
+
+      {/* ── DIETARY PROFILE ────────────────────────────────────────────── */}
+      <article class="glass island col-2" data-reveal style="--i:1;" aria-labelledby="dp-h">
+        <h2 id="dp-h" style="font-size:1.4rem; margin:0 0 .2rem;">Your diet</h2>
+        <p class="mono" style="color:var(--muted); margin:0 0 1rem;">so the menu meets you</p>
+
+        <fieldset style="border:0; padding:0; margin:0 0 1rem;">
+          <legend class="mono" style="color:var(--muted); margin-bottom:.5rem;">Diets</legend>
+          <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
+            {DIETS.map((d) => (
+              <label class="tag" style="cursor:pointer; display:inline-flex; gap:.35rem; align-items:center;">
+                <input type="checkbox" data-diet value={d} /> {d}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
+        <fieldset style="border:0; padding:0; margin:0 0 1rem;">
+          <legend class="mono" style="color:var(--muted); margin-bottom:.5rem;">Allergens to avoid</legend>
+          <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
+            {ALLERGENS.map((a) => (
+              <label class="tag" style="cursor:pointer; display:inline-flex; gap:.35rem; align-items:center;">
+                <input type="checkbox" data-allergen value={a} /> {a}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
+        <div style="display:flex; gap:.8rem; align-items:center;">
+          <button id="prefs-save" type="button" class="btn btn-ghost">Save my diet</button>
+          <span id="prefs-status" class="mono" role="status" aria-live="polite" style="color:var(--teal);"></span>
+        </div>
+      </article>
+    </div>
+
+    {!authed && (
+      <p class="mono" data-reveal style="color:var(--muted); margin-top:1.2rem;">
+        Saved in this browser. <a href="/account/login?next=/kitchen/tools" style="color:var(--mark);">Sign in</a> to sync across your devices — free.
+      </p>
+    )}
+  </section>
+
+  <section class="wrap" style="padding-block:clamp(1.5rem,4vw,2.5rem);">
+    <Newsletter />
+  </section>
+
+  <script>
+    import { initFoodTools } from "../../scripts/foodtools";
+    initFoodTools();
+  </script>
+</Base>

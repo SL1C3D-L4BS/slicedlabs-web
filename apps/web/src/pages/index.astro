@@ -4,6 +4,8 @@ import Base from "../layouts/Base.astro";
 import Newsletter from "../components/Newsletter.astro";
 import HeroPass from "../components/HeroPass.astro";
 import ScrollScene from "../components/ScrollScene.astro";
+import Showpiece3D from "../components/Showpiece3D.astro";
+import PersonalizedSections from "../components/PersonalizedSections.astro";
 import { organizationLd } from "../lib/brand";
 
 const orgLd = organizationLd(Astro.site?.href ?? "https://slicedlabs.io");
@@ -27,6 +29,24 @@ const climb = ["Brand + the channel", "One truck", "The first lot", "Venue + own
 
   <ScrollScene />
 
+  <!-- WHAT WE STAND ON — the craft showpiece. Gated Three.js island (procedural board
+       until a real .glb is dropped in /public/models); static brand-gradient fallback
+       on no-JS / reduced-motion / lite devices. -->
+  <section class="wrap" aria-labelledby="craft" style="padding-block:2.5rem;">
+    <h2 id="craft" class="mono" data-reveal style="color:var(--muted); margin-bottom:1rem;">what we stand on</h2>
+    <article
+      class="glass glass-ultra"
+      data-reveal
+      style="position:relative; overflow:hidden; padding:0; border-radius:var(--radius-lg);"
+    >
+      <Showpiece3D height="clamp(20rem,46vw,34rem)" label="Rotatable 3D preview of a SlicedLabs engraved board" />
+      <div style="position:absolute; inset:auto 0 0 0; padding:clamp(1.2rem,3vw,2rem); background:linear-gradient(to top, color-mix(in oklab, var(--bg) 82%, transparent), transparent);">
+        <h3 style="font-size:clamp(1.5rem,4vw,2.2rem); margin:0 0 .3rem;">Tools we'd stake our name on.</h3>
+        <p style="color:var(--muted); margin:0; max-width:38rem;">Engraved boards, aprons, blades — the gear behind the build, made to outlast the trend cycle. <a href="/shop" style="color:var(--mark);">See the shop →</a></p>
+      </div>
+    </article>
+  </section>
+
   <!-- THREE PILLARS — bento of glass islands, assembling on scroll -->
   <section class="wrap" aria-labelledby="pillars" style="padding-block:2rem;">
     <h2 id="pillars" class="mono" data-reveal style="color:var(--muted); margin-bottom:1rem;">one company, three limbs</h2>
@@ -41,6 +61,9 @@ const climb = ["Brand + the channel", "One truck", "The first lot", "Venue + own
       ))}
     </div>
   </section>
+
+  {/* WHERE TO NEXT — a wayfinding row that reorders to the visitor's affinity (local, no LLM) */}
+  <PersonalizedSections />
 
   <!-- PRINCIPLES — the depth (what the books taught, lived) -->
   <section class="wrap" aria-labelledby="principles" style="padding-block:3rem;">
@@ -67,6 +90,23 @@ const climb = ["Brand + the channel", "One truck", "The first lot", "Venue + own
         </li>
       ))}
     </ol>
+  </section>
+
+  <!-- WHAT WE GIVE BACK — the mission arms (built as the business throws off cash) -->
+  <section class="wrap" aria-labelledby="mission" style="padding-block:2rem;">
+    <h2 id="mission" class="mono" data-reveal style="color:var(--muted); margin-bottom:1rem;">what we give back</h2>
+    <div class="bento">
+      <a href="/freshsave" class="glass island col-3" data-reveal style="text-decoration:none; display:block; border-color:color-mix(in oklab, var(--freshsave) 30%, var(--stroke));">
+        <span class="tag" style="color:var(--freshsave); border-color:var(--freshsave);">FreshSave</span>
+        <h3 style="font-size:1.5rem; margin:.7rem 0 .3rem;">Fight food waste.</h3>
+        <p style="color:var(--muted); margin:0;">Teach the skill, publish our own numbers, and amplify the orgs already doing the work. <span style="color:var(--freshsave);">See the plan →</span></p>
+      </a>
+      <a href="/community" class="glass island col-3" data-reveal style="--i:1; text-decoration:none; display:block; border-color:color-mix(in oklab, var(--community) 30%, var(--stroke));">
+        <span class="tag" style="color:var(--community); border-color:var(--community);">Community</span>
+        <h3 style="font-size:1.5rem; margin:.7rem 0 .3rem;">Show up local.</h3>
+        <p style="color:var(--muted); margin:0;">Spokane first — markets, inclusive hiring, and sponsorships starting with autism support. <span style="color:var(--community);">How we help →</span></p>
+      </a>
+    </div>
   </section>
 
   <div class="wrap"><Newsletter /></div>

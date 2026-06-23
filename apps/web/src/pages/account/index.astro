@@ -98,6 +98,15 @@ const fmtDate = (iso: string) =>
     month: "short",
     day: "numeric",
   });
+
+// Surface a Billing-Portal hiccup if /api/account/portal bounced back here.
+const billing = Astro.url.searchParams.get("billing");
+const BILLING_MSG: Record<string, string> = {
+  none: "We couldn't find a subscription on file for this account yet.",
+  not_configured: "Billing isn't configured yet.",
+  error: "Couldn't open the billing portal — try again shortly.",
+};
+const billingMsg = billing ? BILLING_MSG[billing] : null;
 ---
 <Base
   title="Your account — SlicedLabs"
@@ -130,6 +139,15 @@ const fmtDate = (iso: string) =>
       </form>
     </div>
 
+    <nav class="mono" data-reveal style="display:flex; gap:1.2rem; margin-bottom:1.8rem; flex-wrap:wrap;" aria-label="Account">
+      <a href="/account/settings" style="color:var(--muted); text-decoration:none;">Settings →</a>
+      {isMember && <a href="/api/account/portal" style="color:var(--muted); text-decoration:none;">Manage membership →</a>}
+    </nav>
+
+    {billingMsg && (
+      <p role="status" data-reveal style="color:var(--coral); margin:0 0 1.4rem;">{billingMsg}</p>
+    )}
+
     {!isMember && (
       <a
         href="/membership"
@@ -144,6 +162,19 @@ const fmtDate = (iso: string) =>
         <span class="btn">Become a member →</span>
       </a>
     )}
+
+    <a
+      href="/kitchen/tools"
+      class="glass island"
+      data-reveal
+      style="display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; text-decoration:none; margin-bottom:1.8rem;"
+    >
+      <span>
+        <span class="mono" style="color:var(--muted);">your kitchen</span>
+        <span style="display:block; font-weight:600; color:var(--ink); margin-top:.2rem;">Track food waste + your dietary profile — synced to your account.</span>
+      </span>
+      <span class="btn-ghost btn">Open food tools →</span>
+    </a>
 
     <h2 data-reveal style="--i:1; font-size:clamp(1.3rem,4vw,1.8rem); margin:0 0 1rem;">
       Orders

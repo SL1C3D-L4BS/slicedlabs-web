@@ -1,0 +1,24 @@
+---
+// SlicedLabs · studio · © 2026 SlicedLabs — a single Community entry
+import { getCollection, render } from "astro:content";
+import Base from "../../layouts/Base.astro";
+
+export async function getStaticPaths() {
+  const entries = await getCollection("community", ({ data }) =>
+    import.meta.env.PROD ? !data.draft : true,
+  );
+  return entries.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+---
+<Base title={`${entry.data.title} — Community · SlicedLabs`} description={entry.data.summary}>
+  <article class="wrap" style="max-width:46rem; padding-block:clamp(2.5rem,7vw,4rem);">
+    <a href="/community" class="mono" style="text-decoration:none; color:var(--community);">← Community</a>
+    <p class="mono" data-reveal style="margin-top:1.2rem;">{entry.data.date.toISOString().slice(0, 10)}</p>
+    <h1 data-reveal style={`--i:1; font-size:clamp(2rem,6vw,3.4rem); margin:.3rem 0 0; view-transition-name:vtc-${entry.id};`}>{entry.data.title}</h1>
+    <hr data-reveal style="--i:2; height:4px; border:0; border-radius:999px; max-width:8rem; margin:1.2rem 0 2rem; background:var(--community);" />
+    <div class="prose"><Content /></div>
+  </article>
+</Base>

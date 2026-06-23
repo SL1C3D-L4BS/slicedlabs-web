@@ -33,6 +33,10 @@ const SOURCES: Record<string, { label: string; inquiry?: boolean }> = {
   recipe: { label: "Free recipe drop" },
   vault: { label: "Free drops / lead magnet" },
   workshop: { label: "Workshop interest", inquiry: true },
+  freshsave: { label: "FreshSave / waste mission" },
+  community: { label: "Community / outreach" },
+  sponsorship: { label: "Autism sponsorship", inquiry: true },
+  "food-tools": { label: "Food tools" },
 };
 
 const json = (b: unknown, s: number) =>

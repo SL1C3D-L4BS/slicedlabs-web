@@ -1,0 +1,51 @@
+---
+// SlicedLabs · studio · © 2026 SlicedLabs — FreshSave (mission arm index)
+import { getCollection } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import LeadForm from "../../components/LeadForm.astro";
+
+const entries = (
+  await getCollection("freshsave", ({ data }) => (import.meta.env.PROD ? !data.draft : true))
+).sort((a, b) => +b.data.date - +a.data.date);
+
+const KIND_LABEL: Record<string, string> = {
+  initiative: "initiative",
+  impact: "the math",
+  partner: "partner",
+};
+---
+<Base
+  title="FreshSave — fighting food waste · SlicedLabs"
+  description="FreshSave is the mission arm we're building: cut food waste, teach people to cook what they have, and amplify the orgs already doing the work. A plan, shown in public."
+>
+  <section class="wrap" style="padding-block:clamp(2.5rem,7vw,4rem);">
+    <p class="mono" data-reveal style="color:var(--freshsave);">the mission arm · in progress</p>
+    <h1 data-reveal style="--i:1; font-size:clamp(2.2rem,7vw,4rem); margin:.3rem 0 0;"><span class="blend-text">FreshSave</span></h1>
+    <hr data-reveal style="--i:2; height:4px; border:0; border-radius:999px; max-width:14rem; margin:1.4rem 0 1.2rem; background:var(--freshsave);" />
+    <p data-reveal style="--i:3; font-size:clamp(1.05rem,2.3vw,1.35rem); color:var(--muted); max-width:46rem;">
+      A third of the food we grow is never eaten. FreshSave is the arm we're building to fight that — teach the skill (not the guilt), publish our own waste numbers, and send people toward the food banks and gleaners already doing the work. It's funded as the truck throws off cash; you can watch it get built.
+    </p>
+    <div data-reveal style="--i:4; margin-top:1.4rem;">
+      <a class="btn" href="/kitchen/tools">Try the free food tools →</a>
+    </div>
+  </section>
+
+  <section class="wrap" style="padding-block:clamp(1rem,3vw,2rem);">
+    {entries.length === 0 && <p data-reveal style="color:var(--muted);">First entry lands soon.</p>}
+    <div class="bento">
+      {entries.map((e, i) => (
+        <a href={`/freshsave/${e.id}`} class="glass island col-3" data-reveal style={`--i:${i}; text-decoration:none; display:block;`}>
+          <p class="mono" style="color:var(--freshsave); margin:0;">{KIND_LABEL[e.data.kind] ?? e.data.kind}</p>
+          <h2 style={`font-size:1.3rem; margin:.3rem 0 .4rem; view-transition-name:vtf-${e.id};`}>{e.data.title}</h2>
+          <p style="color:var(--muted); margin:0;">{e.data.summary}</p>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <section class="wrap" style="padding-block:clamp(2rem,5vw,3rem); text-align:center;">
+    <h2 data-reveal style="font-size:clamp(1.4rem,4vw,2rem); margin:0 0 .4rem;">Get the waste-fighting drops</h2>
+    <p data-reveal style="color:var(--muted); max-width:34rem; margin:0 auto 1.4rem;">The food tools, the numbers, and the partners as the arm comes online.</p>
+    <div data-reveal><LeadForm source="freshsave" cta="Keep me posted →" /></div>
+  </section>
+</Base>

@@ -1,0 +1,105 @@
+---
+// SlicedLabs · account · © 2026 SlicedLabs — Account settings
+// Edit your display name + manage your subscription (Stripe Billing Portal). All RLS-scoped
+// to the signed-in user; anonymous visitors bounce to login.
+export const prerender = false;
+import Base from "../../layouts/Base.astro";
+import { getServerSupabase } from "../../lib/supabase";
+
+const supabase = getServerSupabase(Astro.cookies, Astro.request);
+const {
+  data: { user },
+} = await supabase.auth.getUser();
+if (!user) return Astro.redirect("/account/login?next=/account/settings");
+
+let saved = false;
+let saveError: string | null = null;
+if (Astro.request.method === "POST") {
+  const f = await Astro.request.formData();
+  if (f.get("intent") === "signout") {
+    await supabase.auth.signOut();
+    return Astro.redirect("/");
+  }
+  if (f.get("intent") === "profile") {
+    const fullName = String(f.get("full_name") ?? "").trim().slice(0, 120) || null;
+    const { error } = await supabase
+      .from("profiles")
+      .update({ full_name: fullName })
+      .eq("id", user.id);
+    if (error) saveError = error.message;
+    else saved = true;
+  }
+}
+
+const { data: prof } = await supabase
+  .from("profiles")
+  .select("full_name, stripe_customer_id")
+  .eq("id", user.id)
+  .maybeSingle();
+
+const { data: ent } = await supabase
+  .from("entitlements")
+  .select("kind, expires_at")
+  .eq("kind", "member")
+  .maybeSingle();
+const isMember = Boolean(ent && (!ent.expires_at || new Date(ent.expires_at).getTime() > Date.now()));
+
+const billing = Astro.url.searchParams.get("billing");
+const BILLING_MSG: Record<string, string> = {
+  none: "We couldn't find a subscription on file for this account yet.",
+  not_configured: "Billing isn't configured yet.",
+  error: "Couldn't open the billing portal — try again shortly.",
+};
+const billingMsg = billing ? BILLING_MSG[billing] : null;
+---
+<Base title="Account settings — SlicedLabs" description="Manage your SlicedLabs account." noindex={true}>
+  <section class="wrap" style="padding-block:clamp(2.5rem,7vw,4rem); max-width:46rem;">
+    <nav class="mono" data-reveal style="display:flex; gap:1rem; margin-bottom:1.4rem;" aria-label="Account">
+      <a href="/account" style="color:var(--muted); text-decoration:none;">← Dashboard</a>
+    </nav>
+    <p class="mono" data-reveal>your account</p>
+    <h1 data-reveal style="--i:1; font-size:clamp(1.8rem,6vw,2.8rem); margin:.2rem 0 1.4rem;">
+      <span class="blend-text">Settings</span>
+    </h1>
+
+    {saved && <p role="status" data-reveal style="color:var(--teal); margin:0 0 1rem;">Saved ✓</p>}
+    {saveError && <p role="status" data-reveal style="color:var(--coral); margin:0 0 1rem;">{saveError}</p>}
+
+    <div class="glass island" data-reveal style="margin-bottom:1.4rem;">
+      <h2 style="font-size:1.15rem; margin:0 0 1rem;">Profile</h2>
+      <form method="POST" style="display:flex; flex-direction:column; gap:.8rem;">
+        <input type="hidden" name="intent" value="profile" />
+        <label>
+          <span class="mono">Email</span>
+          <input class="fld" type="email" value={user.email ?? ""} disabled />
+        </label>
+        <label>
+          <span class="mono">Display name</span>
+          <input class="fld" type="text" name="full_name" value={prof?.full_name ?? ""} placeholder="Your name" />
+        </label>
+        <div><button class="btn" type="submit">Save profile</button></div>
+      </form>
+    </div>
+
+    <div class="glass island" data-reveal style="margin-bottom:1.4rem;">
+      <h2 style="font-size:1.15rem; margin:0 0 .5rem;">Subscription</h2>
+      {billingMsg && <p role="status" style="color:var(--coral); margin:0 0 .8rem;">{billingMsg}</p>}
+      {isMember ? (
+        <>
+          <p style="color:var(--muted); margin:0 0 1rem;">You're a member. Manage your plan, payment method, or cancel anytime in the Stripe portal.</p>
+          <a class="btn" href="/api/account/portal">Manage subscription →</a>
+        </>
+      ) : (
+        <>
+          <p style="color:var(--muted); margin:0 0 1rem;">You're not a member yet.</p>
+          <a class="btn" href="/membership">Become a member →</a>
+        </>
+      )}
+    </div>
+
+    <form method="POST" data-reveal>
+      <input type="hidden" name="intent" value="signout" />
+      <button class="btn-ghost" type="submit">Sign out</button>
+    </form>
+  </section>
+</Base>

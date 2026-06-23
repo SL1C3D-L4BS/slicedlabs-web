@@ -1,0 +1,64 @@
+---
+// SlicedLabs · studio · © 2026 SlicedLabs — ProductViewer
+// Progressive-enhancement 3D product viewer. The <img slot="poster"> is the SSR / no-JS /
+// un-upgraded fallback: an unknown <model-viewer> element renders its children, so the
+// photo always shows. The element only upgrades to an interactive glTF viewer when the
+// module loads — and that module is dynamically imported ONLY on capable, non-"lite"
+// devices (saves the ~hundreds-of-KB on Save-Data / low-power). No auto-rotate (the
+// no-shimmer law: it moves only when dragged). AR is offered on supporting mobile.
+interface Props {
+  src: string;
+  poster: string;
+  alt: string;
+  class?: string;
+}
+const { src, poster, alt, class: cls = "" } = Astro.props;
+---
+<model-viewer
+  class:list={["product-viewer", cls]}
+  src={src}
+  alt={alt}
+  camera-controls
+  touch-action="pan-y"
+  ar
+  ar-modes="webxr scene-viewer quick-look"
+  loading="lazy"
+  reveal="interaction"
+  shadow-intensity="1"
+  exposure="1"
+>
+  <img slot="poster" src={poster} alt={alt} />
+</model-viewer>
+<noscript>
+  <img src={poster} alt={alt} class="product-viewer-fallback" />
+</noscript>
+
+<style>
+  .product-viewer,
+  .product-viewer-fallback {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--bg-alt);
+  }
+  /* before/without upgrade, the poster <img> IS the product photo — make it fill cleanly. */
+  .product-viewer:not(:defined) > img[slot="poster"],
+  .product-viewer-fallback {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+</style>
+
+<script>
+  import { liteFx } from "../lib/clientCaps";
+  // Upgrade the custom element only when present AND the device isn't data/power constrained.
+  // Otherwise the poster <img> child is the (perfectly good) static fallback.
+  if (document.querySelector("model-viewer") && !liteFx()) {
+    import("@google/model-viewer").catch(() => {
+      /* leave the poster image as the fallback */
+    });
+  }
+</script>

@@ -33,21 +33,15 @@ const { class: cls = "", fixed = false } = Astro.props;
 
 <script>
   import { initGL } from "./shaderGL";
+  import { shouldRunHeavyFx } from "../lib/clientCaps";
 
   (function () {
     const canvas = document.querySelector<HTMLCanvasElement>("[data-shaderfield]");
     if (!canvas) return;
 
+    // reduced-motion / reduced-data / Save-Data / low-power → never run (shared gate).
+    if (!shouldRunHeavyFx()) return;
     const mq = matchMedia("(prefers-reduced-motion: reduce)");
-    const lowData =
-      matchMedia("(prefers-reduced-data: reduce)").matches ||
-      // @ts-ignore - navigator.connection is non-standard
-      (navigator.connection && navigator.connection.saveData);
-    const weak =
-      (navigator.hardwareConcurrency || 8) <= 4 ||
-      // @ts-ignore - deviceMemory is non-standard
-      (navigator.deviceMemory && navigator.deviceMemory <= 4);
-    if (mq.matches || lowData || weak) return;
 
     const root = document.documentElement;
     const warmVal = () => (root.getAttribute("data-temp") !== "dark" ? 1 : 0);

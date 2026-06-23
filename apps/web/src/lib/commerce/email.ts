@@ -128,6 +128,11 @@ export async function sendListWelcome(args: {
   const r = await resend.emails.send({
     from: env.resendFrom(),
     to: args.to,
+    // Replies land with a human; List-Unsubscribe lifts inbox placement (the list itself is
+    // managed in beehiiv — this owned confirmation is transactional, so a mailto opt-out is
+    // the honest, always-valid header here).
+    replyTo: "hello@slicedlabs.io",
+    headers: { "List-Unsubscribe": "<mailto:unsubscribe@slicedlabs.io?subject=unsubscribe>" },
     subject: inquiry ? "We got your note — SlicedLabs" : "Welcome to SlicedLabs",
     html,
   });

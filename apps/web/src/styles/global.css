@@ -203,11 +203,32 @@ main :is(h1, h2, h3, p, li) { text-shadow: var(--text-halo); }
 .island:hover { transform: translateY(-2px); border-color: color-mix(in oklab, var(--mark) 40%, var(--stroke)); }
 .bento { display: grid; gap: 1rem; grid-template-columns: repeat(6, 1fr); }
 .bento > * { grid-column: span 6; }
+/* opt-in: dense packing back-fills the gaps a mixed-span row leaves (bento/masonry feel,
+ * still a true grid — no JS). Add `.dense` only where tiles are reorderable. */
+.bento.dense { grid-auto-flow: row dense; }
 @media (min-width: 720px) {
+  .bento > .col-1 { grid-column: span 1; }
   .bento > .col-2 { grid-column: span 2; }
   .bento > .col-3 { grid-column: span 3; }
   .bento > .col-4 { grid-column: span 4; }
+  .bento > .col-5 { grid-column: span 5; }
+  .bento > .col-6 { grid-column: span 6; }
+  /* tall tile — spans two rows for a featured/portrait card */
+  .bento > .row-2 { grid-row: span 2; }
 }
+/* ≥1024: the showpiece "feature" tile (2×2 of the 6-col field) for a 3D/hero moment beside
+ * smaller tiles; pair with `.dense` on the parent so neighbors back-fill. The base .bento
+ * stays 6-col so every existing grid is byte-unchanged — this is purely additive. */
+@media (min-width: 1024px) {
+  .bento > .feature { grid-column: span 4; grid-row: span 2; }
+}
+
+/* ── tile → detail morph (shared-element View Transition) ──────────────────────
+ * No CSS rule can name a per-item view-transition; set it INLINE on both ends:
+ *   card:   style={`view-transition-name: tile-${slug}`}
+ *   detail: style={`view-transition-name: tile-${slug}`}  (the hero it morphs into)
+ * The MPA @view-transition (navigation:auto) below animates the morph; the reduced-motion
+ * neutralizer there makes it instant. Names must be UNIQUE per page — one card per slug. */
 
 /* ── chips / buttons ────────────────────────────────────────────────────── */
 .btn {

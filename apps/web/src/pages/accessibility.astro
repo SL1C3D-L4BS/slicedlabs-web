@@ -1,0 +1,31 @@
+---
+// SlicedLabs · studio · © 2026 SlicedLabs — Accessibility statement
+import Base from "../layouts/Base.astro";
+---
+<Base
+  title="Accessibility — SlicedLabs"
+  description="How SlicedLabs builds for everyone: reduced-motion and reduced-data support, keyboard navigation, contrast standards, and how to flag an issue."
+>
+  <article class="wrap prose" style="max-width:46rem; padding-block:clamp(2.5rem,7vw,4rem);">
+    <p class="mono" data-reveal style="color:var(--muted);">the showpiece never beats access</p>
+    <h1 data-reveal style="--i:1; font-size:clamp(2rem,6vw,3.2rem); margin:.3rem 0 .2rem;"><span class="blend-text">Accessibility</span></h1>
+    <hr class="blade" data-reveal style="--i:2; max-width:9rem; margin:1.2rem 0 2rem;" />
+
+    <p>We want this site to work for everyone, on any device, however you browse. Accessibility is a design law here, not an afterthought — and like everything else, we'll fix what's broken in the open.</p>
+
+    <h2>What we do</h2>
+    <ul>
+      <li><strong>Respect your motion settings.</strong> Turn on "reduce motion" in your OS and the smooth-scroll, the living backdrop, the 3D showpieces, and every entrance animation switch off — you get a calm, static page.</li>
+      <li><strong>Respect data + low-power devices.</strong> On Save-Data or limited hardware, the heavy GPU effects and 3D never load; you get a fast, lightweight page with a static fallback.</li>
+      <li><strong>Keyboard-first.</strong> A "skip to content" link, visible focus rings on every interactive element, and reading order that follows the visual order — even where the page personalizes itself.</li>
+      <li><strong>Readable contrast.</strong> Text colors are checked against their backgrounds to clear WCAG AA, and body text carries a subtle halo so it stays legible over the moving backdrop. A "reduce transparency" setting swaps the frosted glass for solid panels.</li>
+      <li><strong>Screen-reader aware.</strong> Real landmarks and headings, labels on every form field, live status messages on form results, and decorative visuals (the backdrop, the 3D) marked so assistive tech skips them. Product 3D viewers carry descriptive alt text and fall back to a normal photo.</li>
+    </ul>
+
+    <h2>Where we're still working</h2>
+    <p>We're not going to claim a perfect score. If something trips you up — a control you can't reach, text you can't read, a flow that breaks with a screen reader — that's a bug to us, and we want to know.</p>
+
+    <h2>Tell us</h2>
+    <p>Email <a href="mailto:hello@slicedlabs.io">hello@slicedlabs.io</a> or use the <a href="/contact">contact form</a>. Tell us the page and what got in your way; we'll get on it.</p>
+  </article>
+</Base>

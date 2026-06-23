@@ -1,0 +1,37 @@
+---
+// SlicedLabs · studio · © 2026 SlicedLabs — PersonalizedSections
+// A wayfinding row that reorders to lead with whatever a returning visitor engages most
+// (see scripts/affinity.ts). Rendered server-side in a sensible DEFAULT order — that's a
+// valid reading order for no-JS, first paint, and SEO. The script only reshuffles the row
+// within its own grid (no surrounding layout shift) by moving real DOM nodes, so tab order
+// follows. No signal yet → stays in default order.
+const tiles = [
+  { key: "food", href: "/menu", hue: "var(--coral)", kicker: "the food", title: "The menu" },
+  { key: "media", href: "/build", hue: "var(--orange)", kicker: "the proof", title: "The build" },
+  { key: "marketing", href: "/work", hue: "var(--blue)", kicker: "the leverage", title: "Work with us" },
+  { key: "mission", href: "/freshsave", hue: "var(--freshsave)", kicker: "the mission", title: "FreshSave" },
+  { key: "community", href: "/community", hue: "var(--community)", kicker: "neighbors first", title: "Community" },
+];
+---
+<section class="wrap" aria-labelledby="explore" style="padding-block:2rem;">
+  <h2 id="explore" class="mono" data-reveal style="color:var(--muted); margin-bottom:1rem;">where to next</h2>
+  <div class="bento dense" data-personalize>
+    {tiles.map((t, i) => (
+      <a
+        href={t.href}
+        class="glass island col-2"
+        data-section={t.key}
+        data-reveal
+        style={`--i:${i}; text-decoration:none; display:block;`}
+      >
+        <span class="mono" style={`color:${t.hue};`}>{t.kicker}</span>
+        <h3 style="font-size:1.3rem; margin:.35rem 0 0;">{t.title} →</h3>
+      </a>
+    ))}
+  </div>
+</section>
+
+<script>
+  import { applyOrder } from "../scripts/affinity";
+  for (const c of document.querySelectorAll<HTMLElement>("[data-personalize]")) applyOrder(c);
+</script>

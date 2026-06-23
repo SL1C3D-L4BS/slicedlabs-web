@@ -35,4 +35,30 @@ const magnets = defineCollection({
   }),
 });
 
-export const collections = { build, recipes, magnets };
+// FreshSave — the (future) waste-as-mission arm: initiatives, impact, partners.
+const freshsave = defineCollection({
+  loader: glob({ pattern: "**/*.md", base: "./src/content/freshsave" }),
+  schema: z.object({
+    title: z.string(),
+    date: z.coerce.date(),
+    summary: z.string(),
+    kind: z.enum(["initiative", "impact", "partner"]).default("initiative"),
+    tags: z.array(z.string()).optional(),
+    draft: z.boolean().default(false),
+  }),
+});
+
+// Community — local outreach, sponsorships (incl. autism), and partnerships.
+const community = defineCollection({
+  loader: glob({ pattern: "**/*.md", base: "./src/content/community" }),
+  schema: z.object({
+    title: z.string(),
+    date: z.coerce.date(),
+    summary: z.string(),
+    kind: z.enum(["outreach", "sponsorship", "autism", "partner"]).default("outreach"),
+    tags: z.array(z.string()).optional(),
+    draft: z.boolean().default(false),
+  }),
+});
+
+export const collections = { build, recipes, magnets, freshsave, community };

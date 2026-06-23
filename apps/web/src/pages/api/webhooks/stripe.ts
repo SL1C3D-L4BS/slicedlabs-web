@@ -57,6 +57,7 @@ export const POST: APIRoute = async ({ request }) => {
       try {
         await grantMembership(memberEmail, {
           untilMs: typeof periodEnd === "number" ? periodEnd * 1000 : null,
+          customerId: inv.customer ? String(inv.customer) : null,
         });
       } catch (e) {
         console.error("membership invoice.paid failed:", (e as Error).message);
@@ -110,6 +111,10 @@ export const POST: APIRoute = async ({ request }) => {
     try {
       await grantMembership(session.customer_details?.email ?? null, {
         name: session.customer_details?.name ?? null,
+        customerId:
+          typeof session.customer === "string"
+            ? session.customer
+            : (session.customer?.id ?? null),
       });
     } catch (e) {
       console.error("membership start failed:", (e as Error).message);

@@ -29,10 +29,13 @@ type Product = {
   id: string;
   slug: string;
   title: string;
+  subtitle: string | null;
   description: string | null;
   status: string;
   fulfillment_type: string;
   printful_product_id: string | null;
+  model_url: string | null;
+  materials: string[] | null;
   images: unknown;
 };
 type Variant = {
@@ -73,6 +76,7 @@ const imageList = (() => {
   if (!Array.isArray(imgs)) return "";
   return imgs.filter((u) => typeof u === "string").join("\n");
 })();
+const materialsList = Array.isArray(product?.materials) ? product!.materials!.join("\n") : "";
 
 const err = Astro.url.searchParams.get("err");
 const dollars = (cents: number) => (cents / 100).toFixed(2);
@@ -142,6 +146,10 @@ const prod = product;
                 </label>
               </div>
               <label>
+                <span class="mono">Subtitle (luxe kicker)</span>
+                <input class="fld" type="text" name="subtitle" value={prod.subtitle ?? ""} placeholder="Hand-engraved black walnut" />
+              </label>
+              <label>
                 <span class="mono">Description</span>
                 <textarea class="fld" name="description">{prod.description ?? ""}</textarea>
               </label>
@@ -176,6 +184,14 @@ const prod = product;
                   value={prod.printful_product_id ?? ""}
                   placeholder="sync_product_id"
                 />
+              </label>
+              <label>
+                <span class="mono">3D model URL (.glb / .gltf — optional)</span>
+                <input class="fld" type="text" name="model_url" value={prod.model_url ?? ""} placeholder="/models/board.glb or https://…" />
+              </label>
+              <label>
+                <span class="mono">Materials (one per line, or comma-separated)</span>
+                <textarea class="fld" name="materials" placeholder="Black walnut&#10;Food-safe finish">{materialsList}</textarea>
               </label>
               <label>
                 <span class="mono">Images (one URL per line, or comma-separated)</span>

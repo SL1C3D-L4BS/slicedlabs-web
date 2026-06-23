@@ -31,6 +31,8 @@ const darkRoot = [
   vars(t.brand),
   `  --blend: ${t.blend.value};`,
   "",
+  vars(t.section),
+  "",
   vars(t.status),
   "",
   vars(t.material),

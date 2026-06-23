@@ -111,15 +111,22 @@ export const POST: APIRoute = async ({ request, cookies }) => {
           .split(/[\n,]+/)
           .map((u) => u.trim())
           .filter(Boolean);
+        const materials = (s("materials") ?? "")
+          .split(/[\n,]+/)
+          .map((m) => m.trim())
+          .filter(Boolean);
         const { error } = await svc
           .from("products")
           .update({
             title,
             slug: s("slug") || slugify(title),
+            subtitle: s("subtitle") ?? null,
             description: s("description") ?? null,
             status: status as (typeof PRODUCT_STATUS)[number],
             fulfillment_type: fulfillment(s("fulfillment_type")),
             printful_product_id: s("printful_product_id") ?? null,
+            model_url: s("model_url") ?? null,
+            materials,
             images,
           })
           .eq("id", id);

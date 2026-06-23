@@ -138,7 +138,7 @@ const isActive = (href: string) => (href === "/" ? path === "/" : path === href 
 
     <footer class="wrap" style="border-top:1px solid var(--stroke); margin-top:4rem; padding-block:2rem; color:var(--muted);">
       <nav aria-label="Footer" style="display:flex; gap:1.2rem; flex-wrap:wrap; margin-bottom:1.1rem;">
-        {[["/work","Work with us"],["/truck","Truck"],["/menu","Menu"],["/shop","Shop"],["/recipes","Recipes"],["/workshops","Workshops"],["/playbooks","Playbooks"],["/membership","Membership"],["/kitchen","Kitchen"],["/watch","Watch"],["/build","The Build"],["/numbers","The Numbers"],["/about","Manifesto"],["/contact","Contact"],["/free","Free Drops"],["/style","Design system"]].map(([h,l]) => (
+        {[["/work","Work with us"],["/truck","Truck"],["/menu","Menu"],["/shop","Shop"],["/recipes","Recipes"],["/kitchen/tools","Food tools"],["/workshops","Workshops"],["/playbooks","Playbooks"],["/membership","Membership"],["/kitchen","Kitchen"],["/watch","Watch"],["/build","The Build"],["/numbers","The Numbers"],["/freshsave","FreshSave"],["/community","Community"],["/about","Manifesto"],["/contact","Contact"],["/free","Free Drops"],["/style","Design system"]].map(([h,l]) => (
           <a href={h} style="color:var(--muted); text-decoration:none; font-size:.9rem;">{l}</a>
         ))}
       </nav>
@@ -147,7 +147,7 @@ const isActive = (href: string) => (href === "/" ? path === "/" : path === href 
         <span class="mono">one handle · @slicedlabs everywhere</span>
       </div>
       <nav aria-label="Legal" style="display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:1rem;">
-        {[["/privacy","Privacy"],["/terms","Terms"],["/refunds","Refunds"],["/shipping","Shipping"]].map(([h,l]) => (
+        {[["/privacy","Privacy"],["/terms","Terms"],["/refunds","Refunds"],["/shipping","Shipping"],["/accessibility","Accessibility"]].map(([h,l]) => (
           <a href={h} style="color:var(--muted); text-decoration:none; font-size:.82rem;">{l}</a>
         ))}
       </nav>
@@ -360,12 +360,8 @@ const isActive = (href: string) => (href === "/" ? path === "/" : path === href 
       // reduced-motion (native scroll). Feeds normalized scroll velocity to the GPU field
       // (scroll-reactive: crisp when still, liquid when moving) + a --scroll-vel CSS var.
       import Lenis from "lenis";
-      const _liteFx =
-        matchMedia("(prefers-reduced-data: reduce)").matches ||
-        // @ts-ignore - navigator.connection is non-standard
-        (navigator.connection && navigator.connection.saveData) ||
-        (navigator.hardwareConcurrency || 8) <= 4;
-      if (!matchMedia("(prefers-reduced-motion: reduce)").matches && !_liteFx) {
+      import { shouldRunHeavyFx } from "../lib/clientCaps";
+      if (shouldRunHeavyFx()) {
         const lenis = new Lenis({ lerp: 0.1, smoothWheel: true });
         lenis.on("scroll", (e: { velocity: number }) => {
           const v = Math.min(Math.abs(e.velocity) / 40, 1);
@@ -383,6 +379,13 @@ const isActive = (href: string) => (href === "/" ? path === "/" : path === href 
           if (el) { e.preventDefault(); lenis.scrollTo(el, { offset: -72 }); }
         });
       }
+    </script>
+
+    <script>
+      // Behavior-based personalization (local, no LLM/network): record this route's affinity
+      // so the home "where to next" row can lead with the visitor's interest on return.
+      import { recordVisit } from "../scripts/affinity";
+      recordVisit();
     </script>
 
     {/* Speculation Rules — prerender same-origin pages on hover/pointerdown so the card→detail
