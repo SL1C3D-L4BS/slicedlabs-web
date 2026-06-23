@@ -25,10 +25,10 @@ export function initGL(canvas: HTMLCanvasElement | OffscreenCanvas) {
   const vec3 TEAL=vec3(0.184,0.608,0.502);
   const vec3 BLUE=vec3(0.188,0.545,0.859);
   const vec3 MARK=vec3(0.298,0.714,1.0);
-  const vec3 L_TAN=vec3(0.80,0.55,0.32);    // warm caramel (latte lows)
-  const vec3 L_MILK=vec3(0.91,0.78,0.61);   // warm steamed milk
-  const vec3 L_FOAM=vec3(0.98,0.95,0.87);   // warm foam
-  const vec3 TANGERINE=vec3(0.96,0.52,0.18);// tangerine swirl accent
+  const vec3 L_TAN=vec3(0.73,0.47,0.25);    // rich caramel-brown (latte lows — more visible)
+  const vec3 L_MILK=vec3(0.90,0.75,0.55);   // warm steamed milk
+  const vec3 L_FOAM=vec3(0.975,0.93,0.83);  // warm foam
+  const vec3 TANGERINE=vec3(0.97,0.50,0.14);// brighter tangerine swirl accent
   float hash(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }
   float noise(vec2 p){ vec2 i=floor(p), f=fract(p); vec2 u=f*f*(3.0-2.0*f);
     return mix(mix(hash(i),hash(i+vec2(1,0)),u.x), mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),u.x), u.y); }
@@ -54,14 +54,14 @@ export function initGL(canvas: HTMLCanvasElement | OffscreenCanvas) {
     // warm → a VISIBLE, warm Italian-latte swirl (caramel → milk → foam), marbled with a
     // little tangerine, plus a hint of brand.
     vec3 latte=latteRamp(f*0.9+0.12*r.y+0.05);
-    float tang=smoothstep(0.5,0.92, fbm(uv*1.7-1.5*q+4.0));
-    latte=mix(latte, TANGERINE, tang*0.20);
-    latte=mix(latte, col, 0.12);
+    float tang=smoothstep(0.35,0.85, fbm(uv*1.7-1.5*q+4.0));
+    latte=mix(latte, TANGERINE, tang*0.30);
+    latte=mix(latte, col, 0.10);
     col=mix(col, latte, u_warm);
     float vig=smoothstep(1.3,0.2,length(uv));
     col*=mix(0.55,1.0,vig);
     col+=(hash(gl_FragCoord.xy+u_time)-0.5)*0.022;
-    float a=mix(0.80, 0.72, u_warm);
+    float a=mix(0.80, 0.80, u_warm);
     o=vec4(col, a);
   }`;
 
