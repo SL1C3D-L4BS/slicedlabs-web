@@ -2,12 +2,26 @@
 // SlicedLabs · studio · © 2026 SlicedLabs — /work — the marketing arm's front door.
 // The whole site is the portfolio; this page turns that proof into agency revenue.
 import Base from "../layouts/Base.astro";
+import { getCollection } from "astro:content";
+
+const proof = [
+  ["100%", "owned platform", "Stripe-direct, our data, our list — no marketplace, no rent."],
+  ["6", "cuts per shoot", "Film once, publish six. Reach that compounds instead of resets."],
+  ["29", "recipes, in public", "The whole build, shown. Receipts, not promises."],
+  ["$0", "marketplace fees", "You keep the margin. The machine is yours to own."],
+];
 
 const services = [
-  ["The Atomise Machine", "Film once, publish six. We build the content engine that turns one shoot into a week of platform-native cuts — so your reach compounds instead of resets."],
+  ["The Atomise Machine", "Film once, publish six. We build the content engine that turns one shoot into a week of platform-native cuts — so your reach compounds instead of resetting."],
   ["Own The List", "Rented social is borrowed reach. We build the owned email + funnels behind it — the asset no algorithm can take, converting several times better than the feed."],
   ["Sell Without Sleaze", "Offers and launches that feel like proof, not a pitch. We don't manufacture hype — we show the math and let the work close."],
   ["Buy Back Your Time", "The automation layer: the lead engine, the sequences, the systems — so the machine runs the busywork and you run the business."],
+];
+
+const packages = [
+  ["The Sprint", "a focused build", "One system, stood up fast — a launch, a funnel, a content engine. For when you know the gap and want it closed.", ["Audit + plan", "One machine, built", "Handover + docs"]],
+  ["The Build", "the full engine", "Content + owned list + offers + automation, built end-to-end and tuned. For when you want the whole flywheel.", ["Everything in Sprint", "Multi-channel content system", "Email + funnels + automation", "90 days of tuning"]],
+  ["The Partner", "we run it with you", "Ongoing — we operate the machine, show the numbers, and compound it month over month. For when you want a team, not a project.", ["Everything in Build", "We run it + report monthly", "Continuous optimization", "Priority on everything"]],
 ];
 
 const steps = [
@@ -15,6 +29,11 @@ const steps = [
   ["02 · Build the machine", "We stand up the engine: the content system, the owned list, the offers, the automation. Built to run, not to admire."],
   ["03 · Run it in public", "We operate it with you, show the numbers, and tune. The same way we build ours — receipts, not promises."],
 ];
+
+const fmtDate = (d: Date) => d.toISOString().slice(0, 10);
+const latestPosts = (await getCollection("build", ({ data }) => (import.meta.env.PROD ? !data.draft : true)))
+  .sort((a, b) => +b.data.date - +a.data.date)
+  .slice(0, 3);
 ---
 <Base
   title="Work with us — SlicedLabs Studio"
@@ -32,7 +51,20 @@ const steps = [
     </p>
     <div data-reveal style="--i:4; display:flex; gap:.8rem; flex-wrap:wrap; margin-top:2rem;">
       <a class="btn" href="#inquire">Start a project →</a>
-      <a class="btn btn-ghost" href="/build">See the proof</a>
+      <a class="btn btn-ghost" href="#live">See it live</a>
+    </div>
+  </section>
+
+  {/* ── proof bar ────────────────────────────────────────────────────── */}
+  <section class="wrap" aria-label="Proof" style="padding-block:clamp(1rem,3vw,2rem);">
+    <div class="bento">
+      {proof.map(([v, k, d], i) => (
+        <article class="glass island col-3" data-reveal style={`--i:${i};`}>
+          <div class="blend-text" style="font-family:var(--font-display); font-weight:800; font-size:clamp(2rem,6vw,3rem); line-height:1;">{v}</div>
+          <p style="font-weight:600; margin:.4rem 0 .2rem;">{k}</p>
+          <p class="mono" style="font-size:.72rem; color:var(--muted);">{d}</p>
+        </article>
+      ))}
     </div>
   </section>
 
@@ -49,6 +81,27 @@ const steps = [
     </div>
   </section>
 
+  {/* ── engagement packages ──────────────────────────────────────────── */}
+  <section class="wrap" aria-labelledby="pk" style="padding-block:clamp(1.5rem,5vw,3rem);">
+    <h2 id="pk" class="mono" data-reveal style="color:var(--muted); margin:0 0 1.2rem;">how to work together</h2>
+    <div class="bento">
+      {packages.map(([h, k, d, items], i) => (
+        <article class={`glass ${i === 1 ? "glass-focal" : ""} island col-2`} data-reveal style={`--i:${i}; display:flex; flex-direction:column; gap:.5rem;`}>
+          <p class="mono" style="color:var(--muted); margin:0;">{k}</p>
+          <h3 style="font-size:1.5rem; margin:0;"><span class="blend-text">{h}</span></h3>
+          <p style="color:var(--muted); margin:.2rem 0 .6rem;">{d}</p>
+          <ul style="list-style:none; margin:0 0 .4rem; padding:0; display:flex; flex-direction:column; gap:.35rem;">
+            {(items as string[]).map((it) => (
+              <li style="display:flex; gap:.5rem; align-items:baseline;"><span class="blend-text" style="font-weight:800;">→</span><span style="color:color-mix(in oklab, var(--ink) 88%, var(--muted));">{it}</span></li>
+            ))}
+          </ul>
+          <a class="btn btn-ghost" href="#inquire" style="margin-top:auto; align-self:flex-start;">Start here →</a>
+        </article>
+      ))}
+    </div>
+    <p class="mono" data-reveal style="color:var(--muted); margin:1rem 0 0;">Scoped to fit — tell us your budget below and we'll shape the right one.</p>
+  </section>
+
   {/* ── proof: our first client is us ────────────────────────────────── */}
   <section class="wrap" style="padding-block:clamp(1.5rem,5vw,3rem);">
     <article class="glass glass-focal island" data-reveal style="border-left:3px solid; border-image:var(--blend) 1;">
@@ -57,12 +110,29 @@ const steps = [
       <p style="color:var(--muted); max-width:46rem; margin:0 0 1.2rem;">
         We're building a real food company from the ground up — on camera, with the actual numbers shown. The truck, the list, the channel, this very platform. If the machine works on a food truck in Spokane, it works for you. Don't take our word for it — read the receipts.
       </p>
-      <div style="display:flex; gap:.8rem; flex-wrap:wrap;">
-        <a class="btn btn-ghost" href="/build">The build journal →</a>
-        <a class="btn btn-ghost" href="/numbers">The numbers →</a>
-        <a class="btn btn-ghost" href="/watch">Watch it →</a>
-      </div>
     </article>
+  </section>
+
+  {/* ── build-in-public rail — the unfair advantage ──────────────────── */}
+  <section class="wrap" id="live" aria-labelledby="livehdr" style="padding-block:clamp(1.5rem,5vw,3rem);">
+    <h2 id="livehdr" data-reveal style="font-size:clamp(1.6rem,5vw,2.6rem); margin:0 0 .4rem;"><span class="blend-text">Don't take our word — watch it live.</span></h2>
+    <p data-reveal style="--i:1; color:var(--muted); max-width:44rem; margin:0 0 1.4rem;">The same machine, running in public, right now. No agency template has this — because no agency runs its own build in the open.</p>
+    {latestPosts.length > 0 && (
+      <div class="bento" style="margin-bottom:1.2rem;">
+        {latestPosts.map((p, i) => (
+          <a href={`/build/${p.id}`} class="glass island col-2" data-reveal style={`--i:${i}; text-decoration:none; display:block;`}>
+            <p class="mono" style="margin:0;">{fmtDate(p.data.date)}</p>
+            <h3 style="font-size:1.15rem; margin:.3rem 0 .3rem;">{p.data.title}</h3>
+            <p style="color:var(--muted); margin:0; font-size:.92rem;">{p.data.summary}</p>
+          </a>
+        ))}
+      </div>
+    )}
+    <div data-reveal style="display:flex; gap:.8rem; flex-wrap:wrap;">
+      <a class="btn" href="/watch">Watch the channel →</a>
+      <a class="btn btn-ghost" href="/build">All the receipts →</a>
+      <a class="btn btn-ghost" href="/#newsletter">Get the newsletter</a>
+    </div>
   </section>
 
   {/* ── how it works ─────────────────────────────────────────────────── */}
@@ -78,7 +148,7 @@ const steps = [
     </div>
   </section>
 
-  {/* ── inquiry funnel ───────────────────────────────────────────────── */}
+  {/* ── inquiry funnel (budget-qualified) ────────────────────────────── */}
   <section class="wrap" id="inquire" style="padding-block:clamp(2rem,6vw,3.5rem); max-width:42rem;">
     <p class="mono" data-reveal>start a project</p>
     <h2 data-reveal style="--i:1; font-size:clamp(1.8rem,6vw,3rem); margin:.3rem 0 0;"><span class="blend-text">Tell us what you're building.</span></h2>
@@ -93,6 +163,16 @@ const steps = [
         <label><span class="mono">Email *</span><input class="fld" type="email" name="email" required placeholder="you@email.com" autocomplete="email" /></label>
       </div>
       <label><span class="mono">What are you building?</span><input class="fld" type="text" name="interest" placeholder="A food brand, a course, a restaurant, a creator business…" /></label>
+      <label>
+        <span class="mono">Budget</span>
+        <select class="fld" name="budget">
+          <option value="">Not sure yet</option>
+          <option value="$2k–$5k">$2k – $5k</option>
+          <option value="$5k–$10k">$5k – $10k</option>
+          <option value="$10k–$25k">$10k – $25k</option>
+          <option value="$25k+">$25k+</option>
+        </select>
+      </label>
       <label><span class="mono">What do you need?</span><textarea class="fld" name="message" rows="4" placeholder="Where you're at, where you want to be, and what's in the way."></textarea></label>
       <div><button class="btn" type="submit">Send it →</button></div>
       <p data-lead-status data-src="studio" role="status" aria-live="polite" class="mono" hidden style="margin:.4rem 0 0;"></p>
@@ -105,4 +185,5 @@ const steps = [
   @media (min-width: 560px) { .row2 { grid-template-columns: 1fr 1fr; } }
   label { display: flex; flex-direction: column; gap: .35rem; }
   label .mono { color: var(--muted); font-size: .8rem; }
+  select.fld { appearance: none; -webkit-appearance: none; cursor: pointer; }
 </style>

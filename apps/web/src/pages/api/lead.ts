@@ -86,7 +86,8 @@ export const POST: APIRoute = async ({ request }) => {
   const f = (k: string) => { const v = String(form.get(k) ?? "").trim(); return v || undefined; };
   const fields: Record<string, string | undefined> = {
     Name: f("name"), "Event Date": f("eventDate"), "Event Type": f("eventType"),
-    Headcount: f("headcount"), Topic: f("topic"), Interest: f("interest"), Message: f("message"),
+    Headcount: f("headcount"), Topic: f("topic"), Interest: f("interest"),
+    Budget: f("budget"), Message: f("message"),
   };
   const custom_fields = [
     { name: "Source", value: meta.label },
