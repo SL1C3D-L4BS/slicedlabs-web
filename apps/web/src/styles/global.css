@@ -70,6 +70,23 @@ body {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 @media (prefers-reduced-transparency: reduce) { .sl-grain { display: none; } }
+
+/* ── labeled cursor-follower — spring-lagged ring; expands over interactives, shows a
+ * label over tagged media ([data-cursor]). Mouse + fine-pointer + motion only. ── */
+.sl-cursor {
+  position: fixed; top: 0; left: 0; z-index: 9998; pointer-events: none;
+  width: 30px; height: 30px; border-radius: 999px; display: grid; place-items: center;
+  border: 1.5px solid color-mix(in oklab, var(--specular) 55%, var(--stroke));
+  background: color-mix(in oklab, var(--specular) 7%, transparent);
+  opacity: 0; will-change: transform;
+  transition: width .26s var(--ease), height .26s var(--ease), background-color .26s, border-color .26s, opacity .3s;
+}
+.sl-cursor.is-active { opacity: 1; }
+.sl-cursor.is-near { width: 44px; height: 44px; border-color: var(--specular); }
+.sl-cursor.is-hot { width: 80px; height: 80px; border-color: transparent; background: color-mix(in oklab, var(--specular) 18%, transparent); }
+.sl-cursor-label { font-family: var(--font-mono); font-size: .68rem; letter-spacing: .04em; text-transform: uppercase; color: var(--ink); white-space: nowrap; opacity: 0; transition: opacity .2s; }
+.sl-cursor.is-hot .sl-cursor-label { opacity: 1; }
+@media (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) { .sl-cursor { display: none !important; } }
 h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.02; letter-spacing: -0.02em; }
 /* hierarchy rides WEIGHT, not colour (the design law) */
 h2 { font-weight: 700; } h3 { font-weight: 600; }
@@ -85,6 +102,21 @@ a { color: inherit; text-decoration-color: color-mix(in oklab, var(--mark) 60%, 
 }
 .blend-rule { height: 3px; border: 0; border-radius: 3px; background: var(--blend); }
 .kinetic { font-size: clamp(2.8rem, 9vw, 7rem); line-height: .96; }  /* oversized hero — words are the design */
+
+/* Brand-spectrum kinetic type — big headlines scrub their gradient through the full
+ * spectrum as you scroll (native scroll-timeline; ~0kb, compositor-thread, idle-stops →
+ * upholds the no-perpetual-motion law). @supports + reduced-motion gated. */
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    h1 .blend-text, .scene-head .blend-text, .pass-head .blend-text {
+      background-image: linear-gradient(100deg, var(--coral), var(--orange) 22%, var(--teal) 48%, var(--blue) 72%, var(--mark) 88%, var(--coral));
+      background-size: 230% 100%;
+      animation: sl-spectrum linear both;
+      animation-timeline: scroll(root block);
+    }
+  }
+}
+@keyframes sl-spectrum { to { background-position: 130% 0; } }
 
 /* THE BLADE — the signature element that "slices" the page on reveal. A static
  * blend bar that draws across once (scaleX 0→1); no perpetual motion. */

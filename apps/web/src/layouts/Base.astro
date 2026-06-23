@@ -97,6 +97,7 @@ const isActive = (href: string) => (href === "/" ? path === "/" : path === href 
     <ShaderField fixed />
     <div class="sl-vignette" aria-hidden="true"></div>
     <div class="sl-grain" aria-hidden="true"></div>
+    <div class="sl-cursor" data-cursor-root aria-hidden="true"><span class="sl-cursor-label"></span></div>
     {/* Liquid-glass refraction filter — referenced by .glass backdrop-filter (Chromium,
         @supports-gated in global.css). Organic low-freq displacement = the backdrop lenses. */}
     <svg width="0" height="0" aria-hidden="true" style="position:absolute; pointer-events:none;">
@@ -351,6 +352,36 @@ const isActive = (href: string) => (href === "/" ? path === "/" : path === href 
           px = e.clientX; py = e.clientY;
           if (!raf) raf = requestAnimationFrame(apply);
         }, { passive: true });
+      })();
+    </script>
+
+    <script is:inline>
+      // Labeled cursor-follower — a spring-lagged ring. Mouse + fine-pointer + motion only.
+      (function () {
+        if (!matchMedia("(hover:hover) and (pointer:fine)").matches) return;
+        if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        var c = document.querySelector("[data-cursor-root]");
+        if (!c) return;
+        var label = c.querySelector(".sl-cursor-label");
+        var tx = 0, ty = 0, cx = 0, cy = 0, raf = 0, shown = false;
+        function tick() {
+          cx += (tx - cx) * 0.18; cy += (ty - cy) * 0.18;
+          c.style.transform = "translate3d(" + cx.toFixed(1) + "px," + cy.toFixed(1) + "px,0) translate(-50%,-50%)";
+          if (Math.abs(tx - cx) > 0.1 || Math.abs(ty - cy) > 0.1) raf = requestAnimationFrame(tick); else raf = 0;
+        }
+        addEventListener("pointermove", function (e) {
+          if (e.pointerType !== "mouse") return;
+          tx = e.clientX; ty = e.clientY;
+          if (!shown) { shown = true; c.classList.add("is-active"); }
+          if (!raf) raf = requestAnimationFrame(tick);
+          var t = e.target;
+          var hot = t && t.closest ? t.closest("[data-cursor]") : null;
+          var near = t && t.closest ? t.closest("a, button") : null;
+          if (hot) { c.classList.add("is-hot"); c.classList.remove("is-near"); if (label) label.textContent = hot.getAttribute("data-cursor") || ""; }
+          else if (near) { c.classList.add("is-near"); c.classList.remove("is-hot"); if (label) label.textContent = ""; }
+          else { c.classList.remove("is-hot"); c.classList.remove("is-near"); if (label) label.textContent = ""; }
+        }, { passive: true });
+        document.addEventListener("mouseleave", function () { c.classList.remove("is-active"); });
       })();
     </script>
 

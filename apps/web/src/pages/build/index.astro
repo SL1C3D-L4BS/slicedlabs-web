@@ -17,7 +17,7 @@ const posts = (await getCollection("build", ({ data }) => (import.meta.env.PROD 
     {posts.length === 0 && <p data-reveal style="color:var(--muted);">First entry lands this week. Watch this space.</p>}
     <div class="bento">
       {posts.map((p, i) => (
-        <a href={`/build/${p.id}`} class="glass island col-3" data-reveal style={`--i:${i}; text-decoration:none; display:block;`}>
+        <a href={`/build/${p.id}`} class="glass island col-3" data-reveal data-cursor="Read" style={`--i:${i}; text-decoration:none; display:block;`}>
           <p class="mono">{p.data.date.toISOString().slice(0, 10)}</p>
           <h2 style={`font-size:1.3rem; margin:.3rem 0 .4rem; view-transition-name:vtb-${p.id};`}>{p.data.title}</h2>
           <p style="color:var(--muted); margin:0;">{p.data.summary}</p>
