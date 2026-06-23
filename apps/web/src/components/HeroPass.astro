@@ -11,6 +11,7 @@
 // LCP = the server-rendered focal lockup (mark + headline), unchanged from today.
 // Only NEW js = pointer parallax: input-driven (no loop), mouse-only, rAF self-cancels,
 // never attached under reduced-motion. No island, no hydration.
+import ShaderField from "./ShaderField.astro";
 
 const receipts = [
   // depth 1=far .. 3=near · pos = corner placement (kept clear of the centre column)
@@ -20,6 +21,7 @@ const receipts = [
 ];
 ---
 <section class="pass" aria-label="SlicedLabs — own your slice. The build, by the numbers.">
+  <ShaderField />
   <div class="pass-stage" data-pass-stage>
     <!-- z0 — depth veil over the body gradient field (already painted by body) -->
     <div class="pass-plane pass-field" data-depth="0" aria-hidden="true"></div>
@@ -85,6 +87,7 @@ const receipts = [
   /* ── the camera + reserved frame (no CLS: fixed min-height, transforms only) ── */
   .pass {
     position: relative;
+    isolation: isolate;                   /* contain ShaderField's z-index:-1 within the hero */
     min-height: clamp(34rem, 88vh, 52rem);
     display: grid;
     place-items: center;

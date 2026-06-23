@@ -299,5 +299,44 @@ const isActive = (href: string) => (href === "/" ? path === "/" : path === href 
         targets.forEach(function (el) { io.observe(el); });
       })();
     </script>
+
+    <script is:inline>
+      // Liquid Glass++ specular + magnetic buttons. ONE rAF-throttled pointer handler,
+      // mouse-only, fine-pointer-only, NEVER under reduced-motion (input-driven, no loop).
+      (function () {
+        if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        if (!matchMedia("(hover:hover) and (pointer:fine)").matches) return;
+        var px = 0, py = 0, raf = 0, lastBtn = null;
+        function apply() {
+          raf = 0;
+          var el = document.elementFromPoint(px, py);
+          if (!el || !el.closest) return;
+          var glass = el.closest(".glass");
+          if (glass) {
+            var gr = glass.getBoundingClientRect();
+            glass.style.setProperty("--mx", ((px - gr.left) / gr.width).toFixed(3));
+            glass.style.setProperty("--my", ((py - gr.top) / gr.height).toFixed(3));
+          }
+          var btn = el.closest(".btn");
+          if (btn) {
+            var br = btn.getBoundingClientRect();
+            var dx = (px - (br.left + br.width / 2)) / (br.width / 2 || 1);
+            var dy = (py - (br.top + br.height / 2)) / (br.height / 2 || 1);
+            btn.style.setProperty("--mbx", (dx * 6).toFixed(2) + "px");
+            btn.style.setProperty("--mby", (dy * 6 - 1).toFixed(2) + "px");
+            lastBtn = btn;
+          } else if (lastBtn) {
+            lastBtn.style.setProperty("--mbx", "0px");
+            lastBtn.style.setProperty("--mby", "0px");
+            lastBtn = null;
+          }
+        }
+        addEventListener("pointermove", function (e) {
+          if (e.pointerType !== "mouse") return;
+          px = e.clientX; py = e.clientY;
+          if (!raf) raf = requestAnimationFrame(apply);
+        }, { passive: true });
+      })();
+    </script>
   </body>
 </html>

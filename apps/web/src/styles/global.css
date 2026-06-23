@@ -102,6 +102,18 @@ a { color: inherit; text-decoration-color: color-mix(in oklab, var(--mark) 60%, 
     color-mix(in oklab, white calc(var(--glass-sheen) * 100%), transparent),
     transparent 34%);
 }
+/* Liquid Glass++ — a specular highlight that tracks the cursor across the card. Input-
+ * driven (appears on hover only → upholds the no-perpetual-motion law). --mx/--my are set
+ * by Base's pointer handler; they default centred so it's graceful without JS. */
+.glass::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: -1;
+  opacity: 0; transition: opacity var(--t-normal) var(--ease);
+  background: radial-gradient(16rem 16rem at calc(var(--mx, .5) * 100%) calc(var(--my, .5) * 100%),
+    color-mix(in oklab, var(--mark) 20%, transparent), transparent 60%);
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .glass:hover::after { opacity: .55; }
+}
 .glass-focal {
   border-radius: var(--radius-lg);
   box-shadow:
@@ -140,9 +152,12 @@ a { color: inherit; text-decoration-color: color-mix(in oklab, var(--mark) 60%, 
   display: inline-flex; align-items: center; gap: .5rem;
   padding: .8rem 1.3rem; border-radius: 999px; font-weight: 600;
   background: var(--blend); color: #0B0B0F; border: 0; cursor: pointer;
+  /* magnetic offset — Base's pointer handler eases --mbx/--mby toward the cursor (mouse
+     only, reduced-motion off); defaults 0 so no-JS/touch is a normal button. */
+  transform: translate(var(--mbx, 0px), var(--mby, 0px));
   transition: transform var(--t-quick) var(--ease), filter var(--t-quick);
 }
-.btn:hover { transform: translateY(-1px); filter: brightness(1.06); }
+.btn:hover { filter: brightness(1.06); }
 .btn-ghost { background: transparent; color: var(--ink); border: 1px solid var(--stroke); }
 .tag { font-family: var(--font-mono); font-size: .72rem; letter-spacing: .06em; text-transform: uppercase;
        color: var(--muted); border: 1px solid var(--stroke); border-radius: 999px; padding: .2rem .6rem; }
@@ -264,9 +279,11 @@ dialog.gate::backdrop { background: rgba(0,0,0,.6); backdrop-filter: blur(4px); 
 /* the sticky pill bar persists smoothly across navigations instead of re-fading */
 .pillbar { view-transition-name: sl-pillbar; }
 @media (prefers-reduced-motion: no-preference) {
-  ::view-transition-old(root) { animation-duration: 260ms; }
-  ::view-transition-new(root) { animation-duration: 260ms; }
+  ::view-transition-old(root) { animation: sl-vt-out 240ms var(--ease) both; }
+  ::view-transition-new(root) { animation: sl-vt-in 320ms var(--ease) both; }
 }
+@keyframes sl-vt-out { to { opacity: 0; transform: translateY(-8px) scale(.99); } }
+@keyframes sl-vt-in { from { opacity: 0; transform: translateY(10px) scale(.992); } }
 /* reduced-motion: keep the transition INSTANT (universal `*` can't reach the
  * ::view-transition pseudo-tree, so neutralise it explicitly) */
 @media (prefers-reduced-motion: reduce) {
