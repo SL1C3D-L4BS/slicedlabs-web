@@ -5,6 +5,7 @@ import Analytics from "@vercel/analytics/astro";
 import { MARK_PATH, OG_PATH } from "../lib/brand";
 import LeadForm from "../components/LeadForm.astro";
 import SocialRow from "../components/SocialRow.astro";
+import ShaderField from "../components/ShaderField.astro";
 interface Props {
   title?: string;
   description?: string;
@@ -91,6 +92,11 @@ const isActive = (href: string) => (href === "/" ? path === "/" : path === href 
     <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300..800&family=Inter:wght@400..700&family=JetBrains+Mono:wght@400..600&display=swap" rel="stylesheet" />
   </head>
   <body>
+    {/* The living GPU backdrop — fixed behind everything (fills behind the floating header,
+        appears on every page). Theme-aware + heavily gated; static gradient fallback. */}
+    <ShaderField fixed />
+    <div class="sl-vignette" aria-hidden="true"></div>
+    <div class="sl-grain" aria-hidden="true"></div>
     <div class="scroll-progress" aria-hidden="true"></div>
     <a href="#main" class="skip">Skip to content</a>
     <header class="pillbar-wrap">
@@ -122,7 +128,7 @@ const isActive = (href: string) => (href === "/" ? path === "/" : path === href 
 
     <footer class="wrap" style="border-top:1px solid var(--stroke); margin-top:4rem; padding-block:2rem; color:var(--muted);">
       <nav aria-label="Footer" style="display:flex; gap:1.2rem; flex-wrap:wrap; margin-bottom:1.1rem;">
-        {[["/truck","Truck"],["/menu","Menu"],["/shop","Shop"],["/recipes","Recipes"],["/workshops","Workshops"],["/playbooks","Playbooks"],["/membership","Membership"],["/kitchen","Kitchen"],["/watch","Watch"],["/build","The Build"],["/numbers","The Numbers"],["/about","Manifesto"],["/contact","Contact"],["/free","Free Drops"],["/style","Design system"]].map(([h,l]) => (
+        {[["/work","Work with us"],["/truck","Truck"],["/menu","Menu"],["/shop","Shop"],["/recipes","Recipes"],["/workshops","Workshops"],["/playbooks","Playbooks"],["/membership","Membership"],["/kitchen","Kitchen"],["/watch","Watch"],["/build","The Build"],["/numbers","The Numbers"],["/about","Manifesto"],["/contact","Contact"],["/free","Free Drops"],["/style","Design system"]].map(([h,l]) => (
           <a href={h} style="color:var(--muted); text-decoration:none; font-size:.9rem;">{l}</a>
         ))}
       </nav>

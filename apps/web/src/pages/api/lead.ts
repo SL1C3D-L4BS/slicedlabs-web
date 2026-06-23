@@ -26,6 +26,7 @@ const SOURCES: Record<string, { label: string; inquiry?: boolean }> = {
   newsletter: { label: "Newsletter" },
   catering: { label: "Catering inquiry", inquiry: true },
   contact: { label: "Contact", inquiry: true },
+  studio: { label: "Studio inquiry", inquiry: true },
   "merch-waitlist": { label: "Merch waitlist" },
   "playbooks-waitlist": { label: "Playbooks waitlist" },
   "food-preorder": { label: "Food pre-order" },

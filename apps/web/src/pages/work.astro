@@ -1,0 +1,108 @@
+---
+// SlicedLabs · studio · © 2026 SlicedLabs — /work — the marketing arm's front door.
+// The whole site is the portfolio; this page turns that proof into agency revenue.
+import Base from "../layouts/Base.astro";
+
+const services = [
+  ["The Atomise Machine", "Film once, publish six. We build the content engine that turns one shoot into a week of platform-native cuts — so your reach compounds instead of resets."],
+  ["Own The List", "Rented social is borrowed reach. We build the owned email + funnels behind it — the asset no algorithm can take, converting several times better than the feed."],
+  ["Sell Without Sleaze", "Offers and launches that feel like proof, not a pitch. We don't manufacture hype — we show the math and let the work close."],
+  ["Buy Back Your Time", "The automation layer: the lead engine, the sequences, the systems — so the machine runs the busywork and you run the business."],
+];
+
+const steps = [
+  ["01 · Audit", "We map your funnel, your list, and your content — and find where the leaks and the leverage actually are."],
+  ["02 · Build the machine", "We stand up the engine: the content system, the owned list, the offers, the automation. Built to run, not to admire."],
+  ["03 · Run it in public", "We operate it with you, show the numbers, and tune. The same way we build ours — receipts, not promises."],
+];
+---
+<Base
+  title="Work with us — SlicedLabs Studio"
+  description="The marketing arm of SlicedLabs. We build audiences, owned lists, and content machines in public — our own first, now yours. We don't pitch. We prove."
+>
+  {/* ── hero ─────────────────────────────────────────────────────────── */}
+  <section class="wrap" style="padding-block:clamp(3rem,9vw,5.5rem) clamp(1.4rem,4vw,2.4rem); max-width:54rem;">
+    <p class="mono" data-reveal>the marketing arm</p>
+    <h1 data-reveal style="--i:1; font-size:clamp(2.6rem,9vw,5rem); line-height:1.02; margin:.4rem 0 0;">
+      We build audiences in public. <span class="blend-text">We'll build yours.</span>
+    </h1>
+    <hr class="blade" data-reveal style="--i:2; max-width:18rem; margin:1.6rem 0 0;" />
+    <p data-reveal style="--i:3; font-size:clamp(1.15rem,2.6vw,1.55rem); color:var(--muted); max-width:46rem; margin-top:1.6rem;">
+      SlicedLabs is its own first client — this site, this list, this build is the proof. The same machine that builds our food empire in public, pointed at your business.
+    </p>
+    <div data-reveal style="--i:4; display:flex; gap:.8rem; flex-wrap:wrap; margin-top:2rem;">
+      <a class="btn" href="#inquire">Start a project →</a>
+      <a class="btn btn-ghost" href="/build">See the proof</a>
+    </div>
+  </section>
+
+  {/* ── services = the offer ladder ──────────────────────────────────── */}
+  <section class="wrap" aria-labelledby="svc" style="padding-block:clamp(1.5rem,5vw,3rem);">
+    <h2 id="svc" class="mono" data-reveal style="color:var(--muted); margin:0 0 1.2rem;">what we build</h2>
+    <div class="bento">
+      {services.map(([h, d], i) => (
+        <article class="glass island col-3" data-reveal style={`--i:${i};`}>
+          <h3 style="font-size:1.4rem; margin:0 0 .5rem;"><span class="blend-text">{h}</span></h3>
+          <p style="color:var(--muted); margin:0;">{d}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  {/* ── proof: our first client is us ────────────────────────────────── */}
+  <section class="wrap" style="padding-block:clamp(1.5rem,5vw,3rem);">
+    <article class="glass glass-focal island" data-reveal style="border-left:3px solid; border-image:var(--blend) 1;">
+      <p class="mono" style="margin:0 0 .4rem;">the proof</p>
+      <h2 style="font-size:clamp(1.6rem,5vw,2.6rem); margin:0 0 .6rem;"><span class="blend-text">Our first client is us.</span></h2>
+      <p style="color:var(--muted); max-width:46rem; margin:0 0 1.2rem;">
+        We're building a real food company from the ground up — on camera, with the actual numbers shown. The truck, the list, the channel, this very platform. If the machine works on a food truck in Spokane, it works for you. Don't take our word for it — read the receipts.
+      </p>
+      <div style="display:flex; gap:.8rem; flex-wrap:wrap;">
+        <a class="btn btn-ghost" href="/build">The build journal →</a>
+        <a class="btn btn-ghost" href="/numbers">The numbers →</a>
+        <a class="btn btn-ghost" href="/watch">Watch it →</a>
+      </div>
+    </article>
+  </section>
+
+  {/* ── how it works ─────────────────────────────────────────────────── */}
+  <section class="wrap" aria-labelledby="how" style="padding-block:clamp(1.5rem,5vw,3rem);">
+    <h2 id="how" class="mono" data-reveal style="color:var(--muted); margin:0 0 1.2rem;">how it works</h2>
+    <div class="bento">
+      {steps.map(([h, d], i) => (
+        <article class="glass island col-2" data-reveal style={`--i:${i};`}>
+          <p class="mono blend-text" style="font-weight:700; margin:0 0 .4rem;">{h}</p>
+          <p style="color:var(--muted); margin:0;">{d}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  {/* ── inquiry funnel ───────────────────────────────────────────────── */}
+  <section class="wrap" id="inquire" style="padding-block:clamp(2rem,6vw,3.5rem); max-width:42rem;">
+    <p class="mono" data-reveal>start a project</p>
+    <h2 data-reveal style="--i:1; font-size:clamp(1.8rem,6vw,3rem); margin:.3rem 0 0;"><span class="blend-text">Tell us what you're building.</span></h2>
+    <p data-reveal style="--i:2; color:var(--muted); margin:1rem 0 1.6rem;">No decks, no discovery-call gauntlet. Tell us the shape of it and we'll come back with whether we can help and how.</p>
+
+    <form action="/api/lead" method="post" class="glass island" data-reveal style="--i:3; display:flex; flex-direction:column; gap:.9rem;">
+      <input type="hidden" name="source" value="studio" />
+      <input type="hidden" name="anchor" value="inquire" />
+      <input type="hidden" name="redirect" value="/work" />
+      <div class="row2">
+        <label><span class="mono">Name</span><input class="fld" type="text" name="name" placeholder="Your name" autocomplete="name" /></label>
+        <label><span class="mono">Email *</span><input class="fld" type="email" name="email" required placeholder="you@email.com" autocomplete="email" /></label>
+      </div>
+      <label><span class="mono">What are you building?</span><input class="fld" type="text" name="interest" placeholder="A food brand, a course, a restaurant, a creator business…" /></label>
+      <label><span class="mono">What do you need?</span><textarea class="fld" name="message" rows="4" placeholder="Where you're at, where you want to be, and what's in the way."></textarea></label>
+      <div><button class="btn" type="submit">Send it →</button></div>
+      <p data-lead-status data-src="studio" role="status" aria-live="polite" class="mono" hidden style="margin:.4rem 0 0;"></p>
+    </form>
+  </section>
+</Base>
+
+<style>
+  .row2 { display: grid; gap: .8rem; grid-template-columns: 1fr; }
+  @media (min-width: 560px) { .row2 { grid-template-columns: 1fr 1fr; } }
+  label { display: flex; flex-direction: column; gap: .35rem; }
+  label .mono { color: var(--muted); font-size: .8rem; }
+</style>
