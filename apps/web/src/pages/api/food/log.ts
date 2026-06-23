@@ -3,7 +3,8 @@ import type { APIRoute } from "astro";
 // Food-waste log sync. Public visitors keep entries in localStorage; signed-in users sync
 // here. RLS (food_logs_self_all) scopes every read/write to the owner — NO service role.
 // Anonymous: GET → empty list, writes → 401 (the client only POSTs when signed in).
-import { getServerSupabase } from "../../../lib/supabase";
+import { getClerkSupabase } from "../../../lib/supabase";
+import { ensureClerkProfile } from "../../../lib/clerkProfile";
 
 export const prerender = false;
 
@@ -33,12 +34,10 @@ const intOrNull = (v: unknown): number | null => {
 const strArr = (v: unknown): string[] =>
   Array.isArray(v) ? v.map((x) => str(x, 32)).filter(Boolean).slice(0, 16) : [];
 
-export const GET: APIRoute = async ({ request, cookies }) => {
-  const supabase = getServerSupabase(cookies, request);
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return json({ ok: true, items: [] });
+export const GET: APIRoute = async ({ locals }) => {
+  const { userId } = locals.auth();
+  if (!userId) return json({ ok: true, items: [] });
+  const supabase = getClerkSupabase(locals);
   const { data, error } = await supabase
     .from("food_logs")
     .select("id, kind, item, qty, unit, cost_cents, dietary, logged_at")
@@ -48,12 +47,13 @@ export const GET: APIRoute = async ({ request, cookies }) => {
   return json({ ok: true, items: data ?? [] });
 };
 
-export const POST: APIRoute = async ({ request, cookies }) => {
-  const supabase = getServerSupabase(cookies, request);
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return json({ ok: false, error: "unauthorized" }, 401);
+export const POST: APIRoute = async ({ request, locals }) => {
+  const { userId } = locals.auth();
+  if (!userId) return json({ ok: false, error: "unauthorized" }, 401);
+  const cu = await locals.currentUser();
+  const pid = await ensureClerkProfile(userId, cu?.primaryEmailAddress?.emailAddress ?? null);
+  if (!pid) return json({ ok: false, error: "no_profile" }, 401);
+  const supabase = getClerkSupabase(locals);
 
   let body: { entries?: NewEntry[]; remove?: string };
   try {
@@ -74,7 +74,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     .map((e) => {
       const loggedAt = str(e.logged_at, 40);
       return {
-        user_id: user.id,
+        user_id: pid,
         kind: KINDS.has(str(e.kind, 16)) ? str(e.kind, 16) : "waste",
         item: str(e.item),
         qty: numOrNull(e.qty),

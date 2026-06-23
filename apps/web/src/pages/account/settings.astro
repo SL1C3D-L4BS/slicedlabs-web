@@ -4,28 +4,27 @@
 // to the signed-in user; anonymous visitors bounce to login.
 export const prerender = false;
 import Base from "../../layouts/Base.astro";
-import { getServerSupabase } from "../../lib/supabase";
+import { SignOutButton } from "@clerk/astro/components";
+import { getClerkSupabase } from "../../lib/supabase";
+import { ensureClerkProfile } from "../../lib/clerkProfile";
 
-const supabase = getServerSupabase(Astro.cookies, Astro.request);
-const {
-  data: { user },
-} = await supabase.auth.getUser();
-if (!user) return Astro.redirect("/account/login?next=/account/settings");
+const { userId } = Astro.locals.auth();
+if (!userId) return Astro.redirect("/account/login?next=/account/settings");
+const cu = await Astro.locals.currentUser();
+const email = cu?.primaryEmailAddress?.emailAddress ?? null;
+const pid = await ensureClerkProfile(userId, email);
+const supabase = getClerkSupabase(Astro.locals);
 
 let saved = false;
 let saveError: string | null = null;
 if (Astro.request.method === "POST") {
   const f = await Astro.request.formData();
-  if (f.get("intent") === "signout") {
-    await supabase.auth.signOut();
-    return Astro.redirect("/");
-  }
   if (f.get("intent") === "profile") {
     const fullName = String(f.get("full_name") ?? "").trim().slice(0, 120) || null;
     const { error } = await supabase
       .from("profiles")
       .update({ full_name: fullName })
-      .eq("id", user.id);
+      .eq("id", pid ?? "");
     if (error) saveError = error.message;
     else saved = true;
   }
@@ -34,7 +33,7 @@ if (Astro.request.method === "POST") {
 const { data: prof } = await supabase
   .from("profiles")
   .select("full_name, stripe_customer_id")
-  .eq("id", user.id)
+  .eq("id", pid ?? "")
   .maybeSingle();
 
 const { data: ent } = await supabase
@@ -71,7 +70,7 @@ const billingMsg = billing ? BILLING_MSG[billing] : null;
         <input type="hidden" name="intent" value="profile" />
         <label>
           <span class="mono">Email</span>
-          <input class="fld" type="email" value={user.email ?? ""} disabled />
+          <input class="fld" type="email" value={email ?? ""} disabled />
         </label>
         <label>
           <span class="mono">Display name</span>
@@ -97,9 +96,8 @@ const billingMsg = billing ? BILLING_MSG[billing] : null;
       )}
     </div>
 
-    <form method="POST" data-reveal>
-      <input type="hidden" name="intent" value="signout" />
-      <button class="btn-ghost" type="submit">Sign out</button>
-    </form>
+    <SignOutButton redirectUrl="/">
+      <button class="btn-ghost" type="button" data-reveal>Sign out</button>
+    </SignOutButton>
   </section>
 </Base>

@@ -1,0 +1,14 @@
+---
+// SlicedLabs · account · © 2026 SlicedLabs — Create account (Clerk)
+export const prerender = false;
+import Base from "../../layouts/Base.astro";
+import { SignUp } from "@clerk/astro/components";
+
+const { userId } = Astro.locals.auth();
+if (userId) return Astro.redirect("/account");
+---
+<Base title="Create your account — SlicedLabs" description="Join SlicedLabs." noindex={true}>
+  <section class="wrap" style="padding-block:clamp(2.5rem,7vw,4rem); display:flex; justify-content:center;">
+    <SignUp forceRedirectUrl="/account" signInUrl="/account/login" />
+  </section>
+</Base>

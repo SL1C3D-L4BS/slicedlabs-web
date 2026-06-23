@@ -4,7 +4,8 @@ import type { APIRoute } from "astro";
 // REF-BOUND vault_drops entitlement (RLS-scoped to auth.uid() — never service role),
 // then serves the drop's files from the PRIVATE `vault` bucket via short-lived
 // service-role signed URLs. One file → straight download; many → a tiny index.
-import { getServerSupabase, createServiceSupabase } from "../../../lib/supabase";
+import { getClerkSupabase, createServiceSupabase } from "../../../lib/supabase";
+import { ensureClerkProfile } from "../../../lib/clerkProfile";
 
 export const prerender = false;
 
@@ -26,13 +27,13 @@ const fallbackFor = (r: string) => VAULT_FALLBACK[r] ?? "/free";
 const unavailable = () =>
   new Response("Vault temporarily unavailable.", { status: 503 });
 
-export const GET: APIRoute = async ({ params, cookies, request, redirect }) => {
+export const GET: APIRoute = async ({ params, locals, redirect }) => {
   const ref = params.ref ?? "";
-  const supabase = getServerSupabase(cookies, request);
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return redirect("/account/login?next=/account");
+  const { userId } = locals.auth();
+  if (!userId) return redirect("/account/login?next=/account");
+  const cu = await locals.currentUser();
+  await ensureClerkProfile(userId, cu?.primaryEmailAddress?.emailAddress ?? null);
+  const supabase = getClerkSupabase(locals);
   if (!REF_RE.test(ref)) return new Response("Not found", { status: 404 });
 
   // ref-bound entitlement check (RLS scopes to this user) — per-asset, not coarse.

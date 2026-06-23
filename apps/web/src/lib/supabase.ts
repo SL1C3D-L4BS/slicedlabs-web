@@ -6,11 +6,25 @@
 import type { AstroCookies } from "astro";
 import {
   createServerSupabase,
+  createClerkSupabase,
   createServiceSupabase,
   type ServerCookies,
 } from "@slicedlabs/supabase";
 
 export { createServiceSupabase };
+
+/** Clerk-authed Supabase client — RLS resolves the Clerk token (auth.jwt()->>'sub')
+ *  → profiles.clerk_id → profiles.id via current_profile_id(). Pass Astro.locals (the
+ *  Clerk middleware populates locals.auth()). Anonymous → null token → anon role. */
+export function getClerkSupabase(locals: App.Locals) {
+  return createClerkSupabase(async () => {
+    try {
+      return (await locals.auth().getToken()) ?? null;
+    } catch {
+      return null;
+    }
+  });
+}
 
 /** Per-request, auth-aware Supabase client (RLS enforced as the signed-in user). */
 export function getServerSupabase(cookies: AstroCookies, request: Request) {

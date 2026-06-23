@@ -4,24 +4,18 @@
 // Handles a sign-out POST. Gated: anonymous visitors bounce to the login page.
 export const prerender = false;
 import Base from "../../layouts/Base.astro";
-import { getServerSupabase } from "../../lib/supabase";
+import { SignOutButton } from "@clerk/astro/components";
+import { getClerkSupabase } from "../../lib/supabase";
+import { ensureClerkProfile } from "../../lib/clerkProfile";
 import { formatMoney } from "../../lib/commerce/cart";
 
-const supabase = getServerSupabase(Astro.cookies, Astro.request);
-
-// Sign-out POST.
-if (Astro.request.method === "POST") {
-  const f = await Astro.request.formData();
-  if (f.get("intent") === "signout") {
-    await supabase.auth.signOut();
-    return Astro.redirect("/");
-  }
-}
-
-const {
-  data: { user },
-} = await supabase.auth.getUser();
-if (!user) return Astro.redirect("/account/login?next=/account");
+const { userId } = Astro.locals.auth();
+if (!userId) return Astro.redirect("/account/login?next=/account");
+const cu = await Astro.locals.currentUser();
+const email = cu?.primaryEmailAddress?.emailAddress ?? null;
+// Belt before the Clerk webhook is live: link/create the profile so RLS resolves.
+await ensureClerkProfile(userId, email);
+const supabase = getClerkSupabase(Astro.locals);
 
 // Orders + entitlements + saved recipes — independent reads fired in PARALLEL
 // (one round-trip floor instead of three serial awaits). RLS scopes each read to
@@ -124,7 +118,7 @@ const billingMsg = billing ? BILLING_MSG[billing] : null;
           <span class="blend-text">Welcome back</span>
         </h1>
         <p style="color:var(--muted); margin:.5rem 0 0;">
-          {user.email}
+          {email}
           {isMember && (
             <span
               class="tag"
@@ -133,10 +127,9 @@ const billingMsg = billing ? BILLING_MSG[billing] : null;
           )}
         </p>
       </div>
-      <form method="POST" style="margin-top:.4rem;">
-        <input type="hidden" name="intent" value="signout" />
-        <button class="btn-ghost" type="submit">Sign out</button>
-      </form>
+      <SignOutButton redirectUrl="/">
+        <button class="btn-ghost" type="button" style="margin-top:.4rem;">Sign out</button>
+      </SignOutButton>
     </div>
 
     <nav class="mono" data-reveal style="display:flex; gap:1.2rem; margin-bottom:1.8rem; flex-wrap:wrap;" aria-label="Account">
