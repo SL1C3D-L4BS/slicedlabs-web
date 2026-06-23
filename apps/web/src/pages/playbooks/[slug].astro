@@ -59,9 +59,9 @@ const isPaid = pb ? pb.price_cents > 0 : false;
 ---
 {!pb ? (
   <Base title="Playbook not found — SlicedLabs" description="That playbook isn't available." noindex={true}>
-    <section class="wrap" style="padding-block:clamp(2.5rem,7vw,4rem);">
+    <section class="wrap section">
       <p class="mono" data-reveal>404</p>
-      <h1 data-reveal style="--i:1; font-size:clamp(1.8rem,6vw,3rem);"><span class="blend-text">Playbook not found</span></h1>
+      <h1 class="t-h1" data-reveal style="--i:1;"><span class="blend-text">Playbook not found</span></h1>
       <hr class="blade" data-reveal style="--i:2; max-width:12rem; margin:1.2rem 0 1.4rem;" />
       <p data-reveal style="--i:3; color:var(--muted); max-width:36rem;">It may have been pulled, archived, or never existed at this address.</p>
       <div data-reveal style="--i:4; margin-top:1.6rem;"><a class="btn" href="/playbooks">← All playbooks</a></div>
@@ -69,7 +69,7 @@ const isPaid = pb ? pb.price_cents > 0 : false;
   </Base>
 ) : (
   <Base title={`${pb.title} — Playbooks · SlicedLabs`} description={pb.summary ?? pb.description ?? `A SlicedLabs playbook: ${pb.title}.`}>
-    <section class="wrap" style="padding-block:clamp(2.5rem,7vw,4rem);">
+    <section class="wrap section">
       <p class="mono" data-reveal><a href="/playbooks" style="color:inherit; text-decoration:none;">← playbooks</a></p>
 
       {pb.cover_image && (
@@ -81,7 +81,7 @@ const isPaid = pb ? pb.price_cents > 0 : false;
         </div>
       )}
 
-      <h1 data-reveal style="--i:2; font-size:clamp(2rem,7vw,4rem); margin-top:1.4rem;"><span class="blend-text">{pb.title}</span></h1>
+      <h1 class="t-h1" data-reveal style="--i:2; margin-top:1.4rem;"><span class="blend-text">{pb.title}</span></h1>
       <hr class="blade" data-reveal style="--i:3; max-width:16rem; margin:1.2rem 0 0;" />
 
       <div data-reveal style="--i:4; display:flex; gap:.6rem; flex-wrap:wrap; margin-top:1.2rem;">
@@ -90,7 +90,7 @@ const isPaid = pb ? pb.price_cents > 0 : false;
       </div>
 
       {pb.description && (
-        <p data-reveal style="--i:5; font-size:clamp(1.05rem,2.2vw,1.3rem); color:var(--muted); max-width:46rem; margin-top:1.4rem; white-space:pre-line;">{pb.description}</p>
+        <p data-reveal style="--i:5; font-size:var(--step-1); color:var(--muted); max-width:46rem; margin-top:1.4rem; white-space:pre-line;">{pb.description}</p>
       )}
 
       {justPaid && (

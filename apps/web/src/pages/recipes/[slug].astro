@@ -129,7 +129,7 @@ const recipeLd = recipe
         {recipe.kicker && <p class="mono" data-reveal style="--i:1; margin:1rem 0 0;">{recipe.kicker}</p>}
         <h1 data-reveal style={`--i:2; font-size:clamp(2rem,7vw,3.8rem); margin:.3rem 0 0; view-transition-name:vtr-${recipe.slug};`}><span class="blend-text">{recipe.title}</span></h1>
         {recipe.summary && (
-          <p data-reveal style="--i:3; font-size:clamp(1.15rem,2.6vw,1.5rem); color:var(--muted); max-width:44rem; margin-top:1.2rem; line-height:1.5;">{recipe.summary}</p>
+          <p class="t-lead" data-reveal style="--i:3; max-width:44rem; margin-top:1.2rem;">{recipe.summary}</p>
         )}
 
         {(diet.length > 0 || recipe.season) && (
@@ -153,7 +153,7 @@ const recipeLd = recipe
 
       {/* ── STORY (the inspiration) ─────────────────────────────────────── */}
       {paragraphs.length > 0 && (
-        <section class="wrap" style="max-width:46rem; padding-block:clamp(1.5rem,4vw,2.5rem);">
+        <section class="wrap section" style="max-width:46rem;">
           <div class="prose" data-reveal>
             {paragraphs.map((p) => <p>{p}</p>)}
           </div>
@@ -162,7 +162,7 @@ const recipeLd = recipe
 
       {/* ── INGREDIENTS + BUILD (2-col, stacks on mobile) ───────────────── */}
       {(ingredients.length > 0 || steps.length > 0) && (
-        <section class="wrap" style="padding-block:clamp(1.5rem,4vw,2.5rem);">
+        <section class="wrap section">
           <div class="recipe-cols">
             {ingredients.length > 0 && (
               <div class="glass island" data-reveal>
@@ -207,7 +207,7 @@ const recipeLd = recipe
       )}
 
       {/* ── CTAs ────────────────────────────────────────────────────────── */}
-      <section class="wrap" style="padding-block:clamp(1.5rem,5vw,3rem);">
+      <section class="wrap section">
         <div data-reveal style="display:flex; gap:.8rem; flex-wrap:wrap; align-items:center;">
           <a class="btn" href="/menu">See it on the menu →</a>
           <a class="btn btn-ghost" href="/truck">Where to find the truck →</a>
@@ -222,9 +222,9 @@ const recipeLd = recipe
       </section>
     </article>
   ) : (
-    <section class="wrap" style="padding-block:clamp(3rem,8vw,5rem); max-width:40rem;">
+    <section class="wrap section-lg" style="max-width:40rem;">
       <p class="mono" data-reveal>404 · off the board</p>
-      <h1 data-reveal style="--i:1; font-size:clamp(1.8rem,6vw,3rem); margin:.3rem 0 0;"><span class="blend-text">Recipe not found</span></h1>
+      <h1 class="t-h1" data-reveal style="--i:1; margin:.3rem 0 0;"><span class="blend-text">Recipe not found</span></h1>
       <p data-reveal style="--i:2; color:var(--muted); margin-top:1rem;">That one isn't on the board — it may have been a seasonal drop, or the link's off.</p>
       <div data-reveal style="--i:3; margin-top:1.4rem;">
         <a class="btn" href="/recipes">← Back to Recipes</a>

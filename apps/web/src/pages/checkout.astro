@@ -6,9 +6,9 @@ export const prerender = false;
 import Base from "../layouts/Base.astro";
 ---
 <Base title="Checkout — SlicedLabs" description="Secure checkout." noindex={true}>
-  <section class="wrap" style="padding-block:clamp(2rem,6vw,3.5rem);">
+  <section class="wrap section">
     <p class="mono" data-reveal>secure checkout</p>
-    <h1 data-reveal style="--i:1; font-size:clamp(2rem,7vw,3.4rem);"><span class="blend-text">Checkout</span></h1>
+    <h1 class="t-h1" data-reveal style="--i:1;"><span class="blend-text">Checkout</span></h1>
     <hr class="blade" data-reveal style="--i:2; max-width:12rem; margin:1.2rem 0 1.8rem;" />
 
     <p id="checkout-msg" class="mono" role="status" aria-live="polite" style="color:var(--muted);">Preparing your order…</p>

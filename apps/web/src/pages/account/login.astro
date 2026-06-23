@@ -15,7 +15,7 @@ const { userId } = Astro.locals.auth();
 if (userId) return Astro.redirect(next);
 ---
 <Base title="Sign in — SlicedLabs" description="Sign in to your SlicedLabs account." noindex={true}>
-  <section class="wrap" style="padding-block:clamp(2.5rem,7vw,4rem); display:flex; justify-content:center;">
+  <section class="wrap section" style="display:flex; justify-content:center;">
     <SignIn forceRedirectUrl={next} signUpUrl="/account/sign-up" />
   </section>
 </Base>

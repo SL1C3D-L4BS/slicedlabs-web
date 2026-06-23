@@ -14,7 +14,7 @@ const { entry } = Astro.props;
 const { Content } = await render(entry);
 ---
 <Base title={`${entry.data.title} — Community · SlicedLabs`} description={entry.data.summary}>
-  <article class="wrap" style="max-width:46rem; padding-block:clamp(2.5rem,7vw,4rem);">
+  <article class="wrap section" style="max-width:46rem;">
     <a href="/community" class="mono" style="text-decoration:none; color:var(--community);">← Community</a>
     <p class="mono" data-reveal style="margin-top:1.2rem;">{entry.data.date.toISOString().slice(0, 10)}</p>
     <h1 data-reveal style={`--i:1; font-size:clamp(2rem,6vw,3.4rem); margin:.3rem 0 0; view-transition-name:vtc-${entry.id};`}>{entry.data.title}</h1>

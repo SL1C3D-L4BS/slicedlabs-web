@@ -61,9 +61,9 @@ const benefits = [
 >
   <section class="wrap" style="padding-block:clamp(2.5rem,7vw,4rem) clamp(1.2rem,3vw,2rem);">
     <p class="mono" data-reveal>the inner circle</p>
-    <h1 data-reveal style="--i:1; font-size:clamp(2.4rem,8vw,4.6rem); margin:.3rem 0 0;"><span class="blend-text">Become a member</span></h1>
+    <h1 class="t-display" data-reveal style="--i:1; margin:.3rem 0 0;"><span class="blend-text">Become a member</span></h1>
     <hr class="blade" data-reveal style="--i:2; max-width:16rem; margin:1.4rem 0 0;" />
-    <p data-reveal style="--i:3; font-size:clamp(1.1rem,2.4vw,1.4rem); color:var(--muted); max-width:46rem; margin-top:1.4rem;">
+    <p data-reveal style="--i:3; font-size:var(--step-1); color:var(--muted); max-width:46rem; margin-top:1.4rem;">
       Back the build and get the inside lane — early drops, every playbook, and the real numbers. The newsletter is free forever; membership is for the people who want all of it.
     </p>
   </section>
@@ -79,7 +79,7 @@ const benefits = [
     </div>
   </section>
 
-  <section class="wrap" style="padding-block:clamp(1.5rem,5vw,3rem);">
+  <section class="wrap section">
     {
       isMember ? (
         <article class="glass island" data-reveal style="border-color:var(--teal); max-width:42rem;">

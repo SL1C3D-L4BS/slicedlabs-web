@@ -99,13 +99,13 @@ const fmtDate = (iso: string) =>
   description="SlicedLabs operator cockpit — orders."
   noindex={true}
 >
-  <section class="wrap" style="padding-block:clamp(2rem,6vw,3rem)">
+  <section class="wrap section">
     <div
       style="display:flex; align-items:baseline; gap:1rem; flex-wrap:wrap; justify-content:space-between;"
     >
       <div>
         <p class="mono" data-reveal>operator cockpit</p>
-        <h1 data-reveal style="--i:1; font-size:clamp(2rem,6vw,3.4rem); margin:.2rem 0 0;">
+        <h1 class="t-h1" data-reveal style="--i:1; margin:.2rem 0 0;">
           <span class="blend-text">Orders</span>
         </h1>
       </div>
@@ -147,25 +147,25 @@ const fmtDate = (iso: string) =>
           <div class="bento" style="margin-top:1.6rem;">
             <article class="glass island col-2" data-reveal>
               <p class="mono" style="margin:0;">total orders</p>
-              <p style="font-family:var(--font-display); font-weight:800; font-size:clamp(1.8rem,5vw,2.6rem); margin:.3rem 0 0;">
+              <p class="t-h2" style="font-family:var(--font-display); font-weight:800; margin:.3rem 0 0;">
                 {totalOrders}
               </p>
             </article>
             <article class="glass island col-2" data-reveal style="--i:1;">
               <p class="mono" style="margin:0;">revenue (paid+)</p>
-              <p style="font-family:var(--font-display); font-weight:800; font-size:clamp(1.8rem,5vw,2.6rem); margin:.3rem 0 0;">
+              <p class="t-h2" style="font-family:var(--font-display); font-weight:800; margin:.3rem 0 0;">
                 <span class="blend-text">{formatMoney(revenueCents, revenueCurrency)}</span>
               </p>
             </article>
             <article class="glass island col-2" data-reveal style="--i:2;">
               <p class="mono" style="margin:0;">needs action</p>
-              <p style="font-family:var(--font-display); font-weight:800; font-size:clamp(1.8rem,5vw,2.6rem); margin:.3rem 0 0;">
+              <p class="t-h2" style="font-family:var(--font-display); font-weight:800; margin:.3rem 0 0;">
                 {needsAction}
               </p>
             </article>
             <article class="glass island col-2" data-reveal style="--i:3;">
               <p class="mono" style="margin:0;">members</p>
-              <p style="font-family:var(--font-display); font-weight:800; font-size:clamp(1.8rem,5vw,2.6rem); margin:.3rem 0 0;">
+              <p class="t-h2" style="font-family:var(--font-display); font-weight:800; margin:.3rem 0 0;">
                 {memberCount}
               </p>
             </article>

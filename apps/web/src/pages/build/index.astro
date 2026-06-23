@@ -7,9 +7,9 @@ const posts = (await getCollection("build", ({ data }) => (import.meta.env.PROD 
 );
 ---
 <Base title="The Build — SlicedLabs" description="The build-in-public journal. Real numbers, real failures, the receipts.">
-  <section class="wrap" style="padding-block:clamp(2.5rem,7vw,4rem);">
+  <section class="wrap section">
     <p class="mono" data-reveal>the build-in-public journal</p>
-    <h1 data-reveal style="--i:1; font-size:clamp(2.2rem,7vw,4rem); margin:.3rem 0 0;"><span class="blend-text">The Build</span></h1>
+    <h1 class="t-h1" data-reveal style="--i:1; margin:.3rem 0 0;"><span class="blend-text">The Build</span></h1>
     <hr class="blade" data-reveal style="--i:2; max-width:16rem; margin:1.4rem 0 1.2rem;" />
     <p class="mono" data-reveal style="--i:3; color:var(--muted); margin:0 0 1.8rem;">
       Subscribe by <a href="/rss.xml" style="color:var(--mark);">RSS</a> or the <a href="/#newsletter" style="color:var(--mark);">newsletter</a>. Hungry instead? The <a href="/kitchen" style="color:var(--mark);">Kitchen</a> + <a href="/recipes" style="color:var(--mark);">Recipes</a>.

@@ -52,12 +52,12 @@ const BILLING_MSG: Record<string, string> = {
 const billingMsg = billing ? BILLING_MSG[billing] : null;
 ---
 <Base title="Account settings — SlicedLabs" description="Manage your SlicedLabs account." noindex={true}>
-  <section class="wrap" style="padding-block:clamp(2.5rem,7vw,4rem); max-width:46rem;">
+  <section class="wrap section" style="max-width:46rem;">
     <nav class="mono" data-reveal style="display:flex; gap:1rem; margin-bottom:1.4rem;" aria-label="Account">
       <a href="/account" style="color:var(--muted); text-decoration:none;">← Dashboard</a>
     </nav>
     <p class="mono" data-reveal>your account</p>
-    <h1 data-reveal style="--i:1; font-size:clamp(1.8rem,6vw,2.8rem); margin:.2rem 0 1.4rem;">
+    <h1 class="t-h2" data-reveal style="--i:1; margin:.2rem 0 1.4rem;">
       <span class="blend-text">Settings</span>
     </h1>
 

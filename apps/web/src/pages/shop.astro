@@ -146,9 +146,9 @@ const TABS = [
   {/* ── HERO ───────────────────────────────────────────────────────────── */}
   <section class="wrap" style="padding-block:clamp(2.5rem,7vw,4rem) clamp(1.2rem,3vw,2rem);">
     <p class="mono" data-reveal>everything we make</p>
-    <h1 data-reveal style="--i:1; font-size:clamp(2.4rem,8vw,4.6rem);"><span class="blend-text">Shop</span></h1>
+    <h1 class="t-display" data-reveal style="--i:1;"><span class="blend-text">Shop</span></h1>
     <hr class="blade" data-reveal style="--i:2; max-width:14rem; margin:1.4rem 0 0;" />
-    <p data-reveal style="--i:3; font-size:clamp(1.1rem,2.4vw,1.4rem); color:var(--muted); max-width:46rem; margin-top:1.4rem;">
+    <p data-reveal style="--i:3; font-size:var(--step-1); color:var(--muted); max-width:46rem; margin-top:1.4rem;">
       Everything we make, in one place — the food, the merch, the events, the workshops, and the playbooks we run the business on. <span class="blend-text" style="font-weight:600;">Pick your slice.</span>
     </p>
   </section>
@@ -176,7 +176,7 @@ const TABS = [
     </div>
   </div>
 
-  <div class="wrap" style="padding-block:clamp(1.5rem,5vw,3rem);">
+  <div class="wrap section">
     {/* ════════════════ FOOD ════════════════ */}
     <section
       id="panel-food"
@@ -189,7 +189,7 @@ const TABS = [
       {anchors.length + sides.length + sweets.length + drops.length === 0 ? (
         <article class="glass glass-ultra island" data-reveal style="text-align:center;">
           <p class="mono" style="margin:0 0 .4rem;">the board's resetting</p>
-          <h2 style="font-size:clamp(1.4rem,4vw,2rem); margin:.2rem 0 .5rem;"><span class="blend-text">Menu coming soon</span></h2>
+          <h2 class="t-h3" style="margin:.2rem 0 .5rem;"><span class="blend-text">Menu coming soon</span></h2>
           <p style="color:var(--muted); max-width:38rem; margin:0 auto 1.2rem;">The anchor's locked and the drops are in prep. Want us at your event in the meantime?</p>
           <a class="btn" href="/truck#catering">Book the truck →</a>
         </article>
@@ -376,7 +376,7 @@ const TABS = [
       {merch.length === 0 ? (
         <article class="glass glass-ultra island" data-reveal style="text-align:center;">
           <p class="mono" style="margin:0 0 .4rem;">wear the build</p>
-          <h2 style="font-size:clamp(1.4rem,4vw,2rem); margin:.2rem 0 .5rem;"><span class="blend-text">Merch drops soon</span></h2>
+          <h2 class="t-h3" style="margin:.2rem 0 .5rem;"><span class="blend-text">Merch drops soon</span></h2>
           <p style="color:var(--muted); max-width:38rem; margin:0 auto;">The mark, the colors, the build — on tees, caps, and stickers. Get on the list and you'll be first.</p>
         </article>
       ) : (
@@ -501,7 +501,7 @@ const TABS = [
       {workshops.length === 0 ? (
         <article class="glass glass-ultra island" data-reveal style="text-align:center;">
           <p class="mono" style="margin:0 0 .4rem;">learn it · build it</p>
-          <h2 style="font-size:clamp(1.4rem,4vw,2rem); margin:.2rem 0 .5rem;"><span class="blend-text">Workshops drop soon</span></h2>
+          <h2 class="t-h3" style="margin:.2rem 0 .5rem;"><span class="blend-text">Workshops drop soon</span></h2>
           <p style="color:var(--muted); max-width:38rem; margin:0 auto 1.2rem;">Cook-alongs and build sessions — in person across the PNW, live virtual, and on-demand. Get the dates first.</p>
           <a class="btn" href="/workshops">Get on the list →</a>
         </article>
@@ -552,7 +552,7 @@ const TABS = [
       {playbooks.length === 0 ? (
         <article class="glass glass-ultra island" data-reveal style="text-align:center;">
           <p class="mono" style="margin:0 0 .4rem;">the machine, packaged</p>
-          <h2 style="font-size:clamp(1.4rem,4vw,2rem); margin:.2rem 0 .5rem;"><span class="blend-text">Playbooks drop soon</span></h2>
+          <h2 class="t-h3" style="margin:.2rem 0 .5rem;"><span class="blend-text">Playbooks drop soon</span></h2>
           <p style="color:var(--muted); max-width:38rem; margin:0 auto;">The systems we run the business on — packaged once they've earned it on camera. Not theory; the actual machine.</p>
         </article>
       ) : (

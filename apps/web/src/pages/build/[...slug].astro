@@ -12,7 +12,7 @@ const { post } = Astro.props;
 const { Content } = await render(post);
 ---
 <Base title={`${post.data.title} — SlicedLabs`} description={post.data.summary}>
-  <article class="wrap" style="max-width:46rem; padding-block:clamp(2.5rem,7vw,4rem);">
+  <article class="wrap section" style="max-width:46rem;">
     <a href="/build" class="mono" style="text-decoration:none;">← the build</a>
     <p class="mono" data-reveal style="margin-top:1.2rem;">{post.data.date.toISOString().slice(0, 10)}</p>
     <h1 data-reveal style={`--i:1; font-size:clamp(2rem,6vw,3.4rem); margin:.3rem 0 0; view-transition-name:vtb-${post.id};`}>{post.data.title}</h1>

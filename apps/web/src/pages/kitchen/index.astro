@@ -6,11 +6,11 @@ import LeadForm from "../../components/LeadForm.astro";
 const recipes = (await getCollection("recipes")).sort((a, b) => +b.data.date - +a.data.date);
 ---
 <Base title="The Kitchen — SlicedLabs" description="A free recipe, every month. The chaos menu, open-sourced — cook the build at home.">
-  <section class="wrap" style="padding-block:clamp(2.5rem,7vw,4rem);">
+  <section class="wrap section">
     <p class="mono" data-reveal>the food blog · free monthly recipe</p>
-    <h1 data-reveal style="--i:1; font-size:clamp(2.2rem,7vw,4rem);"><span class="blend-text">The Kitchen</span></h1>
+    <h1 class="t-h1" data-reveal style="--i:1;"><span class="blend-text">The Kitchen</span></h1>
     <hr class="blade" data-reveal style="--i:2; max-width:16rem; margin:1.4rem 0 0;" />
-    <p data-reveal style="--i:3; font-size:clamp(1.1rem,2.4vw,1.4rem); color:var(--muted); max-width:46rem; margin-top:1.4rem;">
+    <p data-reveal style="--i:3; font-size:var(--step-1); color:var(--muted); max-width:46rem; margin-top:1.4rem;">
       One real recipe from the chaos menu — free, every month. Cook the build at home, then get the next drop in your inbox.
     </p>
   </section>
@@ -31,7 +31,7 @@ const recipes = (await getCollection("recipes")).sort((a, b) => +b.data.date - +
   <section class="wrap" style="padding-block:1rem 2rem;">
     <article class="glass glass-ultra island" data-reveal style="text-align:center;">
       <p class="mono">free, every month</p>
-      <h2 style="font-size:clamp(1.4rem,4vw,2rem); margin:.3rem 0 .6rem;">Get next month's recipe.</h2>
+      <h2 class="t-h3" style="margin:.3rem 0 .6rem;">Get next month's recipe.</h2>
       <p style="color:var(--muted); max-width:38rem; margin:0 auto 1.2rem;">No spam — one recipe a month, plus the occasional behind-the-pass note. Unsubscribe anytime.</p>
       <LeadForm source="recipe" anchor="kitchen" cta="Send me the recipes →" />
     </article>

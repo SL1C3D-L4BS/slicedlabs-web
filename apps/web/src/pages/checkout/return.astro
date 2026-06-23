@@ -28,11 +28,11 @@ if (stripeConfigured() && sessionId) {
 }
 ---
 <Base title="Order status — SlicedLabs" description="Your order status." noindex={true}>
-  <section class="wrap" style="padding-block:clamp(2.5rem,7vw,4rem);">
+  <section class="wrap section">
     {state === "paid" && (
       <div data-paid="true" class="glass glass-ultra island" data-reveal style="text-align:center; max-width:36rem; margin:0 auto;">
         <p class="mono" style="color:var(--teal);">payment received</p>
-        <h1 style="font-size:clamp(2rem,7vw,3.2rem); margin:.4rem 0 .6rem;"><span class="blend-text">Order confirmed</span></h1>
+        <h1 class="t-h1" style="margin:.4rem 0 .6rem;"><span class="blend-text">Order confirmed</span></h1>
         <p style="color:var(--muted); margin:0 0 1rem; line-height:1.6;">
           You're in. A receipt{email ? ` is on its way to ` : " is on its way"}
           {email && <strong style="color:var(--ink);">{email}</strong>}.
@@ -52,7 +52,7 @@ if (stripeConfigured() && sessionId) {
     {state === "processing" && (
       <div class="glass island" data-reveal style="text-align:center; max-width:36rem; margin:0 auto;">
         <p class="mono" style="color:var(--muted);">hang tight</p>
-        <h1 style="font-size:clamp(1.8rem,6vw,2.8rem); margin:.4rem 0 .6rem;"><span class="blend-text">Payment processing</span></h1>
+        <h1 class="t-h2" style="margin:.4rem 0 .6rem;"><span class="blend-text">Payment processing</span></h1>
         <p style="color:var(--muted); margin:0 0 1.4rem; line-height:1.6;">
           Your payment is still processing. If it goes through you'll get a confirmation email — no need to pay again.
         </p>
@@ -63,7 +63,7 @@ if (stripeConfigured() && sessionId) {
     {state === "error" && (
       <div class="glass island" data-reveal style="text-align:center; max-width:36rem; margin:0 auto;">
         <p class="mono" style="color:var(--muted);">order status</p>
-        <h1 style="font-size:clamp(1.8rem,6vw,2.8rem); margin:.4rem 0 .6rem;"><span class="blend-text">We couldn't load your order</span></h1>
+        <h1 class="t-h2" style="margin:.4rem 0 .6rem;"><span class="blend-text">We couldn't load your order</span></h1>
         <p style="color:var(--muted); margin:0 0 1.4rem; line-height:1.6;">
           We couldn't load your order details — but if you paid, you'll get a confirmation email. Reach out if anything looks off.
         </p>

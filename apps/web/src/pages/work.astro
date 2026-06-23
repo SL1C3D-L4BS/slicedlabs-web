@@ -42,11 +42,11 @@ const latestPosts = (await getCollection("build", ({ data }) => (import.meta.env
   {/* ── hero ─────────────────────────────────────────────────────────── */}
   <section class="wrap" style="padding-block:clamp(3rem,9vw,5.5rem) clamp(1.4rem,4vw,2.4rem); max-width:54rem;">
     <p class="mono" data-reveal>the marketing arm</p>
-    <h1 data-reveal style="--i:1; font-size:clamp(2.6rem,9vw,5rem); line-height:1.02; margin:.4rem 0 0;">
+    <h1 class="t-display" data-reveal style="--i:1; line-height:1.02; margin:.4rem 0 0;">
       We build audiences in public. <span class="blend-text">We'll build yours.</span>
     </h1>
     <hr class="blade" data-reveal style="--i:2; max-width:18rem; margin:1.6rem 0 0;" />
-    <p data-reveal style="--i:3; font-size:clamp(1.15rem,2.6vw,1.55rem); color:var(--muted); max-width:46rem; margin-top:1.6rem;">
+    <p class="t-lead" data-reveal style="--i:3; max-width:46rem; margin-top:1.6rem;">
       SlicedLabs is its own first client — this site, this list, this build is the proof. The same machine that builds our food empire in public, pointed at your business.
     </p>
     <div data-reveal style="--i:4; display:flex; gap:.8rem; flex-wrap:wrap; margin-top:2rem;">
@@ -60,7 +60,7 @@ const latestPosts = (await getCollection("build", ({ data }) => (import.meta.env
     <div class="bento">
       {proof.map(([v, k, d], i) => (
         <article class="glass island col-3" data-reveal style={`--i:${i};`}>
-          <div class="blend-text" style="font-family:var(--font-display); font-weight:800; font-size:clamp(2rem,6vw,3rem); line-height:1;">{v}</div>
+          <div class="blend-text t-h1" style="font-family:var(--font-display); font-weight:800; line-height:1;">{v}</div>
           <p style="font-weight:600; margin:.4rem 0 .2rem;">{k}</p>
           <p class="mono" style="font-size:.72rem; color:var(--muted);">{d}</p>
         </article>
@@ -69,7 +69,7 @@ const latestPosts = (await getCollection("build", ({ data }) => (import.meta.env
   </section>
 
   {/* ── services = the offer ladder ──────────────────────────────────── */}
-  <section class="wrap" aria-labelledby="svc" style="padding-block:clamp(1.5rem,5vw,3rem);">
+  <section class="wrap section" aria-labelledby="svc">
     <h2 id="svc" class="mono" data-reveal style="color:var(--muted); margin:0 0 1.2rem;">what we build</h2>
     <div class="bento">
       {services.map(([h, d], i) => (
@@ -82,7 +82,7 @@ const latestPosts = (await getCollection("build", ({ data }) => (import.meta.env
   </section>
 
   {/* ── engagement packages ──────────────────────────────────────────── */}
-  <section class="wrap" aria-labelledby="pk" style="padding-block:clamp(1.5rem,5vw,3rem);">
+  <section class="wrap section" aria-labelledby="pk">
     <h2 id="pk" class="mono" data-reveal style="color:var(--muted); margin:0 0 1.2rem;">how to work together</h2>
     <div class="bento">
       {packages.map(([h, k, d, items], i) => (
@@ -103,10 +103,10 @@ const latestPosts = (await getCollection("build", ({ data }) => (import.meta.env
   </section>
 
   {/* ── proof: our first client is us ────────────────────────────────── */}
-  <section class="wrap" style="padding-block:clamp(1.5rem,5vw,3rem);">
+  <section class="wrap section">
     <article class="glass glass-focal island" data-reveal style="border-left:3px solid; border-image:var(--blend) 1;">
       <p class="mono" style="margin:0 0 .4rem;">the proof</p>
-      <h2 style="font-size:clamp(1.6rem,5vw,2.6rem); margin:0 0 .6rem;"><span class="blend-text">Our first client is us.</span></h2>
+      <h2 class="t-h2" style="margin:0 0 .6rem;"><span class="blend-text">Our first client is us.</span></h2>
       <p style="color:var(--muted); max-width:46rem; margin:0 0 1.2rem;">
         We're building a real food company from the ground up — on camera, with the actual numbers shown. The truck, the list, the channel, this very platform. If the machine works on a food truck in Spokane, it works for you. Don't take our word for it — read the receipts.
       </p>
@@ -114,8 +114,8 @@ const latestPosts = (await getCollection("build", ({ data }) => (import.meta.env
   </section>
 
   {/* ── build-in-public rail — the unfair advantage ──────────────────── */}
-  <section class="wrap" id="live" aria-labelledby="livehdr" style="padding-block:clamp(1.5rem,5vw,3rem);">
-    <h2 id="livehdr" data-reveal style="font-size:clamp(1.6rem,5vw,2.6rem); margin:0 0 .4rem;"><span class="blend-text">Don't take our word — watch it live.</span></h2>
+  <section class="wrap section" id="live" aria-labelledby="livehdr">
+    <h2 class="t-h2" id="livehdr" data-reveal style="margin:0 0 .4rem;"><span class="blend-text">Don't take our word — watch it live.</span></h2>
     <p data-reveal style="--i:1; color:var(--muted); max-width:44rem; margin:0 0 1.4rem;">The same machine, running in public, right now. No agency template has this — because no agency runs its own build in the open.</p>
     {latestPosts.length > 0 && (
       <div class="bento" style="margin-bottom:1.2rem;">
@@ -136,7 +136,7 @@ const latestPosts = (await getCollection("build", ({ data }) => (import.meta.env
   </section>
 
   {/* ── how it works ─────────────────────────────────────────────────── */}
-  <section class="wrap" aria-labelledby="how" style="padding-block:clamp(1.5rem,5vw,3rem);">
+  <section class="wrap section" aria-labelledby="how">
     <h2 id="how" class="mono" data-reveal style="color:var(--muted); margin:0 0 1.2rem;">how it works</h2>
     <div class="bento">
       {steps.map(([h, d], i) => (
@@ -149,9 +149,9 @@ const latestPosts = (await getCollection("build", ({ data }) => (import.meta.env
   </section>
 
   {/* ── inquiry funnel (budget-qualified) ────────────────────────────── */}
-  <section class="wrap" id="inquire" style="padding-block:clamp(2rem,6vw,3.5rem); max-width:42rem;">
+  <section class="wrap section" id="inquire" style="max-width:42rem;">
     <p class="mono" data-reveal>start a project</p>
-    <h2 data-reveal style="--i:1; font-size:clamp(1.8rem,6vw,3rem); margin:.3rem 0 0;"><span class="blend-text">Tell us what you're building.</span></h2>
+    <h2 class="t-h1" data-reveal style="--i:1; margin:.3rem 0 0;"><span class="blend-text">Tell us what you're building.</span></h2>
     <p data-reveal style="--i:2; color:var(--muted); margin:1rem 0 1.6rem;">No decks, no discovery-call gauntlet. Tell us the shape of it and we'll come back with whether we can help and how.</p>
 
     <form action="/api/lead" method="post" class="glass island" data-reveal style="--i:3; display:flex; flex-direction:column; gap:.9rem;">

@@ -87,7 +87,7 @@ const prod = product;
   description="SlicedLabs operator cockpit — edit product."
   noindex={true}
 >
-  <section class="wrap" style="padding-block:clamp(2rem,6vw,3rem)">
+  <section class="wrap section">
     <a href="/admin/products" class="mono" data-reveal style="text-decoration:none;">← All products</a>
 
     {
@@ -112,7 +112,7 @@ const prod = product;
     {
       svc && prod && (
         <>
-          <h1 data-reveal style="--i:1; font-size:clamp(1.8rem,5vw,3rem); margin:.6rem 0 0;">
+          <h1 class="t-h1" data-reveal style="--i:1; margin:.6rem 0 0;">
             <span class="blend-text">{prod.title}</span>
           </h1>
           <p class="mono" data-reveal style="--i:2; margin:.3rem 0 0;">{prod.slug}</p>

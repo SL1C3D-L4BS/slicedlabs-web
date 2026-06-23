@@ -77,7 +77,7 @@ const images = product ? imageList(product.images) : [];
     title={`${product.title} — SlicedLabs Shop`}
     description={product.description ?? `${product.title} — order from SlicedLabs.`}
   >
-    <section class="wrap" style="padding-block:clamp(1.5rem,5vw,2.5rem);">
+    <section class="wrap section">
       <p class="mono" data-reveal><a href="/shop" style="color:var(--muted); text-decoration:none;">← back to shop</a></p>
 
       <div
@@ -122,7 +122,7 @@ const images = product ? imageList(product.images) : [];
 
         <div data-reveal style="--i:1;">
           <span class="tag">{FULFILL_LABEL[product.fulfillment_type]}</span>
-          <h1 style="font-size:clamp(1.9rem,6vw,3.2rem); margin:.6rem 0 .2rem;"><span class="blend-text">{product.title}</span></h1>
+          <h1 class="t-h1" style="margin:.6rem 0 .2rem;"><span class="blend-text">{product.title}</span></h1>
           {product.subtitle && (
             <p class="mono" style="margin:0 0 .5rem; color:var(--muted);">{product.subtitle}</p>
           )}
@@ -242,9 +242,9 @@ const images = product ? imageList(product.images) : [];
   </Base>
 ) : (
   <Base title="Not found — SlicedLabs Shop" description="We couldn't find that product." noindex={true}>
-    <section class="wrap" style="padding-block:clamp(3rem,9vw,6rem); text-align:center;">
+    <section class="wrap section-lg" style="text-align:center;">
       <p class="mono" data-reveal>404</p>
-      <h1 data-reveal style="--i:1; font-size:clamp(2rem,7vw,3.4rem);"><span class="blend-text">Product not found</span></h1>
+      <h1 class="t-h1" data-reveal style="--i:1;"><span class="blend-text">Product not found</span></h1>
       <p data-reveal style="--i:2; color:var(--muted); margin:1rem 0 1.6rem;">That one's not on the menu — at least not yet.</p>
       <a class="btn" href="/shop" data-reveal style="--i:3;">Back to the shop →</a>
     </section>

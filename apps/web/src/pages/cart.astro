@@ -6,9 +6,9 @@ export const prerender = false;
 import Base from "../layouts/Base.astro";
 ---
 <Base title="Your cart — SlicedLabs" description="Review your order before checkout." noindex={true}>
-  <section class="wrap" style="padding-block:clamp(2rem,6vw,3.5rem);">
+  <section class="wrap section">
     <p class="mono" data-reveal>order review</p>
-    <h1 data-reveal style="--i:1; font-size:clamp(2rem,7vw,3.4rem);"><span class="blend-text">Your cart</span></h1>
+    <h1 class="t-h1" data-reveal style="--i:1;"><span class="blend-text">Your cart</span></h1>
     <hr class="blade" data-reveal style="--i:2; max-width:12rem; margin:1.2rem 0 1.8rem;" />
 
     <div id="cart-root">

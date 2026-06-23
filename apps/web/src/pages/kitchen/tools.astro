@@ -19,9 +19,9 @@ const ALLERGENS = ["Peanuts", "Tree nuts", "Milk", "Eggs", "Soy", "Wheat", "Fish
 >
   <section class="wrap" style="padding-block:clamp(2.5rem,7vw,4rem) clamp(1rem,3vw,2rem);">
     <p class="mono" data-reveal>free · no catch · yours</p>
-    <h1 data-reveal style="--i:1; font-size:clamp(2.2rem,7vw,4rem);"><span class="blend-text">Food tools</span></h1>
+    <h1 class="t-h1" data-reveal style="--i:1;"><span class="blend-text">Food tools</span></h1>
     <hr class="blade" data-reveal style="--i:2; max-width:13rem; margin:1.3rem 0 0;" />
-    <p data-reveal style="--i:3; font-size:clamp(1.05rem,2.3vw,1.35rem); color:var(--muted); max-width:46rem; margin-top:1.3rem;">
+    <p data-reveal style="--i:3; font-size:var(--step-1); color:var(--muted); max-width:46rem; margin-top:1.3rem;">
       The average household tosses real money in the trash every week. These two tools fix the small things that compound: <strong>log what you waste</strong> to see the monthly cost, and <strong>save your dietary needs</strong> so the recipes and menu meet you where you are. Free, private, and yours — it all works right here in your browser{authed ? "" : ", and signing in syncs it across your devices"}.
     </p>
   </section>
@@ -41,11 +41,11 @@ const ALLERGENS = ["Peanuts", "Tree nuts", "Milk", "Eggs", "Soy", "Wheat", "Fish
         <div style="display:flex; gap:1.4rem; flex-wrap:wrap; margin-bottom:1rem;">
           <div>
             <p class="mono" style="margin:0; color:var(--muted);">tossed this month</p>
-            <p id="fw-count" class="count" style="font-family:var(--font-display); font-weight:800; font-size:clamp(1.6rem,5vw,2.4rem); margin:.1rem 0 0;">0</p>
+            <p id="fw-count" class="count" style="font-family:var(--font-body); font-weight:800; font-size:var(--step-3); line-height:1; margin:.1rem 0 0;">0</p>
           </div>
           <div>
             <p class="mono" style="margin:0; color:var(--muted);">cost this month</p>
-            <p id="fw-cost" class="count" style="font-family:var(--font-display); font-weight:800; font-size:clamp(1.6rem,5vw,2.4rem); margin:.1rem 0 0;"><span class="blend-text">$0.00</span></p>
+            <p id="fw-cost" class="count" style="font-family:var(--font-body); font-weight:800; font-size:var(--step-3); line-height:1; margin:.1rem 0 0;"><span class="blend-text">$0.00</span></p>
           </div>
         </div>
 
@@ -115,7 +115,7 @@ const ALLERGENS = ["Peanuts", "Tree nuts", "Milk", "Eggs", "Soy", "Wheat", "Fish
     )}
   </section>
 
-  <section class="wrap" style="padding-block:clamp(1.5rem,4vw,2.5rem);">
+  <section class="wrap section">
     <Newsletter />
   </section>
 

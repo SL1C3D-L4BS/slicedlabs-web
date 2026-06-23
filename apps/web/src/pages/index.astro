@@ -32,7 +32,7 @@ const climb = ["Brand + the channel", "One truck", "The first lot", "Venue + own
   <!-- WHAT WE STAND ON — the craft showpiece. Gated Three.js island (procedural board
        until a real .glb is dropped in /public/models); static brand-gradient fallback
        on no-JS / reduced-motion / lite devices. -->
-  <section class="wrap" aria-labelledby="craft" style="padding-block:2.5rem;">
+  <section class="wrap section" aria-labelledby="craft">
     <h2 id="craft" class="mono" data-reveal style="color:var(--muted); margin-bottom:1rem;">what we stand on</h2>
     <article
       class="glass glass-ultra"
@@ -41,7 +41,7 @@ const climb = ["Brand + the channel", "One truck", "The first lot", "Venue + own
     >
       <Showpiece3D variant="mark" height="clamp(20rem,46vw,34rem)" label="The SlicedLabs chevron mark, rendered in 3D" />
       <div style="position:absolute; inset:auto 0 0 0; padding:clamp(1.2rem,3vw,2rem); background:linear-gradient(to top, color-mix(in oklab, var(--bg) 82%, transparent), transparent);">
-        <h3 style="font-size:clamp(1.5rem,4vw,2.2rem); margin:0 0 .3rem;">Tools we'd stake our name on.</h3>
+        <h3 class="t-h2" style="margin:0 0 .3rem;">Tools we'd stake our name on.</h3>
         <p style="color:var(--muted); margin:0; max-width:38rem;">Engraved boards, aprons, blades — the gear behind the build, made to outlast the trend cycle. <a href="/shop" style="color:var(--mark);">See the shop →</a></p>
       </div>
     </article>
@@ -66,8 +66,8 @@ const climb = ["Brand + the channel", "One truck", "The first lot", "Venue + own
   <PersonalizedSections />
 
   <!-- PRINCIPLES — the depth (what the books taught, lived) -->
-  <section class="wrap" aria-labelledby="principles" style="padding-block:3rem;">
-    <h2 id="principles" data-reveal style="font-size:clamp(1.8rem,5vw,3rem); margin-bottom:.4rem;">The principles we actually run.</h2>
+  <section class="wrap section" aria-labelledby="principles">
+    <h2 class="t-h1" id="principles" data-reveal style="margin-bottom:.4rem;">The principles we actually run.</h2>
     <p data-reveal style="color:var(--muted); max-width:42rem; margin:0 0 1.6rem;">Not theory. The operating laws behind every decision — earned, then lived on camera.</p>
     <div class="bento">
       {principles.map(([h, d], i) => (

@@ -17,11 +17,11 @@ const why = [
 ];
 ---
 <Base title="The Numbers — SlicedLabs" description="Why we're building what we're building — the real market data behind a PNW food + media + marketing company. Sourced, with the honest caveats.">
-  <section class="wrap" style="padding-block:clamp(2.5rem,7vw,4rem);">
+  <section class="wrap section">
     <p class="mono" data-reveal>the data · why we chose this</p>
-    <h1 data-reveal style="--i:1; font-size:clamp(2.2rem,8vw,4.4rem);"><span class="blend-text">The Numbers</span></h1>
+    <h1 class="t-h1" data-reveal style="--i:1;"><span class="blend-text">The Numbers</span></h1>
     <hr class="blade" data-reveal style="--i:2; max-width:16rem; margin:1.4rem 0 0;" />
-    <p data-reveal style="--i:3; font-size:clamp(1.1rem,2.4vw,1.4rem); color:var(--muted); max-width:46rem; margin-top:1.4rem;">
+    <p data-reveal style="--i:3; font-size:var(--step-1); color:var(--muted); max-width:46rem; margin-top:1.4rem;">
       No pitch — here's the data we're betting on, sourced and unspun. The case for a PNW food truck, a food channel, and an owned list.
     </p>
   </section>
@@ -30,7 +30,7 @@ const why = [
     <div class="bento">
       {stats.map((s, i) => (
         <article class="glass island col-2" data-reveal style={`--i:${i}; text-align:center;`}>
-          <div class="blend-text" style="font-family:var(--font-display); font-weight:800; font-size:clamp(2rem,5vw,2.8rem); line-height:1;">{s.v}</div>
+          <div class="blend-text t-h2" style="font-family:var(--font-display); font-weight:800; line-height:1;">{s.v}</div>
           <p style="margin:.5rem 0 .2rem; font-weight:600;">{s.k}</p>
           <span class="mono" style="font-size:.7rem;">{s.sub}</span>
         </article>
