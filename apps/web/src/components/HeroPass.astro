@@ -13,38 +13,16 @@
 // never attached under reduced-motion. No island, no hydration.
 // (The living GPU field is mounted once site-wide in Base.astro — it shows behind here too.)
 
-const receipts = [
-  // depth 1=far .. 3=near · pos = corner placement (kept clear of the centre column)
-  { v: "100", pre: "",  suf: "%", k: "on camera",    sub: "nothing hidden",     depth: 1, tier: "glass",       pos: "tr" },
-  { v: "6",   pre: "",  suf: "",  k: "the climb",     sub: "phases → homestead", depth: 2, tier: "glass-focal", pos: "bl" },
-  { v: "85",  pre: "$", suf: "k", k: "build budget",  sub: "to the dollar",      depth: 3, tier: "glass-ultra", pos: "tl" },
-];
+// Cleaner lockup (2026-06-23): the floating "receipt" scoreboard was retired for a
+// single calm, centred focal lockup — mark + serif headline + promise + CTA over the
+// subtle bloom field. No vanity metrics; earned numbers live on /numbers + /build.
 ---
 <section class="pass" aria-label="SlicedLabs — the future, sliced. A food empire built in public.">
   <div class="pass-stage" data-pass-stage>
     <!-- z0 — depth veil over the body gradient field (already painted by body) -->
     <div class="pass-plane pass-field" data-depth="0" aria-hidden="true"></div>
 
-    <!-- z1–z3 — floating receipts; .is-in / count-up driven by Base.astro's observer -->
-    {receipts.map((r, i) => (
-      <article
-        class:list={["pass-card", r.tier, `at-${r.pos}`]}
-        data-depth={r.depth}
-        data-reveal
-        style={`--i:${i + 2}`}
-      >
-        <span class="mono">{r.k}</span>
-        <div
-          class="count blend-text"
-          data-count-to={r.v}
-          data-count-prefix={r.pre}
-          data-count-suffix={r.suf}
-        >{r.pre}{r.v}{r.suf}</div>
-        <span class="mono">{r.sub}</span>
-      </article>
-    ))}
-
-    <!-- z4 — focal lockup. Crisp, on top, never parallaxed from legibility. The LCP. -->
+    <!-- focal lockup. Crisp, centred, on top. The LCP. -->
     <div class="pass-lockup" data-depth="4">
       <p class="mono" data-reveal style="--i:0;">food · media · marketing — built in public</p>
 
@@ -86,7 +64,7 @@ const receipts = [
   /* ── the camera + reserved frame (no CLS: fixed min-height, transforms only) ── */
   .pass {
     position: relative;
-    min-height: clamp(34rem, 88vh, 52rem);
+    min-height: clamp(26rem, 72vh, 42rem);
     display: grid;
     place-items: center;
     padding-block: clamp(2rem, 6vw, 4rem);

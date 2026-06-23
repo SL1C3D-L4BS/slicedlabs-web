@@ -18,4 +18,4 @@ We're not going to quote impact we haven't earned. Here's what we'll actually pu
 - **What the [food tools](/kitchen/tools) catch.** In aggregate and anonymous — how much logged waste turns into "huh, I should use that first."
 - **Where the surplus goes.** Any usable surplus routed to local partners instead of the bin.
 
-That's the deal: we show the math, including the parts that aren't flattering. [Follow the build](/build) or [grab the tools](/kitchen/tools).
+That's the deal: we show the numbers, including the parts that aren't flattering. [Follow the build](/build) or [grab the tools](/kitchen/tools).
