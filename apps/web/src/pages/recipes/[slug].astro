@@ -130,7 +130,7 @@ const recipeLd = recipe
         </div>
 
         {recipe.kicker && <p class="mono" data-reveal style="--i:1; margin:1rem 0 0;">{recipe.kicker}</p>}
-        <h1 data-reveal style="--i:2; font-size:clamp(2rem,7vw,3.8rem); margin:.3rem 0 0;"><span class="blend-text">{recipe.title}</span></h1>
+        <h1 data-reveal style={`--i:2; font-size:clamp(2rem,7vw,3.8rem); margin:.3rem 0 0; view-transition-name:vtr-${recipe.slug};`}><span class="blend-text">{recipe.title}</span></h1>
         {recipe.summary && (
           <p data-reveal style="--i:3; font-size:clamp(1.15rem,2.6vw,1.5rem); color:var(--muted); max-width:44rem; margin-top:1.2rem; line-height:1.5;">{recipe.summary}</p>
         )}

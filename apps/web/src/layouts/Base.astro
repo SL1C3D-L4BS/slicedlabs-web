@@ -353,5 +353,47 @@ const isActive = (href: string) => (href === "/" ? path === "/" : path === href 
         }, { passive: true });
       })();
     </script>
+
+    <script>
+      // Lenis inertial smooth-scroll — the unified scroll heartbeat. Gated off under
+      // reduced-motion (native scroll). Feeds normalized scroll velocity to the GPU field
+      // (scroll-reactive: crisp when still, liquid when moving) + a --scroll-vel CSS var.
+      import Lenis from "lenis";
+      if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        const lenis = new Lenis({ lerp: 0.1, smoothWheel: true });
+        lenis.on("scroll", (e: { velocity: number }) => {
+          const v = Math.min(Math.abs(e.velocity) / 40, 1);
+          (window as unknown as { __slVel?: number }).__slVel = v;
+          document.documentElement.style.setProperty("--scroll-vel", v.toFixed(3));
+        });
+        const raf = (t: number) => { lenis.raf(t); requestAnimationFrame(raf); };
+        requestAnimationFrame(raf);
+        // smooth in-page anchor jumps (e.g. /work #inquire)
+        document.addEventListener("click", (e) => {
+          const a = (e.target as HTMLElement)?.closest?.('a[href^="#"]') as HTMLAnchorElement | null;
+          if (!a) return;
+          const href = a.getAttribute("href") || "";
+          const el = href.length > 1 ? document.getElementById(href.slice(1)) : null;
+          if (el) { e.preventDefault(); lenis.scrollTo(el, { offset: -72 }); }
+        });
+      }
+    </script>
+
+    {/* Speculation Rules — prerender same-origin pages on hover/pointerdown so the card→detail
+        View-Transition morph fires instantly. Chromium-only; graceful no-op elsewhere. */}
+    <script type="speculationrules" is:inline set:html={JSON.stringify({
+      prerender: [{
+        where: { and: [
+          { href_matches: "/*" },
+          { not: { href_matches: "/api/*" } },
+          { not: { href_matches: "/admin/*" } },
+          { not: { href_matches: "/account/*" } },
+          { not: { href_matches: "/auth/*" } },
+          { not: { href_matches: "/checkout*" } },
+          { not: { href_matches: "/cart*" } },
+        ] },
+        eagerness: "moderate",
+      }],
+    })} />
   </body>
 </html>

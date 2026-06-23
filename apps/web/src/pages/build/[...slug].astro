@@ -15,7 +15,7 @@ const { Content } = await render(post);
   <article class="wrap" style="max-width:46rem; padding-block:clamp(2.5rem,7vw,4rem);">
     <a href="/build" class="mono" style="text-decoration:none;">← the build</a>
     <p class="mono" data-reveal style="margin-top:1.2rem;">{post.data.date.toISOString().slice(0, 10)}</p>
-    <h1 data-reveal style="--i:1; font-size:clamp(2rem,6vw,3.4rem); margin:.3rem 0 0;">{post.data.title}</h1>
+    <h1 data-reveal style={`--i:1; font-size:clamp(2rem,6vw,3.4rem); margin:.3rem 0 0; view-transition-name:vtb-${post.id};`}>{post.data.title}</h1>
     <hr class="blade" data-reveal style="--i:2; max-width:8rem; margin:1.2rem 0 2rem;" />
     <div class="prose"><Content /></div>
   </article>

@@ -85,7 +85,7 @@ const groups = SECTIONS.map((s) => ({
                 </span>
                 {r.sl_code && <span class="tag" style="align-self:flex-start;">{r.sl_code}</span>}
                 {r.kicker && <p class="mono" style="margin:0; color:var(--muted);">{r.kicker}</p>}
-                <h3 style="font-size:1.35rem; margin:0;"><span class="blend-text">{r.title}</span></h3>
+                <h3 style={`font-size:1.35rem; margin:0; view-transition-name:vtr-${r.slug};`}><span class="blend-text">{r.title}</span></h3>
                 {r.summary && <p class="recipe-summary">{r.summary}</p>}
                 {(diet.length > 0 || r.season) && (
                   <div style="display:flex; gap:.4rem; flex-wrap:wrap; margin-top:auto; padding-top:.4rem;">
