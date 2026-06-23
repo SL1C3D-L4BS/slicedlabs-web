@@ -10,7 +10,7 @@ import { env } from "../../../lib/commerce/env";
 import { createPrintfulOrder, printfulConfigured } from "../../../lib/commerce/printful";
 import { sendOrderConfirmation } from "../../../lib/commerce/email";
 import { fulfillWorkshopTicket } from "../../../lib/workshops";
-import { fulfillPlaybookPurchase } from "../../../lib/playbooks";
+import { fulfillPlaybookPurchase, fulfillDigitalOrder } from "../../../lib/playbooks";
 import { grantMembership, revokeMembership } from "../../../lib/membership";
 import { formatMoney } from "../../../lib/commerce/cart";
 import { notifyOperator } from "../../../lib/notify";
@@ -43,8 +43,19 @@ export const POST: APIRoute = async ({ request }) => {
     const inv = event.data.object as unknown as Record<string, any>;
     if (inv.subscription) {
       const periodEnd = inv.lines?.data?.[0]?.period?.end;
+      // Stripe often leaves invoice.customer_email null on renewals → look up the customer
+      // so the membership doesn't silently lapse.
+      let memberEmail = inv.customer_email ?? null;
+      if (!memberEmail && inv.customer) {
+        try {
+          const cust = (await getStripe().customers.retrieve(String(inv.customer))) as Record<string, any>;
+          memberEmail = cust?.deleted ? null : (cust?.email ?? null);
+        } catch (e) {
+          console.error("membership customer lookup failed:", (e as Error).message);
+        }
+      }
       try {
-        await grantMembership(inv.customer_email ?? null, {
+        await grantMembership(memberEmail, {
           untilMs: typeof periodEnd === "number" ? periodEnd * 1000 : null,
         });
       } catch (e) {
@@ -192,12 +203,18 @@ export const POST: APIRoute = async ({ request }) => {
     }
   }
 
-  // Orders WE fulfill by hand (in-house / digital) don't auto-dispatch to Printful — ping the
-  // ops inbox so the operator knows to ship/deliver and mark it shipped in /admin.
-  if (order && order.fulfillment_type !== "pod") {
+  // Digital orders (e.g. playbooks sold via the Shop) → AUTO-GRANT the entitlement so the
+  // buyer actually receives what they paid for. In-house → ping the operator to ship.
+  // (POD auto-dispatched to Printful above.)
+  if (order?.fulfillment_type === "digital") {
     try {
-      await notifyOperator("🧾 New order to fulfill", [
-        `**Type:** ${order.fulfillment_type}`,
+      await fulfillDigitalOrder(orderId);
+    } catch (e) {
+      console.error("digital fulfill failed:", (e as Error).message);
+    }
+  } else if (order?.fulfillment_type === "in_house") {
+    try {
+      await notifyOperator("🧾 New order to ship", [
         `**Order:** ${orderId.slice(0, 8)}`,
         `**Total:** ${formatMoney(order.total_cents ?? 0, order.currency ?? "usd")}`,
         `**Email:** ${email || "—"}`,

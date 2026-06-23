@@ -63,7 +63,7 @@ export function initGL(canvas: HTMLCanvasElement | OffscreenCanvas) {
     float vig=smoothstep(1.3,0.2,length(uv));
     col*=mix(0.55,1.0,vig);
     col+=(hash(gl_FragCoord.xy+u_time)-0.5)*0.022;
-    float a=mix(0.80, 0.80, u_warm);
+    float a=mix(0.76, 0.72, u_warm);
     o=vec4(col, a);
   }`;
 

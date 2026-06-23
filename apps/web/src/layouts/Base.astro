@@ -360,7 +360,12 @@ const isActive = (href: string) => (href === "/" ? path === "/" : path === href 
       // reduced-motion (native scroll). Feeds normalized scroll velocity to the GPU field
       // (scroll-reactive: crisp when still, liquid when moving) + a --scroll-vel CSS var.
       import Lenis from "lenis";
-      if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      const _liteFx =
+        matchMedia("(prefers-reduced-data: reduce)").matches ||
+        // @ts-ignore - navigator.connection is non-standard
+        (navigator.connection && navigator.connection.saveData) ||
+        (navigator.hardwareConcurrency || 8) <= 4;
+      if (!matchMedia("(prefers-reduced-motion: reduce)").matches && !_liteFx) {
         const lenis = new Lenis({ lerp: 0.1, smoothWheel: true });
         lenis.on("scroll", (e: { velocity: number }) => {
           const v = Math.min(Math.abs(e.velocity) / 40, 1);

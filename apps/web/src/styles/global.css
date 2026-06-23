@@ -66,7 +66,7 @@ body {
   background: radial-gradient(132% 116% at 50% 38%, transparent 58%, color-mix(in oklab, var(--bg) 55%, transparent));
 }
 .sl-grain {
-  position: fixed; inset: 0; z-index: 9999; pointer-events: none; opacity: .04; mix-blend-mode: soft-light;
+  position: fixed; inset: 0; z-index: 35; pointer-events: none; opacity: .04; mix-blend-mode: soft-light;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 @media (prefers-reduced-transparency: reduce) { .sl-grain { display: none; } }
@@ -128,8 +128,12 @@ a { color: inherit; text-decoration-color: color-mix(in oklab, var(--mark) 60%, 
 .blade.center { transform-origin: center; }
 
 /* lens light colour — cool blue on dark, warm caramel on the latte (warm) theme */
-:root { --specular: var(--mark); }
-[data-temp="warm"] { --specular: var(--orange); }
+:root { --specular: var(--mark); --text-halo: 0 1px 14px rgba(8,8,12,.5); }
+[data-temp="warm"] { --specular: var(--orange); --text-halo: 0 1px 10px rgba(251,246,238,.85); }
+/* legibility halo — lifts body copy off the living field (WCAG over a moving backdrop).
+ * Glass cards carry their own backing, so text inside them keeps a clean shadow-free edge. */
+main :is(h1, h2, h3, p, li) { text-shadow: var(--text-halo); }
+.glass :is(h1, h2, h3, p, li) { text-shadow: none; }
 
 /* ── Liquid Glass — base / focal / ultra (static specular + chromatic rim) ─ */
 .glass {
@@ -167,7 +171,9 @@ a { color: inherit; text-decoration-color: color-mix(in oklab, var(--mark) 60%, 
  * not just frosts. Chromium-only; @supports-gated so every other browser keeps the
  * blur-glass above unchanged. Applies in BOTH themes (the latte glass lenses too). */
 @supports (backdrop-filter: url("#sl-lens")) {
-  .glass { backdrop-filter: url(#sl-lens) blur(13px) saturate(1.5) brightness(1.03); }
+  /* showpiece tiers only — keeps the ~dozens of small base-.glass cards on cheap blur()
+   * (perf), and limits the Chromium feDisplacementMap-backdrop foot-gun to a few surfaces. */
+  .glass-focal, .glass-ultra { backdrop-filter: url(#sl-lens) blur(13px) saturate(1.5) brightness(1.03); }
 }
 .glass-focal {
   border-radius: var(--radius-lg);

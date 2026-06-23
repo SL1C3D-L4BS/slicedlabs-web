@@ -71,9 +71,9 @@ const { class: cls = "", fixed = false } = Astro.props;
         let vraf = 0;
         const pump = () => { vraf = 0; worker.postMessage({ vel: velNow() }); };
         addEventListener("scroll", () => { if (!vraf) vraf = requestAnimationFrame(pump); }, { passive: true });
-        document.addEventListener("visibilitychange", () => worker.postMessage({ pause: document.hidden }));
-        new IntersectionObserver((en) => worker.postMessage({ pause: !en[0].isIntersecting }), { threshold: 0 }).observe(canvas);
-        mq.addEventListener?.("change", (e) => { if (e.matches) { worker.postMessage({ pause: true }); canvas!.classList.remove("is-on"); } });
+        document.addEventListener("visibilitychange", () => worker.postMessage({ visible: !document.hidden }));
+        new IntersectionObserver((en) => worker.postMessage({ onScreen: en[0].isIntersecting }), { threshold: 0 }).observe(canvas);
+        mq.addEventListener?.("change", (e) => { if (e.matches) { worker.postMessage({ visible: false }); canvas!.classList.remove("is-on"); } });
         return;
       } catch (err) {
         /* worker / transfer unsupported → main-thread fallback below */
