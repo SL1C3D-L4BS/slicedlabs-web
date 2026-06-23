@@ -91,6 +91,10 @@ a { color: inherit; text-decoration-color: color-mix(in oklab, var(--mark) 60%, 
 .blade.is-in { transform: scaleX(1); }
 .blade.center { transform-origin: center; }
 
+/* lens light colour — cool blue on dark, warm caramel on the latte (warm) theme */
+:root { --specular: var(--mark); }
+[data-temp="warm"] { --specular: var(--orange); }
+
 /* ── Liquid Glass — base / focal / ultra (static specular + chromatic rim) ─ */
 .glass {
   position: relative; isolation: isolate;
@@ -118,10 +122,16 @@ a { color: inherit; text-decoration-color: color-mix(in oklab, var(--mark) 60%, 
   content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: -1;
   opacity: 0; transition: opacity var(--t-normal) var(--ease);
   background: radial-gradient(16rem 16rem at calc(var(--mx, .5) * 100%) calc(var(--my, .5) * 100%),
-    color-mix(in oklab, var(--mark) 20%, transparent), transparent 60%);
+    color-mix(in oklab, var(--specular) 20%, transparent), transparent 60%);
 }
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
   .glass:hover::after { opacity: .55; }
+}
+/* Real liquid refraction — the backdrop LENSES through the glass (organic displacement),
+ * not just frosts. Chromium-only; @supports-gated so every other browser keeps the
+ * blur-glass above unchanged. Applies in BOTH themes (the latte glass lenses too). */
+@supports (backdrop-filter: url("#sl-lens")) {
+  .glass { backdrop-filter: url(#sl-lens) blur(13px) saturate(1.5) brightness(1.03); }
 }
 .glass-focal {
   border-radius: var(--radius-lg);

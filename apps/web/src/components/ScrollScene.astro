@@ -1,0 +1,107 @@
+---
+// SlicedLabs · studio · © 2026 SlicedLabs — ScrollScene
+// A scroll-PINNED, scroll-SCRUBBED cinematic sequence: one dish, sourced → built → plated,
+// moving through the brand spectrum as you scroll. The "in awe" scroll moment.
+// Progressive enhancement: with JS + motion it pins and scrubs; with NO JS or reduced-motion
+// it degrades to normal, fully-readable stacked blocks (the .is-enhanced class gates the pin).
+// READY FOR REAL FOOTAGE: drop a <video>/<img> into each .scene-media when you shoot it.
+const stages = [
+  { n: "01", label: "the source", head: "It starts in farm country.", sub: "Palouse pork, Green Bluff orchards, Cougar Gold from a creamery down the road. If it isn't local and in season, it doesn't make the board.", hue: "var(--coral)" },
+  { n: "02", label: "the build", head: "Then the technique.", sub: "On the griddle, in the press — until the cheese weeps and the edges go lacquer-crisp. Nothing hidden: the whole build, in public.", hue: "var(--teal)" },
+  { n: "03", label: "the cut", head: "Then it's yours.", sub: "Cut on the bias, served hot at the window. One dish — sourced, built, and plated where you can watch every step.", hue: "var(--mark)" },
+];
+---
+<section class="scroll-scene" data-scroll-scene aria-label="How a dish comes together">
+  <div class="scene-sticky">
+    <div class="scene-rail">
+      {stages.map((s, i) => (
+        <article class="scene-stage" data-stage={i} style={`--hue:${s.hue}`}>
+          <div class="scene-glow" aria-hidden="true"></div>
+          <div class="scene-media" aria-hidden="true"></div>
+          <p class="mono scene-label">{s.label}</p>
+          <p class="scene-n" aria-hidden="true">{s.n}</p>
+          <h2 class="scene-head"><span class="blend-text">{s.head}</span></h2>
+          <p class="scene-sub">{s.sub}</p>
+        </article>
+      ))}
+    </div>
+    <div class="scene-progress" aria-hidden="true"><span data-scene-bar></span></div>
+  </div>
+</section>
+
+<style>
+  /* default (no-JS / reduced-motion): readable stacked blocks */
+  .scroll-scene { position: relative; }
+  .scene-stage {
+    position: relative; display: grid; align-content: center; justify-items: start;
+    gap: .3rem; padding: clamp(2.5rem, 8vw, 5rem) 0;
+  }
+  .scene-glow {
+    position: absolute; inset: -10% -20%; z-index: -1; pointer-events: none;
+    background: radial-gradient(46% 60% at 28% 45%, color-mix(in oklab, var(--hue) 26%, transparent), transparent 70%);
+  }
+  /* media slot — a brand-tinted glass plate today; swap a <video>/<img> in when shot */
+  .scene-media { display: none; }
+  .scene-label { color: var(--hue); margin: 0; }
+  .scene-n { font-family: var(--font-display); font-weight: 800; font-size: clamp(2.6rem,9vw,6rem); line-height: .85; margin: 0; color: color-mix(in oklab, var(--hue) 50%, var(--muted)); opacity: .35; }
+  .scene-head { font-size: clamp(2.1rem,7vw,4.6rem); line-height: 1.03; margin: .1rem 0 0; max-width: 17ch; }
+  .scene-sub { font-size: clamp(1.05rem,2.4vw,1.4rem); color: var(--muted); max-width: 42ch; margin: 1rem 0 0; }
+  .scene-progress { display: none; }
+  .wrapper { max-width: var(--maxw); margin-inline: auto; }
+  .scene-rail { max-width: var(--maxw); margin-inline: auto; padding-inline: 1.25rem; }
+
+  /* enhanced (JS + motion): pin the stage, scrub the stages with crossfade + depth */
+  .scroll-scene.is-enhanced { min-height: 340vh; }
+  .scroll-scene.is-enhanced .scene-sticky {
+    position: sticky; top: 0; height: 100vh; display: grid; place-items: center; overflow: clip;
+  }
+  .scroll-scene.is-enhanced .scene-rail { position: relative; width: 100%; height: 100%; }
+  .scroll-scene.is-enhanced .scene-stage {
+    position: absolute; inset: 0; align-content: center;
+    padding: 0 clamp(1.25rem, 6vw, 5rem); opacity: 0;
+    will-change: opacity, transform;
+  }
+  .scroll-scene.is-enhanced .scene-progress {
+    display: block; position: absolute; left: 0; right: 0; bottom: clamp(1.4rem, 4vh, 3rem);
+    height: 2px; width: min(38rem, 78%); margin-inline: auto;
+    background: var(--stroke); border-radius: 2px; overflow: hidden;
+  }
+  .scroll-scene.is-enhanced .scene-progress span { display: block; height: 100%; width: 0; background: var(--blend); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .scroll-scene { min-height: 0 !important; }
+  }
+</style>
+
+<script is:inline>
+  (function () {
+    var scene = document.querySelector("[data-scroll-scene]");
+    if (!scene) return;
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return; // stays stacked + readable
+    scene.classList.add("is-enhanced");
+    var stages = Array.prototype.slice.call(scene.querySelectorAll(".scene-stage"));
+    var bar = scene.querySelector("[data-scene-bar]");
+    var n = stages.length, span = Math.max(1, n - 1), raf = 0;
+    function update() {
+      raf = 0;
+      var rect = scene.getBoundingClientRect();
+      var total = scene.offsetHeight - window.innerHeight;
+      var scrolled = Math.min(Math.max(-rect.top, 0), total);
+      var p = total > 0 ? scrolled / total : 0;
+      if (bar) bar.style.width = (p * 100).toFixed(1) + "%";
+      var fp = p * span;
+      for (var i = 0; i < n; i++) {
+        var d = Math.abs(fp - i);
+        var op = Math.max(0, Math.min(1, 1 - d * 1.35));
+        var off = fp - i;
+        stages[i].style.opacity = op.toFixed(3);
+        stages[i].style.transform = "translateY(" + (off * -28).toFixed(1) + "px) scale(" + (0.95 + 0.05 * op).toFixed(3) + ")";
+        stages[i].style.pointerEvents = op > 0.5 ? "auto" : "none";
+      }
+    }
+    function onScroll() { if (!raf) raf = requestAnimationFrame(update); }
+    addEventListener("scroll", onScroll, { passive: true });
+    addEventListener("resize", onScroll, { passive: true });
+    update();
+  })();
+</script>

@@ -32,7 +32,9 @@ bg-alt      = "#F3EADB"
 ink         = "#1C1A17"
 muted       = "#7A6E5C"
 muted-strong = "#5E5446"
-panel       = "rgba(255, 255, 255, 0.62)"
+# latte glass — warm milky cream (was pure white 0.62). "Italian cream latte" light mode:
+# the glass reads like steamed milk over the cream base, not a cold white frost.
+panel       = "rgba(252, 245, 233, 0.56)"
 stroke      = "rgba(28, 26, 23, 0.10)"
 rim         = "rgba(28, 26, 23, 0.14)"
 glass-sheen = "0.045"

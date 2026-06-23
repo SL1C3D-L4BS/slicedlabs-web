@@ -97,6 +97,15 @@ const isActive = (href: string) => (href === "/" ? path === "/" : path === href 
     <ShaderField fixed />
     <div class="sl-vignette" aria-hidden="true"></div>
     <div class="sl-grain" aria-hidden="true"></div>
+    {/* Liquid-glass refraction filter — referenced by .glass backdrop-filter (Chromium,
+        @supports-gated in global.css). Organic low-freq displacement = the backdrop lenses. */}
+    <svg width="0" height="0" aria-hidden="true" style="position:absolute; pointer-events:none;">
+      <filter id="sl-lens" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.005 0.009" numOctaves="2" seed="7" result="n" />
+        <feGaussianBlur in="n" stdDeviation="1.4" result="nb" />
+        <feDisplacementMap in="SourceGraphic" in2="nb" scale="9" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+    </svg>
     <div class="scroll-progress" aria-hidden="true"></div>
     <a href="#main" class="skip">Skip to content</a>
     <header class="pillbar-wrap">
