@@ -49,6 +49,17 @@ const tiles = [
   { pos: "top:11%;right:28%",  w: "6rem",   ar: "4 / 3", d: 1, rot: -5, i: 6,  tier: "f-extra" },
   { pos: "bottom:11%;left:31%",w: "6rem",   ar: "1 / 1", d: 1, rot:  4, i: 7,  tier: "f-extra" },
   { pos: "bottom:12%;right:30%",w:"6.5rem", ar: "3 / 4", d: 1, rot: -4, i: 7,  tier: "f-extra", tag: "on the pass" },
+  // ── denser fill (f-extra ≥1080): extra gutter rungs + deep-cloud tiles weaving the net.
+  //    Gutter rungs hug the edges; near-centre tiles stay deep(d1)+faint at the extreme
+  //    top/bottom rows (above the eyebrow / below the blade), never the dead centre band. ──
+  { pos: "top:17%;left:1%",     w: "6rem",   ar: "4 / 3", d: 1, rot:  6, i: 7,  tier: "f-extra" },
+  { pos: "top:43%;left:0",      w: "7rem",   ar: "1 / 1", d: 2, rot: -4, i: 8,  tier: "f-extra", tag: "prep" },
+  { pos: "bottom:27%;left:0.5%",w: "5.5rem", ar: "1 / 1", d: 1, rot:  5, i: 7,  tier: "f-extra" },
+  { pos: "top:18%;right:1%",    w: "6rem",   ar: "3 / 4", d: 1, rot: -6, i: 7,  tier: "f-extra" },
+  { pos: "top:45%;right:0",     w: "7rem",   ar: "1 / 1", d: 2, rot:  4, i: 8,  tier: "f-extra", tag: "plated" },
+  { pos: "bottom:28%;right:0.5%",w:"5.5rem", ar: "4 / 3", d: 1, rot: -5, i: 7,  tier: "f-extra" },
+  { pos: "top:3%;left:35%",     w: "5rem",   ar: "1 / 1", d: 1, rot:  7, i: 6,  tier: "f-extra" },
+  { pos: "bottom:3%;right:36%", w: "5rem",   ar: "4 / 3", d: 1, rot: -7, i: 6,  tier: "f-extra", tag: "seasonal" },
 ];
 const tstyle = (t: (typeof tiles)[number]) => `${t.pos}; --w:${t.w}; --ar:${t.ar}; --rot:${t.rot}deg; --i:${t.i};`;
 ---
@@ -109,11 +120,22 @@ const tstyle = (t: (typeof tiles)[number]) => `${t.pos}; --w:${t.w}; --ar:${t.ar
         <line x1="5"  y1="38" x2="31" y2="16"/><line x1="95" y1="40" x2="70" y2="18"/>
         <line x1="8"  y1="62" x2="34" y2="86"/><line x1="92" y1="64" x2="70" y2="84"/>
         <line x1="8"  y1="90" x2="34" y2="86"/><line x1="91" y1="90" x2="70" y2="84"/>
+        <!-- denser weave through the added gutter rungs + near-centre cloud -->
+        <line x1="9"  y1="16" x2="4"  y2="21"/><line x1="4"  y1="21" x2="5"  y2="38"/>
+        <line x1="5"  y1="38" x2="4"  y2="45"/><line x1="4"  y1="45" x2="8"  y2="62"/>
+        <line x1="8"  y1="62" x2="4"  y2="73"/><line x1="4"  y1="73" x2="8"  y2="90"/>
+        <line x1="91" y1="16" x2="95" y2="22"/><line x1="95" y1="22" x2="95" y2="40"/>
+        <line x1="95" y1="40" x2="96" y2="47"/><line x1="96" y1="47" x2="92" y2="64"/>
+        <line x1="92" y1="64" x2="95" y2="72"/><line x1="95" y1="72" x2="91" y2="90"/>
+        <line x1="38" y1="8"  x2="31" y2="16"/><line x1="38" y1="8"  x2="70" y2="18"/>
+        <line x1="62" y1="92" x2="70" y2="84"/><line x1="62" y1="92" x2="34" y2="86"/>
       </g>
       <g class="synapse-nodes">
         <circle cx="31" cy="16" r="0.6"/><circle cx="70" cy="18" r="0.6"/>
         <circle cx="34" cy="86" r="0.6"/><circle cx="70" cy="84" r="0.6"/>
         <circle cx="5"  cy="38" r="0.5"/><circle cx="95" cy="40" r="0.5"/>
+        <circle cx="38" cy="8"  r="0.55"/><circle cx="62" cy="92" r="0.55"/>
+        <circle cx="4"  cy="45" r="0.45"/><circle cx="96" cy="47" r="0.45"/>
       </g>
     </svg>
 
@@ -254,7 +276,7 @@ const tstyle = (t: (typeof tiles)[number]) => `${t.pos}; --w:${t.w}; --ar:${t.ar
   }
   /* link labels read --muted-strong (AA on both temperatures — raw --mark fails on cream);
      the brand-blue accent lives on the border + the hover lift instead. */
-  .ntile-tag-link { color: var(--muted-strong); font-weight: 600; border-color: color-mix(in oklab, var(--mark) 45%, var(--stroke)); }
+  .ntile-tag-link { color: var(--muted-strong); font-weight: 600; font-size: .72rem; letter-spacing: .04em; text-transform: none; border-color: color-mix(in oklab, var(--mark) 45%, var(--stroke)); }
   a.ntile:hover .ntile-tag-link { color: var(--ink); background: color-mix(in oklab, var(--mark) 14%, var(--bg-alt)); }
 
   /* ── the neural-net wiring ── */
@@ -308,13 +330,14 @@ const tstyle = (t: (typeof tiles)[number]) => `${t.pos}; --w:${t.w}; --ar:${t.ar
 
   /* ── responsive — progressively shed tiles so the lockup always owns the frame ──
      ≥1080: all 12 + synapse · 1025–1080: drop f-extra → 4 corners + 2 mid + synapse ·
-     761–1024: drop f-mid + synapse → 4 corner tiles (incl. both links) · 521–760: same, shrunk ·
-     <520: lockup only. (f-mid sheds at ≤1024 so the mid tiles only show where the side gutters
-     clearly clear the 44rem text column.) */
+     761–1024: drop f-mid + synapse → 4 corner tiles (incl. both links) · 641–760: same, shrunk ·
+     <640: lockup only. (f-mid sheds at ≤1024 so the mid tiles only show where the side gutters
+     clearly clear the 44rem text column; f-core sheds at ≤640 so the corner panels never crowd
+     the centred eyebrow/headline on short, narrow viewports.) */
   @media (max-width: 1080px) { .f-extra { display: none; } }
   @media (max-width: 1024px) { .f-mid   { display: none; } }
   @media (max-width: 760px)  { .ntile   { width: min(var(--w), 8.5rem); } }
-  @media (max-width: 520px)  { .f-core  { display: none; } }
+  @media (max-width: 640px)  { .f-core  { display: none; } }
 
   /* ── reduced-motion: no entrance pass, no wipe — resting scene, full + crisp ──
      (global block forces [data-reveal].is-in + .blade full; we add the resting-Z + baked
@@ -361,10 +384,14 @@ const tstyle = (t: (typeof tiles)[number]) => `${t.pos}; --w:${t.w}; --ar:${t.ar
     // mid-entrance would retarget the in-flight transition; once we take over we STRIP the
     // entrance transition so the per-frame lerp drives motion directly (otherwise every
     // parallax frame inherits the ease + delay = sluggish).
-    // Parallax may begin only after the one-shot entrance has had time to land (slowest tile
-    // ≈ 1120ms from first paint); rAF-gated so a backgrounded tab doesn't burn the clock.
+    // Parallax may begin only after the one-shot entrance has landed. Derive the wait from the
+    // live --t-slow token + the stagger cadence so a tokens.toml bump can't desync it (max --i
+    // in the tiles array is 12). The leading rAF just defers the timer past first paint;
+    // parallax itself only fires on pointermove, which requires a focused tab.
     var ready = false;
-    requestAnimationFrame(function () { setTimeout(function () { ready = true; }, 1300); });
+    var tSlow = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--t-slow")) || 460;
+    var gate = 12 * 55 + tSlow + 180;   // slowest tile's entrance end + buffer
+    requestAnimationFrame(function () { setTimeout(function () { ready = true; }, gate); });
 
     var tx = 0, ty = 0, cx = 0, cy = 0, raf = 0;
     function tick() {
