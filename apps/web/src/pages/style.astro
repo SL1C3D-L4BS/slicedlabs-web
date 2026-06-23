@@ -6,9 +6,11 @@
 import Base from "../layouts/Base.astro";
 import SocialRow from "../components/SocialRow.astro";
 
+// Real values, read straight from tokens.toml (the dark / default temperature). A
+// "we prove" brand can't misreport its own tokens — these are the live hex.
 const swatches = [
-  { v: "--bg", note: "charcoal base", val: "#1E1E1E" },
-  { v: "--bg-alt", note: "panel / surface", val: "#2B2B2B" },
+  { v: "--bg", note: "cinematic base", val: "#161619" },
+  { v: "--bg-alt", note: "panel / surface", val: "#1F2024" },
   { v: "--ink", note: "primary text", val: "#F7F6F2" },
   { v: "--muted", note: "weathered sand", val: "#B8A789" },
   { v: "--mark", note: "the mark blue", val: "#38B6FF" },
@@ -38,8 +40,8 @@ const weights = [
 
 const motion = [
   { v: "--t-quick", ms: "120ms", use: "hover · click flash" },
-  { v: "--t-normal", ms: "200ms", use: "state · recolor" },
-  { v: "--t-slow", ms: "380ms", use: "reveal · scene" },
+  { v: "--t-normal", ms: "220ms", use: "state · recolor" },
+  { v: "--t-slow", ms: "460ms", use: "reveal · scene" },
 ];
 ---
 
@@ -75,14 +77,14 @@ const motion = [
     <div class="sg-spectrum" aria-label="the signature spectrum blend"></div>
     <p class="sg-sub" style="margin-top: .7rem;">
       The blend — coral → orange → teal → blue — the mark's own gradient. It clips into text
-      (<span class="blend-text" style="font-weight:700;">like this</span>), draws the blade, and fills the primary button.
+      (<span class="blend-text spectrum" style="font-weight:700;">like this</span>), draws the blade, and fills the primary button.
     </p>
   </section>
 
   <!-- 02 type -->
   <section class="wrap sg-sec" data-reveal>
     <h2 class="sg-h">02 · Type</h2>
-    <p class="sg-sub">Display is Geist Mono; body is Inter; labels are JetBrains Mono. Hierarchy rides <em>weight</em>, not color. Fluid clamp scale.</p>
+    <p class="sg-sub">Display is Fraunces (editorial serif); body is Inter; labels &amp; numbers are Geist Mono. Hierarchy rides <em>weight</em>, not color. Fluid clamp scale.</p>
     <div class="sg-type">
       {steps.map((t) => (
         <div class="sg-type-row">
@@ -141,6 +143,18 @@ const motion = [
         <span class="tag">build-in-public</span>
         <span class="tag">food · craft</span>
         <span class="tag">dropping soon</span>
+      </div>
+    </div>
+
+    <div class="sg-block">
+      <span class="sg-label mono">status pills · color carries meaning</span>
+      <div class="sg-inline">
+        <span class="tag-status" data-state="success">paid</span>
+        <span class="tag-status" data-state="progress">fulfilling</span>
+        <span class="tag-status" data-state="info">shipped</span>
+        <span class="tag-status" data-state="warning">on hold</span>
+        <span class="tag-status" data-state="danger">refunded</span>
+        <span class="tag-status" data-state="neutral">draft</span>
       </div>
     </div>
 

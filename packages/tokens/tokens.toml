@@ -72,12 +72,34 @@ freshsave = "#2FA56B"   # regenerative green — FreshSave / waste-as-mission
 community = "#6C7BE8"    # warm indigo — community · outreach · sponsorship
 
 [material]
+# radius ladder (documented): 8 chips/fields-tight · 16 cards/fields · 28 showpiece · 999 pills.
+radius-sm      = "8px"
 radius         = "16px"
 radius-lg      = "28px"
+radius-pill    = "999px"
 blur           = "20px"
 gap            = "8px"
 contrast-floor = "4.5"
 maxw           = "72rem"
+
+# ── spacing scale (4/8-based) — the one rhythm SSOT. Replaces the ad-hoc per-section
+# padding-block/gap improvisations. --space-1..7 → 4/8/12/16/24/40/64. Used by .section,
+# .stack, and component density. ────────────────────────────────────────────────────────
+[space]
+"space-1" = "0.25rem"   # 4
+"space-2" = "0.5rem"    # 8
+"space-3" = "0.75rem"   # 12
+"space-4" = "1rem"      # 16
+"space-5" = "1.5rem"    # 24
+"space-6" = "2.5rem"    # 40 — default section rhythm
+"space-7" = "4rem"      # 64 — large section rhythm
+
+# ── elevation ladder — three shadow tiers so a list row never carries a hero's ambient
+# shadow. 1 = resting card · 2 = raised/hover · 3 = floating panel/modal. ────────────────
+[shadow]
+"shadow-1" = "0 1px 2px rgba(0,0,0,.18), 0 2px 8px rgba(0,0,0,.12)"
+"shadow-2" = "0 4px 12px rgba(0,0,0,.22), 0 12px 28px rgba(0,0,0,.18)"
+"shadow-3" = "0 18px 50px rgba(0,0,0,.34), 0 40px 90px rgba(0,0,0,.28)"
 
 [glass]
 glass-tint  = "0.82"
@@ -94,10 +116,13 @@ t-normal = "220ms"
 t-slow   = "460ms"   # cinematic — more deliberate entrances/transitions (luxe upscale)
 ease     = "cubic-bezier(0.2, 0.8, 0.2, 1.0)"
 
+# 2026-06-23: DISPLAY = an editorial SERIF (Fraunces — variable, opsz/wght). The mono
+# headline hard-capped the register at "dev tool"; the serif carries the food/craft warmth.
+# Inter stays the body; Geist Mono is the eyebrow/label/number voice ONLY (.mono / .count).
 [font]
-display = '"Geist Mono", "JetBrains Mono", ui-monospace, monospace'
+display = '"Fraunces", Georgia, "Times New Roman", serif'
 body    = '"Inter", system-ui, sans-serif'
-mono    = '"JetBrains Mono", ui-monospace, monospace'
+mono    = '"Geist Mono", "JetBrains Mono", ui-monospace, monospace'
 
 # ── fluid type scale — perfect-fifth feel, clamped ────────────────────────────
 [scale]

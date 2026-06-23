@@ -85,24 +85,49 @@ body {
 .sl-topblur > i:nth-child(4) { backdrop-filter: blur(0.5px); -webkit-backdrop-filter: blur(0.5px);
   -webkit-mask: linear-gradient(to bottom, transparent 70%, #000 90%); mask: linear-gradient(to bottom, transparent 70%, #000 90%); }
 @media (prefers-reduced-transparency: reduce) { .sl-topblur { display: none; } }
-h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.02; letter-spacing: -0.02em; }
-/* hierarchy rides WEIGHT, not colour (the design law) */
+/* Fraunces editorial serif — opsz tracks size, hierarchy rides WEIGHT (the design law).
+   Tighter tracking + slightly looser leading suit a serif display vs the old mono. */
+h1, h2, h3 { font-family: var(--font-display); font-weight: 800; line-height: 1.04; letter-spacing: -0.015em; font-optical-sizing: auto; }
 h2 { font-weight: 700; } h3 { font-weight: 600; }
 a { color: inherit; text-decoration-color: color-mix(in oklab, var(--mark) 60%, transparent); text-underline-offset: 3px; }
 .mono { font-family: var(--font-mono); font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
 .wrap { max-width: var(--maxw); margin-inline: auto; padding-inline: 1.25rem; }
 
-/* ── the mark · blend ────────────────────────────────────────────────── */
-.blend-text {
+/* ── type scale — promote the token scale to enforced classes (replaces the 70+ inline
+   font-size:clamp()). Mirrors the h1/h2/h3 leading + tracking; the display ones inherit
+   the Fraunces serif. .t-lead/.t-fine ride the BODY font (Inter). ─────────────────────── */
+.t-display { font-family: var(--font-display); font-optical-sizing: auto; font-weight: 800; font-size: var(--step-5); line-height: 1.0; letter-spacing: -0.025em; }
+.t-h1 { font-family: var(--font-display); font-optical-sizing: auto; font-weight: 800; font-size: var(--step-4); line-height: 1.04; letter-spacing: -0.015em; }
+.t-h2 { font-family: var(--font-display); font-optical-sizing: auto; font-weight: 700; font-size: var(--step-3); line-height: 1.06; letter-spacing: -0.01em; }
+.t-h3 { font-family: var(--font-display); font-optical-sizing: auto; font-weight: 600; font-size: var(--step-2); line-height: 1.12; letter-spacing: -0.005em; }
+.t-lead { font-size: var(--step-1); line-height: 1.5; color: var(--muted); }
+.t-fine { font-size: var(--step--1); line-height: 1.5; color: var(--muted); }
+
+/* ── spacing primitives — the rhythm SSOT. .section = the default vertical block; .stack
+   = a flow owl (consistent gaps between siblings). Replaces the ~100 ad-hoc padding-block
+   + flex-direction:column;gap improvisations. ────────────────────────────────────────── */
+.section { padding-block: var(--space-6); }
+.section-lg { padding-block: var(--space-7); }
+.stack { display: flex; flex-direction: column; }
+.stack > * + * { margin-top: var(--space-4); }
+.stack-sm > * + * { margin-top: var(--space-2); }
+.stack-lg > * + * { margin-top: var(--space-6); }
+
+/* ── the mark · blend ──────────────────────────────────────────────────
+ * RESTRAINT LAW (2026-06-23): headlines read SOLID --ink in BOTH temperatures. The
+ * 8-hue gradient on every heading was the noise the brand felt; the spectrum now lives
+ * ONLY on .blade / .blend-rule / the mark / and at most ONE deliberate payoff word
+ * (opt back in with `.blend-text.spectrum`). Warm already did this; dark now matches.
+ * .blend-text is kept as a no-op alias so the ~100 existing call-sites need no edit. */
+.blend-text { color: var(--ink); }
+/* the single opt-in: a deliberate payoff word keeps the static spectrum (dark only —
+ * on cream it stays solid ink for contrast). NEVER more than one word per page. */
+.blend-text.spectrum {
   background: var(--blend);
   -webkit-background-clip: text; background-clip: text;
   color: transparent;
 }
-/* LUXE LIGHT — in warm/espresso mode, headline text reads SOLID espresso ink (the
- * multi-hue gradient was low-contrast + busy on cream). The spectrum stays on the
- * decorative .blade/.blend-rule bars; a deliberate accent word can use .brass.
- * Dark mode keeps the static gradient headline. */
-[data-temp="warm"] .blend-text {
+[data-temp="warm"] .blend-text.spectrum {
   background: none;
   -webkit-background-clip: border-box; background-clip: border-box;
   color: var(--ink);
@@ -201,6 +226,18 @@ main :is(h1, h2, h3, p, li) { text-shadow: var(--text-halo); }
 /* ── Constellation v4 · islands + bento ─────────────────────────────────── */
 .island { padding: 1.5rem; transition: transform var(--t-quick) var(--ease), border-color var(--t-quick); }
 .island:hover { transform: translateY(-2px); border-color: color-mix(in oklab, var(--mark) 40%, var(--stroke)); }
+
+/* ── density + elevation ladder — a list row never carries a hero's 40px ambient shadow.
+   .card = resting surface (shadow-1) · .row = flat divided list item (no lift) ·
+   .stat = a KPI/figure block. Pair with .glass for the frosted version. ─────────────── */
+.card { padding: var(--space-5); border-radius: var(--radius); border: 1px solid var(--stroke); background: var(--bg-alt); box-shadow: var(--shadow-1); }
+.card-sm { padding: var(--space-4); }
+.card-lg { padding: var(--space-6); border-radius: var(--radius-lg); box-shadow: var(--shadow-2); }
+.row { display: flex; align-items: center; gap: var(--space-4); padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--stroke); }
+.row:last-child { border-bottom: 0; }
+.stat { display: flex; flex-direction: column; gap: var(--space-1); }
+.stat .stat-n { font-family: var(--font-body); font-weight: 700; font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; font-size: var(--step-3); line-height: 1; color: var(--ink); }
+.stat .stat-k { font-family: var(--font-mono); font-size: .72rem; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
 .bento { display: grid; gap: 1rem; grid-template-columns: repeat(6, 1fr); }
 .bento > * { grid-column: span 6; }
 /* opt-in: dense packing back-fills the gaps a mixed-span row leaves (bento/masonry feel,
@@ -241,15 +278,43 @@ main :is(h1, h2, h3, p, li) { text-shadow: var(--text-halo); }
   transition: transform var(--t-quick) var(--ease), filter var(--t-quick);
 }
 .btn:hover { filter: brightness(1.06); }
+.btn:active { transform: translate(var(--mbx, 0px), var(--mby, 0px)) scale(.98); }
+.btn:disabled, .btn[aria-disabled="true"] { opacity: .5; cursor: not-allowed; pointer-events: none; filter: none; }
+/* size variants */
+.btn-sm { padding: .5rem .9rem; font-size: .85rem; }
+.btn-lg { padding: 1rem 1.7rem; font-size: 1.05rem; }
+/* canonical ghost — reset .btn's fill so call-sites stop overriding padding/background inline */
 .btn-ghost { background: transparent; color: var(--ink); border: 1px solid var(--stroke); }
+.btn-ghost:hover { filter: none; background: color-mix(in oklab, var(--ink) 7%, transparent); border-color: color-mix(in oklab, var(--mark) 38%, var(--stroke)); }
 .tag { font-family: var(--font-mono); font-size: .72rem; letter-spacing: .06em; text-transform: uppercase;
        color: var(--muted); border: 1px solid var(--stroke); border-radius: 999px; padding: .2rem .6rem; }
 
+/* ── status pills — tinted-FILL variants wired to the semantic tokens. Used by [status]
+   surfaces (orders, fulfilment, drops). Colour carries meaning, not decoration. ──────── */
+.tag-status { display: inline-flex; align-items: center; gap: .4rem; font-family: var(--font-mono);
+  font-size: .7rem; letter-spacing: .05em; text-transform: uppercase; border-radius: 999px;
+  padding: .22rem .6rem; border: 1px solid transparent; white-space: nowrap; }
+.tag-status::before { content: ""; width: .42rem; height: .42rem; border-radius: 999px; background: currentColor; opacity: .9; }
+.tag-status[data-state="success"] { color: color-mix(in oklab, var(--ok) 72%, var(--ink)); background: color-mix(in oklab, var(--ok) 14%, transparent); border-color: color-mix(in oklab, var(--ok) 30%, transparent); }
+.tag-status[data-state="info"]    { color: color-mix(in oklab, var(--teal) 80%, var(--ink)); background: color-mix(in oklab, var(--teal) 14%, transparent); border-color: color-mix(in oklab, var(--teal) 30%, transparent); }
+.tag-status[data-state="progress"]{ color: color-mix(in oklab, var(--blue) 82%, var(--ink)); background: color-mix(in oklab, var(--blue) 14%, transparent); border-color: color-mix(in oklab, var(--blue) 30%, transparent); }
+.tag-status[data-state="warning"] { color: color-mix(in oklab, var(--warn) 80%, var(--ink)); background: color-mix(in oklab, var(--warn) 16%, transparent); border-color: color-mix(in oklab, var(--warn) 32%, transparent); }
+.tag-status[data-state="danger"]  { color: color-mix(in oklab, var(--danger) 84%, var(--ink)); background: color-mix(in oklab, var(--danger) 14%, transparent); border-color: color-mix(in oklab, var(--danger) 30%, transparent); }
+.tag-status[data-state="neutral"] { color: var(--muted-strong); background: color-mix(in oklab, var(--ink) 7%, transparent); border-color: var(--stroke); }
+
 /* ── form fields (intakes) ──────────────────────────────────────────────── */
-.fld { width:100%; padding:.7rem .9rem; border-radius:12px; border:1px solid var(--stroke); background:var(--bg); color:var(--ink); font:inherit; font-size:.95rem; }
+.fld { width:100%; padding:.7rem .9rem; border-radius:var(--radius); border:1px solid var(--stroke); background:var(--bg); color:var(--ink); font:inherit; font-size:.95rem;
+  transition: border-color var(--t-quick), background var(--t-quick); }
 .fld::placeholder { color: color-mix(in oklab, var(--muted) 75%, transparent); }
+.fld:hover { border-color: color-mix(in oklab, var(--mark) 24%, var(--stroke)); }
 .fld:focus-visible { outline:2px solid var(--mark); outline-offset:1px; }
-select.fld { appearance:none; -webkit-appearance:none; cursor:pointer; }
+.fld:disabled { opacity:.55; cursor:not-allowed; background: color-mix(in oklab, var(--bg) 88%, var(--muted)); }
+/* custom dropdown chevron (native appearance was stripped with no replacement → an
+   affordance-less box). Inline SVG painted with --muted; padding clears it. */
+select.fld { appearance:none; -webkit-appearance:none; cursor:pointer; padding-right:2.2rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8' fill='none' stroke='%23B8A789' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right .9rem center; background-size:.7rem; }
+select.fld:disabled { cursor:not-allowed; }
 textarea.fld { resize:vertical; min-height:5rem; }
 .row2 { display:grid; gap:.8rem; grid-template-columns:1fr 1fr; }
 @media (max-width:520px){ .row2 { grid-template-columns:1fr; } }

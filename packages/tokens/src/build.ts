@@ -37,6 +37,10 @@ const darkRoot = [
   "",
   vars(t.material),
   "",
+  vars(t.space),
+  "",
+  vars(t.shadow),
+  "",
   vars(t.glass),
   "",
   vars(t.motion),
@@ -90,7 +94,9 @@ export const warm = ${j(t.color.warm)};
 export const status = ${j(t.status)};
 export const scale = ${j(t.scale)};
 export const motion = ${j(t.motion)};
-export default { brand, brandP3, dark, warm, status, scale, motion };
+export const space = ${j(t.space)};
+export const shadow = ${j(t.shadow)};
+export default { brand, brandP3, dark, warm, status, scale, motion, space, shadow };
 `;
 
 writeFileSync(join(dist, "tokens.css"), tokensCss);
