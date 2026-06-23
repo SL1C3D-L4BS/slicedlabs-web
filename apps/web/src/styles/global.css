@@ -98,23 +98,22 @@ a { color: inherit; text-decoration-color: color-mix(in oklab, var(--mark) 60%, 
   -webkit-background-clip: text; background-clip: text;
   color: transparent;
 }
+/* LUXE LIGHT — in warm/espresso mode, headline text reads SOLID espresso ink (the
+ * multi-hue gradient was low-contrast + busy on cream). The spectrum stays on the
+ * decorative .blade/.blend-rule bars; a deliberate accent word can use .brass.
+ * Dark mode keeps the static gradient headline. */
+[data-temp="warm"] .blend-text {
+  background: none;
+  -webkit-background-clip: border-box; background-clip: border-box;
+  color: var(--ink);
+}
+.brass { color: var(--brass); }   /* solid metallic accent — readable luxe */
 .blend-rule { height: 3px; border: 0; border-radius: 3px; background: var(--blend); }
 .kinetic { font-size: clamp(2.8rem, 9vw, 7rem); line-height: .96; }  /* oversized hero — words are the design */
 
-/* Brand-spectrum kinetic type — big headlines scrub their gradient through the full
- * spectrum as you scroll (native scroll-timeline; ~0kb, compositor-thread, idle-stops →
- * upholds the no-perpetual-motion law). @supports + reduced-motion gated. */
-@supports (animation-timeline: scroll()) {
-  @media (prefers-reduced-motion: no-preference) {
-    h1 .blend-text, .scene-head .blend-text, .pass-head .blend-text {
-      background-image: linear-gradient(100deg, var(--coral), var(--orange) 22%, var(--teal) 48%, var(--blue) 72%, var(--mark) 88%, var(--coral));
-      background-size: 230% 100%;
-      animation: sl-spectrum linear both;
-      animation-timeline: scroll(root block);
-    }
-  }
-}
-@keyframes sl-spectrum { to { background-position: 130% 0; } }
+/* (Removed 2026-06-22: the per-header scroll-spectrum scrub — it read as busy and hurt
+ * legibility. Headlines are now a STATIC spectrum gradient on dark, SOLID espresso ink on
+ * warm. The living motion lives in the GPU field + glass depth, not the headline text.) */
 
 /* THE BLADE — the signature element that "slices" the page on reveal. A static
  * blend bar that draws across once (scaleX 0→1); no perpetual motion. */
@@ -129,7 +128,8 @@ a { color: inherit; text-decoration-color: color-mix(in oklab, var(--mark) 60%, 
 
 /* lens light colour — cool blue on dark, warm caramel on the latte (warm) theme */
 :root { --specular: var(--mark); --text-halo: 0 1px 14px rgba(8,8,12,.5); }
-[data-temp="warm"] { --specular: var(--orange); --text-halo: 0 1px 10px rgba(251,246,238,.85); }
+/* warm: a FAINT DARK lift (was a cream-on-cream halo that washed text out); brass specular */
+[data-temp="warm"] { --specular: var(--brass); --text-halo: 0 1px 2px rgba(21,17,10,.20); }
 /* legibility halo — lifts body copy off the living field (WCAG over a moving backdrop).
  * Glass cards carry their own backing, so text inside them keeps a clean shadow-free edge. */
 main :is(h1, h2, h3, p, li) { text-shadow: var(--text-halo); }

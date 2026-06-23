@@ -1,7 +1,7 @@
 # SlicedLabs design tokens — PRODUCT SSOT.
 # src/build.ts generates dist/{tokens.css, p3.css, tokens.js} from this file.
-# LAW: the [color.warm] (cream) palette is loved and must stay byte-identical.
-# The [color.dark] palette is the one that gets reworked.
+# 2026-06-22: the WARM palette is now the LUXE ESPRESSO CREAM (unified with the desktop —
+# the old "byte-identical cream" law is RETIRED). Both temperatures get reworked for luxury.
 # (Mirrors the machine-wide ~/.dotfiles/system/tokens.toml; kept in sync, not relocated.)
 
 [meta]
@@ -23,21 +23,20 @@ stroke       = "rgba(255, 255, 255, 0.10)"
 # + tiles read "milky/strange" in dark). Warm keeps its own dark rim below.
 rim          = "rgba(255, 255, 255, 0.14)"
 
-# ── WARM / FOOD (truck · menu · consumer) — cream, UNTOUCHED LAW ───────────────
-# All original cream values are byte-identical; --muted-strong is purely additive
-# (a darker warm for dense text on cream — nothing existing changed).
+# ── WARM / FOOD (truck · menu · consumer) — LUXE ESPRESSO CREAM ────────────────
+# Deep café-crème, unified with the desktop (#DEC8B1). Darkened off the old white
+# latte for a real espresso luxury; crisp near-black ink carries it (APCA ≥ 75).
 [color.warm]
-bg          = "#FBF6EE"
-bg-alt      = "#F3EADB"
-ink         = "#1C1A17"
-muted       = "#7A6E5C"
-muted-strong = "#5E5446"
-# latte glass — warm milky cream (was pure white 0.62). "Italian cream latte" light mode:
-# the glass reads like steamed milk over the cream base, not a cold white frost.
-panel       = "rgba(252, 245, 233, 0.56)"
-stroke      = "rgba(28, 26, 23, 0.10)"
-rim         = "rgba(28, 26, 23, 0.14)"
-glass-sheen = "0.045"
+bg          = "#DEC8B1"   # espresso cream — the deep café-crème field
+bg-alt      = "#D8C0A7"   # warm crema — raised surface
+ink         = "#15110A"   # crisp espresso ink — solid headers + body (Lc 75.5 on the cream)
+muted       = "#4F4434"   # deep taupe — secondary text (Lc 62)
+muted-strong = "#3E3528"  # darker taupe — dense secondary text (Lc 68)
+# espresso glass — warm crema over the deep cream (was milky white over near-white).
+panel       = "rgba(222, 200, 177, 0.62)"
+stroke      = "rgba(21, 17, 10, 0.12)"
+rim         = "rgba(21, 17, 10, 0.14)"
+glass-sheen = "0.04"
 
 # ── the official mark gradients — sRGB base ───────────────────────────────────
 [brand]
@@ -46,6 +45,7 @@ orange = "#CB6820"
 teal   = "#2F9B80"
 blue   = "#308BDB"
 mark   = "#38B6FF"
+brass  = "#B5894E"   # warm metallic gold — the luxe accent (hairlines · rules · accent words)
 
 [blend]
 value = "linear-gradient(100deg, var(--coral), var(--orange) 38%, var(--teal) 68%, var(--blue))"
