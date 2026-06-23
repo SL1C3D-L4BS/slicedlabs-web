@@ -1,7 +1,7 @@
 ---
 // SlicedLabs · commerce · © 2026 SlicedLabs — Admin cockpit: Truck status
 export const prerender = false;
-import Base from "../../layouts/Base.astro";
+import DashShell from "../../layouts/DashShell.astro";
 import { createServiceSupabase } from "../../lib/supabase";
 import { isAdmin } from "../../lib/admin";
 
@@ -36,24 +36,15 @@ const v = (x: unknown) => (x == null ? "" : String(x));
 const ok = Astro.url.searchParams.get("ok");
 const err = Astro.url.searchParams.get("err");
 ---
-<Base title="Truck — Admin" description="Update the live truck status." noindex={true}>
-  <section class="wrap section">
-    <div
-      data-reveal
-      style="display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap; align-items:baseline; margin-bottom:1.4rem;"
-    >
-      <div>
-        <p class="mono" style="margin:0;">cockpit</p>
-        <h1 class="t-h2" style="margin:.2rem 0 0;">
-          <span class="blend-text">Truck status</span>
-        </h1>
-      </div>
-      <nav style="display:flex; gap:1.2rem; align-items:center;">
-        <a href="/admin">Orders</a>
-        <a href="/admin/products">Products</a>
-        <a href="/admin/vault">Vault</a>
-      </nav>
-    </div>
+<DashShell
+  title="Truck status — Admin · SlicedLabs"
+  description="Update the live truck status."
+  section="admin"
+  active="/admin/truck"
+  email={cu?.primaryEmailAddress?.emailAddress}
+  crumbs={[{ label: "Truck" }]}
+>
+    <h1 class="dash-h1">Truck status</h1>
 
     {!svc && (
       <p class="glass island" data-reveal style="color:var(--coral);">
@@ -99,5 +90,4 @@ const err = Astro.url.searchParams.get("err");
         <button class="btn" type="submit">Update truck</button>
       </form>
     )}
-  </section>
-</Base>
+</DashShell>

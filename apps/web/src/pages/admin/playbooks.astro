@@ -1,7 +1,7 @@
 ---
 // SlicedLabs · commerce · © 2026 SlicedLabs — Admin cockpit: Playbooks list + create
 export const prerender = false;
-import Base from "../../layouts/Base.astro";
+import DashShell from "../../layouts/DashShell.astro";
 import { createServiceSupabase } from "../../lib/supabase";
 import { isAdmin } from "../../lib/admin";
 import { formatMoney } from "../../lib/commerce/cart";
@@ -37,22 +37,14 @@ if (svc) {
     .select("id,slug,title,status,price_cents,currency,sort,created_at")
     .order("sort", { ascending: true })
     .order("created_at", { ascending: false });
-  if (error) loadError = error.message;
+  if (error) { loadError = "Couldn't load playbooks right now. Refresh, or check the Supabase connection."; console.error("[admin/playbooks]", error.message); }
   else playbooks = (data as PlaybookRow[]) ?? [];
 }
 
 const PLAYBOOK_STATUS = ["draft", "published", "archived"];
 
-const statusHue = (st: string): string => {
-  switch (st) {
-    case "published":
-      return "var(--teal)";
-    case "archived":
-      return "var(--muted)";
-    default:
-      return "var(--coral)"; // draft
-  }
-};
+const contentState = (st: string): string =>
+  st === "published" ? "success" : st === "archived" ? "neutral" : "warning"; // draft = warning
 
 const fmtPrice = (cents: number, currency: string): string =>
   cents > 0 ? formatMoney(cents, currency) : "Free";
@@ -60,30 +52,15 @@ const fmtPrice = (cents: number, currency: string): string =>
 const err = Astro.url.searchParams.get("err");
 ---
 
-<Base
-  title="Admin — Playbooks · SlicedLabs"
+<DashShell
+  title="Playbooks — Admin · SlicedLabs"
   description="SlicedLabs operator cockpit — playbooks."
-  noindex={true}
+  section="admin"
+  active="/admin/playbooks"
+  email={cu?.primaryEmailAddress?.emailAddress}
+  crumbs={[{ label: "Playbooks" }]}
 >
-  <section class="wrap section">
-    <div
-      style="display:flex; align-items:baseline; gap:1rem; flex-wrap:wrap; justify-content:space-between;"
-    >
-      <div>
-        <p class="mono" data-reveal>operator cockpit</p>
-        <h1 class="t-h1" data-reveal style="--i:1; margin:.2rem 0 0;">
-          <span class="blend-text">Playbooks</span>
-        </h1>
-      </div>
-      <nav data-reveal style="--i:2; display:flex; gap:1.2rem; align-items:center; flex-wrap:wrap;">
-        <a href="/admin">Orders</a>
-        <a href="/admin/products">Products</a>
-        <a href="/admin/recipes">Recipes</a>
-        <a href="/admin/workshops">Workshops</a>
-        <a href="/admin/vault">Vault</a>
-        <a href="/admin/truck">Truck</a>
-      </nav>
-    </div>
+    <h1 class="dash-h1">Playbooks</h1>
 
     {
       err && (
@@ -204,7 +181,7 @@ const err = Astro.url.searchParams.get("err");
                       {p.slug}
                     </td>
                     <td style="padding:.7rem .8rem;">
-                      <span class="tag" style={`color:${statusHue(p.status)}; border-color:${statusHue(p.status)};`}>
+                      <span class="tag-status" data-state={contentState(p.status)}>
                         {p.status}
                       </span>
                     </td>
@@ -249,5 +226,4 @@ const err = Astro.url.searchParams.get("err");
         </>
       )
     }
-  </section>
-</Base>
+</DashShell>

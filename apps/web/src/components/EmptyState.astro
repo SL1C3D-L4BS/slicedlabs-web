@@ -1,0 +1,22 @@
+---
+// SlicedLabs · product surface · © 2026 SlicedLabs
+// EmptyState — a designed "nothing here yet" block for the dashboard kit (dash.css .empty).
+// Never a bare em-dash or a void: an icon, a title, a calm line, and an optional CTA.
+interface Props {
+  title: string;
+  detail?: string;
+  ctaHref?: string;
+  ctaLabel?: string;
+}
+const { title, detail, ctaHref, ctaLabel } = Astro.props;
+---
+<div class="empty">
+  <svg class="empty-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <rect x="3" y="4" width="18" height="16" rx="2" />
+    <path d="M3 9h18M8 14h8M8 17h5" />
+  </svg>
+  <p class="empty-t">{title}</p>
+  {detail && <p class="empty-d">{detail}</p>}
+  {ctaHref && ctaLabel && <a class="btn btn-sm" href={ctaHref}>{ctaLabel}</a>}
+  <slot />
+</div>

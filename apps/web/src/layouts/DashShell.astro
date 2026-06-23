@@ -1,0 +1,137 @@
+---
+// SlicedLabs · product surface · © 2026 SlicedLabs
+// DashShell — the QUIET app shell for /admin/* and /account/*. Deliberately NOT Base:
+// no pillbar, no 20-link footer, no SocialRow, no ShaderField, no grain, no vignette, and
+// no exit-intent newsletter gate (interrupting a signed-in operator/customer with a capture
+// popup is a self-own). Just a persistent sidebar (nav defined ONCE), a breadcrumb, the
+// user + sign-out, and a flat --bg working surface. Reuses the token-driven components in
+// global.css (.btn / .fld / .tag-status) + the dashboard kit in dash.css.
+import "../styles/global.css";
+import "../styles/dash.css";
+import Analytics from "@vercel/analytics/astro";
+import { SignOutButton } from "@clerk/astro/components";
+import { MARK_PATH } from "../lib/brand";
+
+interface Crumb { label: string; href?: string }
+interface Props {
+  title?: string;
+  description?: string;
+  /** which sidebar group to render + highlight */
+  section: "admin" | "account";
+  /** href of the active nav item (defaults to the current path) */
+  active?: string;
+  /** signed-in user's email, shown in the sidebar footer */
+  email?: string | null;
+  /** breadcrumb trail after the section root (Section › …) */
+  crumbs?: Crumb[];
+  temp?: "dark" | "warm";
+}
+const {
+  title = "SlicedLabs",
+  description = "SlicedLabs",
+  section,
+  active,
+  email = null,
+  crumbs = [],
+  temp = "dark",
+} = Astro.props;
+
+const path = (Astro.url.pathname.replace(/\/+$/, "") || "/");
+const current = active ?? path;
+
+// Nav defined ONCE per section — no more per-page hand-rolled nav rows.
+const NAV: Record<string, { root: string; rootLabel: string; items: { href: string; label: string }[] }> = {
+  admin: {
+    root: "/admin",
+    rootLabel: "Admin",
+    items: [
+      { href: "/admin", label: "Orders" },
+      { href: "/admin/products", label: "Products" },
+      { href: "/admin/recipes", label: "Recipes" },
+      { href: "/admin/menu", label: "Menu" },
+      { href: "/admin/playbooks", label: "Playbooks" },
+      { href: "/admin/vault", label: "Vault" },
+      { href: "/admin/truck", label: "Truck" },
+      { href: "/admin/workshops", label: "Workshops" },
+      { href: "/admin/integrations", label: "Integrations" },
+    ],
+  },
+  account: {
+    root: "/account",
+    rootLabel: "Account",
+    items: [
+      { href: "/account", label: "Dashboard" },
+      { href: "/account/settings", label: "Settings" },
+    ],
+  },
+};
+const group = NAV[section];
+const isActive = (href: string) =>
+  href === group.root ? current === group.root : current === href || current.startsWith(href + "/");
+---
+<!doctype html>
+<html lang="en" data-temp={temp}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    {/* product surfaces are always noindex — they're behind auth */}
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <meta name="theme-color" content="#161619" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=Geist+Mono:wght@300..800&family=Inter:wght@400..700&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <a href="#dash-main" class="skip">Skip to content</a>
+    <div class="dash">
+      <aside class="dash-side">
+        <a href="/" class="dash-brand" aria-label="SlicedLabs — home">
+          <img src={MARK_PATH} alt="" width="24" height="24" />
+          <span class="dash-word">SlicedLabs</span>
+        </a>
+        <p class="dash-eyebrow">{group.rootLabel}</p>
+        <nav class="dash-nav" aria-label={`${group.rootLabel} navigation`}>
+          {group.items.map((it) => (
+            <a
+              href={it.href}
+              class="dash-link"
+              aria-current={isActive(it.href) ? "page" : undefined}
+            >
+              <span class="dash-dot" aria-hidden="true"></span>
+              <span>{it.label}</span>
+            </a>
+          ))}
+        </nav>
+        <div class="dash-side-foot">
+          {email && <span class="dash-user" title={email}>{email}</span>}
+          <SignOutButton redirectUrl="/">
+            <button class="btn-ghost btn btn-sm" type="button">Sign out</button>
+          </SignOutButton>
+        </div>
+      </aside>
+
+      <div class="dash-main">
+        <div class="dash-topbar">
+          <nav class="dash-crumb" aria-label="Breadcrumb">
+            <a href={group.root}>{group.rootLabel}</a>
+            {crumbs.map((c) => (
+              <>
+                <span class="sep" aria-hidden="true">›</span>
+                {c.href ? <a href={c.href}>{c.label}</a> : <span class="here">{c.label}</span>}
+              </>
+            ))}
+          </nav>
+        </div>
+        <main id="dash-main" class="dash-body">
+          <slot />
+        </main>
+      </div>
+    </div>
+    <Analytics />
+  </body>
+</html>

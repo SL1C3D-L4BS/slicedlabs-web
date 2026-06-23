@@ -3,8 +3,7 @@
 // Edit your display name + manage your subscription (Stripe Billing Portal). All RLS-scoped
 // to the signed-in user; anonymous visitors bounce to login.
 export const prerender = false;
-import Base from "../../layouts/Base.astro";
-import { SignOutButton } from "@clerk/astro/components";
+import DashShell from "../../layouts/DashShell.astro";
 import { getClerkSupabase } from "../../lib/supabase";
 import { ensureClerkProfile } from "../../lib/clerkProfile";
 
@@ -25,7 +24,7 @@ if (Astro.request.method === "POST") {
       .from("profiles")
       .update({ full_name: fullName })
       .eq("id", pid ?? "");
-    if (error) saveError = error.message;
+    if (error) { saveError = "Couldn't save your changes — please try again."; console.error("[account/settings]", error.message); }
     else saved = true;
   }
 }
@@ -51,53 +50,51 @@ const BILLING_MSG: Record<string, string> = {
 };
 const billingMsg = billing ? BILLING_MSG[billing] : null;
 ---
-<Base title="Account settings — SlicedLabs" description="Manage your SlicedLabs account." noindex={true}>
-  <section class="wrap section" style="max-width:46rem;">
-    <nav class="mono" data-reveal style="display:flex; gap:1rem; margin-bottom:1.4rem;" aria-label="Account">
-      <a href="/account" style="color:var(--muted); text-decoration:none;">← Dashboard</a>
-    </nav>
-    <p class="mono" data-reveal>your account</p>
-    <h1 class="t-h2" data-reveal style="--i:1; margin:.2rem 0 1.4rem;">
-      <span class="blend-text">Settings</span>
-    </h1>
+<DashShell
+  title="Settings — Account · SlicedLabs"
+  description="Manage your SlicedLabs account."
+  section="account"
+  active="/account/settings"
+  email={email}
+  crumbs={[{ label: "Settings" }]}
+>
+  <div style="max-width:42rem;">
+    <h1 class="dash-h1">Settings</h1>
+    <p class="dash-sub">Your profile and subscription.</p>
 
-    {saved && <p role="status" data-reveal style="color:var(--teal); margin:0 0 1rem;">Saved ✓</p>}
-    {saveError && <p role="status" data-reveal style="color:var(--coral); margin:0 0 1rem;">{saveError}</p>}
+    {saved && <p role="status" style="color:var(--teal); margin:0 0 1rem;">Saved.</p>}
+    {saveError && <p role="status" style="color:var(--danger); margin:0 0 1rem;">{saveError}</p>}
 
-    <div class="glass island" data-reveal style="margin-bottom:1.4rem;">
-      <h2 style="font-size:1.15rem; margin:0 0 1rem;">Profile</h2>
-      <form method="POST" style="display:flex; flex-direction:column; gap:.8rem;">
+    <div class="dash-panel">
+      <h2 class="dash-panel-h">Profile</h2>
+      <form method="POST" class="stack">
         <input type="hidden" name="intent" value="profile" />
-        <label>
-          <span class="mono">Email</span>
+        <label class="field">
+          <span class="field-label">Email</span>
           <input class="fld" type="email" value={email ?? ""} disabled />
         </label>
-        <label>
-          <span class="mono">Display name</span>
+        <label class="field">
+          <span class="field-label">Display name</span>
           <input class="fld" type="text" name="full_name" value={prof?.full_name ?? ""} placeholder="Your name" />
         </label>
-        <div><button class="btn" type="submit">Save profile</button></div>
+        <div><button class="btn btn-sm" type="submit">Save profile</button></div>
       </form>
     </div>
 
-    <div class="glass island" data-reveal style="margin-bottom:1.4rem;">
-      <h2 style="font-size:1.15rem; margin:0 0 .5rem;">Subscription</h2>
-      {billingMsg && <p role="status" style="color:var(--coral); margin:0 0 .8rem;">{billingMsg}</p>}
+    <div class="dash-panel">
+      <h2 class="dash-panel-h">Subscription</h2>
+      {billingMsg && <p role="status" style="color:var(--danger); margin:0 0 .8rem;">{billingMsg}</p>}
       {isMember ? (
         <>
           <p style="color:var(--muted); margin:0 0 1rem;">You're a member. Manage your plan, payment method, or cancel anytime in the Stripe portal.</p>
-          <a class="btn" href="/api/account/portal">Manage subscription →</a>
+          <a class="btn btn-sm" href="/api/account/portal">Manage subscription →</a>
         </>
       ) : (
         <>
           <p style="color:var(--muted); margin:0 0 1rem;">You're not a member yet.</p>
-          <a class="btn" href="/membership">Become a member →</a>
+          <a class="btn btn-sm" href="/membership">Become a member →</a>
         </>
       )}
     </div>
-
-    <SignOutButton redirectUrl="/">
-      <button class="btn-ghost" type="button" data-reveal>Sign out</button>
-    </SignOutButton>
-  </section>
-</Base>
+  </div>
+</DashShell>

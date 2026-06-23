@@ -3,7 +3,7 @@
 // Display-only menu (food sells at the window). Edit mode via ?edit=<id>. Mirrors
 // /admin/recipes. Replaces the previous DB-only management of this table.
 export const prerender = false;
-import Base from "../../layouts/Base.astro";
+import DashShell from "../../layouts/DashShell.astro";
 import { createServiceSupabase } from "../../lib/supabase";
 import { isAdmin } from "../../lib/admin";
 
@@ -41,8 +41,8 @@ const SECTIONS = [
   { id: "sweet", label: "Sweet" },
 ];
 const STATUS = ["draft", "published", "archived"];
-const statusHue = (st: string): string =>
-  st === "published" ? "var(--teal)" : st === "archived" ? "var(--muted)" : "var(--coral)";
+const contentState = (st: string): string =>
+  st === "published" ? "success" : st === "archived" ? "neutral" : "warning"; // draft = warning
 
 let items: MenuRow[] = [];
 let editing: MenuRow | null = null;
@@ -54,7 +54,7 @@ if (svc) {
     .select("id,slug,name,blurb,section,price_label,dietary,note,season,hero,sort,status")
     .order("section")
     .order("sort");
-  if (error) loadError = error.message;
+  if (error) { loadError = "Couldn't load the menu right now. Refresh, or check the Supabase connection."; console.error("[admin/menu]", error.message); }
   else items = (data as unknown as MenuRow[]) ?? [];
   if (editId) editing = items.find((m) => m.id === editId) ?? null;
 }
@@ -62,22 +62,15 @@ const err = Astro.url.searchParams.get("err");
 const ok = Astro.url.searchParams.get("ok");
 const e = editing;
 ---
-<Base title="Admin — Menu · SlicedLabs" description="SlicedLabs operator cockpit — truck menu." noindex={true}>
-  <section class="wrap section">
-    <div style="display:flex; align-items:baseline; gap:1rem; flex-wrap:wrap; justify-content:space-between;">
-      <div>
-        <p class="mono" data-reveal>operator cockpit</p>
-        <h1 class="t-h1" data-reveal style="--i:1; margin:.2rem 0 0;"><span class="blend-text">Menu</span></h1>
-      </div>
-      <nav data-reveal style="--i:2; display:flex; gap:1.2rem; align-items:center; flex-wrap:wrap;">
-        <a href="/admin">Orders</a>
-        <a href="/admin/products">Products</a>
-        <a href="/admin/recipes">Recipes</a>
-        <a href="/admin/playbooks">Playbooks</a>
-        <a href="/admin/workshops">Workshops</a>
-        <a href="/admin/truck">Truck</a>
-      </nav>
-    </div>
+<DashShell
+  title="Menu — Admin · SlicedLabs"
+  description="SlicedLabs operator cockpit — truck menu."
+  section="admin"
+  active="/admin/menu"
+  email={cu?.primaryEmailAddress?.emailAddress}
+  crumbs={[{ label: "Menu" }]}
+>
+    <h1 class="dash-h1">Menu</h1>
 
     {err && <p class="mono" data-reveal style="color:var(--coral); margin-top:1rem;">{err}</p>}
     {ok && <p class="mono" data-reveal style="color:var(--teal); margin-top:1rem;">Saved · {ok}</p>}
@@ -148,7 +141,7 @@ const e = editing;
                     <td style="padding:.7rem .8rem;">{m.name}{m.hero && <span class="tag" style="margin-left:.4rem;">hero</span>}</td>
                     <td style="padding:.7rem .8rem; color:var(--muted); white-space:nowrap;">{m.section}</td>
                     <td style="padding:.7rem .8rem; white-space:nowrap;">{m.price_label ?? "—"}</td>
-                    <td style="padding:.7rem .8rem;"><span class="tag" style={`color:${statusHue(m.status)}; border-color:${statusHue(m.status)};`}>{m.status}</span></td>
+                    <td style="padding:.7rem .8rem;"><span class="tag-status" data-state={contentState(m.status)}>{m.status}</span></td>
                     <td style="padding:.7rem .8rem;">
                       <form method="POST" action="/api/admin/menu" style="display:flex; gap:.4rem; align-items:center;">
                         <input type="hidden" name="action" value="set-status" />
@@ -167,8 +160,7 @@ const e = editing;
         </>
       )
     }
-  </section>
-</Base>
+</DashShell>
 
 <style>
   .row2 { display: grid; gap: .8rem; grid-template-columns: 1fr; }

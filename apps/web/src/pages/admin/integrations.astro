@@ -4,7 +4,7 @@
 // are actually wired, so a missing key can't hide. Pure env presence checks (no network),
 // plus a one-click "send myself a test email" that proves the owned Resend path.
 export const prerender = false;
-import Base from "../../layouts/Base.astro";
+import DashShell from "../../layouts/DashShell.astro";
 import { isAdmin } from "../../lib/admin";
 import { integrationStatus } from "../../lib/integrations";
 
@@ -27,25 +27,16 @@ const testMsg = test ? TEST_MSG[test] : null;
 const missingRequired = groups.flatMap((g) => g.items).filter((i) => i.required && !i.configured);
 ---
 
-<Base
-  title="Admin — Integrations · SlicedLabs"
+<DashShell
+  title="Integrations — Admin · SlicedLabs"
   description="SlicedLabs operator cockpit — integration health."
-  noindex={true}
+  section="admin"
+  active="/admin/integrations"
+  email={cu?.primaryEmailAddress?.emailAddress}
+  crumbs={[{ label: "Integrations" }]}
 >
-  <section class="wrap section">
-    <div style="display:flex; align-items:baseline; gap:1rem; flex-wrap:wrap; justify-content:space-between;">
-      <div>
-        <p class="mono" data-reveal>operator cockpit</p>
-        <h1 class="t-h1" data-reveal style="--i:1; margin:.2rem 0 0;">
-          <span class="blend-text">Integrations</span>
-        </h1>
-      </div>
-      <nav data-reveal style="--i:2; display:flex; gap:.6rem; flex-wrap:wrap;" aria-label="Admin sections">
-        <a href="/admin" class="btn-ghost btn">Orders →</a>
-        <a href="/admin/products" class="btn-ghost btn">Products →</a>
-        <a href="/admin/vault" class="btn-ghost btn">Vault →</a>
-      </nav>
-    </div>
+    <h1 class="dash-h1">Integrations</h1>
+    <p class="dash-sub">Pipeline health — required keys, optional defaults, and a Resend test send.</p>
 
     <div class="glass island" data-reveal style="--i:1; margin-top:1.4rem;">
       <p style="margin:0 0 .8rem; color:var(--muted);">
@@ -112,5 +103,4 @@ const missingRequired = groups.flatMap((g) => g.items).filter((i) => i.required 
         <li>Use "Send myself a test email" above, then submit the live newsletter form to confirm both paths land.</li>
       </ol>
     </div>
-  </section>
-</Base>
+</DashShell>

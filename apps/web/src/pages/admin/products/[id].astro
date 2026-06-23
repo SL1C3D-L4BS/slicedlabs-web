@@ -1,7 +1,7 @@
 ---
 // SlicedLabs · commerce · © 2026 SlicedLabs — Admin: edit product + variants
 export const prerender = false;
-import Base from "../../../layouts/Base.astro";
+import DashShell from "../../../layouts/DashShell.astro";
 import { createServiceSupabase } from "../../../lib/supabase";
 import { isAdmin } from "../../../lib/admin";
 
@@ -55,7 +55,7 @@ let loadError: string | null = null;
 
 if (svc) {
   const { data, error } = await svc.from("products").select("*").eq("id", id).maybeSingle();
-  if (error) loadError = error.message;
+  if (error) { loadError = "Couldn't load this product. Refresh, or check the Supabase connection."; console.error("[admin/product]", error.message); }
   product = (data as Product) ?? null;
   if (svc && !product && !error) return Astro.redirect("/admin/products");
   if (product) {
@@ -64,7 +64,7 @@ if (svc) {
       .select("*")
       .eq("product_id", id)
       .order("position");
-    if (vErr) loadError = vErr.message;
+    if (vErr) { loadError = "Couldn't load this product's variants."; console.error("[admin/product/variants]", vErr.message); }
     variants = (vData as Variant[]) ?? [];
   }
 }
@@ -82,13 +82,14 @@ const dollars = (cents: number) => (cents / 100).toFixed(2);
 const prod = product;
 ---
 
-<Base
-  title={product ? `Admin — ${product.title} · SlicedLabs` : "Admin — Product · SlicedLabs"}
+<DashShell
+  title={product ? `${product.title} — Admin · SlicedLabs` : "Product — Admin · SlicedLabs"}
   description="SlicedLabs operator cockpit — edit product."
-  noindex={true}
+  section="admin"
+  active="/admin/products"
+  email={cu?.primaryEmailAddress?.emailAddress}
+  crumbs={[{ label: "Products", href: "/admin/products" }, { label: product ? product.title : "Product" }]}
 >
-  <section class="wrap section">
-    <a href="/admin/products" class="mono" data-reveal style="text-decoration:none;">← All products</a>
 
     {
       err && (
@@ -112,9 +113,7 @@ const prod = product;
     {
       svc && prod && (
         <>
-          <h1 class="t-h1" data-reveal style="--i:1; margin:.6rem 0 0;">
-            <span class="blend-text">{prod.title}</span>
-          </h1>
+          <h1 class="dash-h1">{prod.title}</h1>
           <p class="mono" data-reveal style="--i:2; margin:.3rem 0 0;">{prod.slug}</p>
 
           {loadError && (
@@ -331,5 +330,4 @@ const prod = product;
         </>
       )
     }
-  </section>
-</Base>
+</DashShell>

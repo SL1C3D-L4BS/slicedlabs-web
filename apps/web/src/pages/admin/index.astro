@@ -1,7 +1,8 @@
 ---
 // SlicedLabs · commerce · © 2026 SlicedLabs — Admin cockpit: Orders
 export const prerender = false;
-import Base from "../../layouts/Base.astro";
+import DashShell from "../../layouts/DashShell.astro";
+import EmptyState from "../../components/EmptyState.astro";
 import { createServiceSupabase } from "../../lib/supabase";
 import { isAdmin } from "../../lib/admin";
 import { formatMoney } from "../../lib/commerce/cart";
@@ -49,7 +50,7 @@ if (svc) {
     )
     .order("created_at", { ascending: false })
     .limit(100);
-  if (error) loadError = error.message;
+  if (error) { loadError = "Couldn't load orders right now. Refresh, or check the Supabase connection."; console.error("[admin/orders]", error.message); }
   else orders = (data as OrderRow[]) ?? [];
 }
 
@@ -72,21 +73,25 @@ const revenueCents = orders
 const revenueCurrency = orders.find((o) => REVENUE_STATES.has(o.status))?.currency ?? "usd";
 const needsAction = orders.filter((o) => ACTION_STATES.has(o.status)).length;
 
-// status → token color for the .tag pill
-const statusHue = (st: string): string => {
+// order status → SEMANTIC state for .tag-status[data-state] (color carries meaning):
+// paid/delivered = success · fulfilling = in-progress · shipped = info · refunded/
+// canceled = danger · pending = warning. No more coral-on-everything decoration.
+const orderState = (st: string): string => {
   switch (st) {
     case "paid":
-      return "var(--teal)";
-    case "fulfilling":
-      return "var(--coral)";
-    case "shipped":
     case "delivered":
-      return "var(--mark)";
+      return "success";
+    case "fulfilling":
+      return "progress";
+    case "shipped":
+      return "info";
+    case "pending":
+      return "warning";
     case "refunded":
     case "canceled":
-      return "var(--muted)";
+      return "danger";
     default:
-      return "var(--muted)";
+      return "neutral";
   }
 };
 
@@ -94,167 +99,105 @@ const fmtDate = (iso: string) =>
   new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 ---
 
-<Base
-  title="Admin — Orders · SlicedLabs"
+<DashShell
+  title="Orders — Admin · SlicedLabs"
   description="SlicedLabs operator cockpit — orders."
-  noindex={true}
+  section="admin"
+  active="/admin"
+  email={cu?.primaryEmailAddress?.emailAddress}
+  crumbs={[{ label: "Orders" }]}
 >
-  <section class="wrap section">
-    <div
-      style="display:flex; align-items:baseline; gap:1rem; flex-wrap:wrap; justify-content:space-between;"
-    >
-      <div>
-        <p class="mono" data-reveal>operator cockpit</p>
-        <h1 class="t-h1" data-reveal style="--i:1; margin:.2rem 0 0;">
-          <span class="blend-text">Orders</span>
-        </h1>
-      </div>
-      <nav data-reveal style="--i:2; display:flex; gap:.6rem; flex-wrap:wrap;" aria-label="Admin sections">
-        <a href="/admin/products" class="btn-ghost btn">Products →</a>
-        <a href="/admin/recipes" class="btn-ghost btn">Recipes →</a>
-        <a href="/admin/menu" class="btn-ghost btn">Menu →</a>
-        <a href="/admin/playbooks" class="btn-ghost btn">Playbooks →</a>
-        <a href="/admin/vault" class="btn-ghost btn">Vault →</a>
-        <a href="/admin/truck" class="btn-ghost btn">Truck →</a>
-        <a href="/admin/workshops" class="btn-ghost btn">Workshops →</a>
-        <a href="/admin/integrations" class="btn-ghost btn">Integrations →</a>
-      </nav>
+  <h1 class="dash-h1">Orders</h1>
+  <p class="dash-sub">Every order, newest first. Update status + tracking inline.</p>
+
+  {!svc && (
+    <div class="dash-notice warn">
+      <strong>Service role key not set.</strong>
+      <p style="color:var(--muted); margin:.4rem 0 0;">
+        Set <code>SUPABASE_SERVICE_ROLE_KEY</code> in the environment so the cockpit can
+        read every order and write updates. Until then, this view is empty.
+      </p>
     </div>
+  )}
 
-    {
-      !svc && (
-        <div class="glass island" data-reveal style="margin-top:1.6rem;">
-          <h2 style="font-size:1.2rem; margin:0 0 .4rem;">Service role key not set</h2>
-          <p style="color:var(--muted); margin:0;">
-            Set <code>SUPABASE_SERVICE_ROLE_KEY</code> in the environment so the cockpit can
-            read every order and write updates. Until then, this view is empty.
-          </p>
+  {svc && loadError && (
+    <div class="dash-notice danger">
+      <p style="margin:0;">{loadError}</p>
+    </div>
+  )}
+
+  {svc && !loadError && (
+    <>
+      <div class="kpi-grid">
+        <div class="kpi">
+          <span class="kpi-k">total orders</span>
+          <span class="kpi-n">{totalOrders}</span>
         </div>
-      )
-    }
-
-    {
-      svc && loadError && (
-        <div class="glass island" data-reveal style="margin-top:1.6rem;">
-          <p style="color:var(--coral); margin:0;">Couldn't load orders: {loadError}</p>
+        <div class="kpi">
+          <span class="kpi-k">revenue · paid &amp; up</span>
+          <span class="kpi-n">{formatMoney(revenueCents, revenueCurrency)}</span>
         </div>
-      )
-    }
+        <div class="kpi">
+          <span class="kpi-k">needs action</span>
+          <span class="kpi-n">{needsAction}</span>
+        </div>
+        <div class="kpi">
+          <span class="kpi-k">members</span>
+          <span class="kpi-n">{memberCount}</span>
+        </div>
+      </div>
 
-    {
-      svc && !loadError && (
-        <>
-          <div class="bento" style="margin-top:1.6rem;">
-            <article class="glass island col-2" data-reveal>
-              <p class="mono" style="margin:0;">total orders</p>
-              <p class="t-h2" style="font-family:var(--font-display); font-weight:800; margin:.3rem 0 0;">
-                {totalOrders}
-              </p>
-            </article>
-            <article class="glass island col-2" data-reveal style="--i:1;">
-              <p class="mono" style="margin:0;">revenue (paid+)</p>
-              <p class="t-h2" style="font-family:var(--font-display); font-weight:800; margin:.3rem 0 0;">
-                <span class="blend-text">{formatMoney(revenueCents, revenueCurrency)}</span>
-              </p>
-            </article>
-            <article class="glass island col-2" data-reveal style="--i:2;">
-              <p class="mono" style="margin:0;">needs action</p>
-              <p class="t-h2" style="font-family:var(--font-display); font-weight:800; margin:.3rem 0 0;">
-                {needsAction}
-              </p>
-            </article>
-            <article class="glass island col-2" data-reveal style="--i:3;">
-              <p class="mono" style="margin:0;">members</p>
-              <p class="t-h2" style="font-family:var(--font-display); font-weight:800; margin:.3rem 0 0;">
-                {memberCount}
-              </p>
-            </article>
-          </div>
-
-          <div
-            data-reveal
-            style="--i:1; margin-top:1.8rem; overflow-x:auto; border:1px solid var(--stroke); border-radius:var(--radius);"
-          >
-            <table style="width:100%; border-collapse:collapse; min-width:46rem; font-size:.92rem;">
-              <thead>
-                <tr style="text-align:left;">
-                  {["Date", "Email", "Fulfillment", "Status", "Total", "Printful", "Action"].map(
-                    (h) => (
-                      <th
-                        class="mono"
-                        style="padding:.7rem .8rem; border-bottom:1px solid var(--stroke); white-space:nowrap;"
-                      >
-                        {h}
-                      </th>
-                    ),
-                  )}
-                </tr>
-              </thead>
-              <tbody>
-                {orders.length === 0 && (
-                  <tr>
-                    <td colspan="7" style="padding:1.2rem .8rem; color:var(--muted);">
-                      No orders yet.
-                    </td>
-                  </tr>
-                )}
-                {orders.map((o) => (
-                  <tr style="border-bottom:1px solid var(--stroke);">
-                    <td style="padding:.7rem .8rem; white-space:nowrap; color:var(--muted);">
-                      {fmtDate(o.created_at)}
-                    </td>
-                    <td style="padding:.7rem .8rem;">{o.email || "—"}</td>
-                    <td style="padding:.7rem .8rem; white-space:nowrap;">{o.fulfillment_type}</td>
-                    <td style="padding:.7rem .8rem;">
-                      <span class="tag" style={`color:${statusHue(o.status)}; border-color:${statusHue(o.status)};`}>
-                        {o.status}
-                      </span>
-                    </td>
-                    <td style="padding:.7rem .8rem; white-space:nowrap;">
-                      {formatMoney(o.total_cents ?? 0, o.currency)}
-                    </td>
-                    <td style="padding:.7rem .8rem; white-space:nowrap; color:var(--muted);">
-                      {o.printful_order_id || "—"}
-                    </td>
-                    <td style="padding:.7rem .8rem;">
-                      <form
-                        method="POST"
-                        action="/api/admin/order-status"
-                        style="display:flex; gap:.4rem; align-items:center;"
-                      >
-                        <input type="hidden" name="order_id" value={o.id} />
-                        <label class="mono" for={`st-${o.id}`} style="position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0);">
-                          Status for order {o.id}
-                        </label>
-                        <select id={`st-${o.id}`} name="status" class="fld" style="width:auto; padding:.4rem .6rem;">
-                          {ORDER_STATUS.map((st) => (
-                            <option value={st} selected={st === o.status}>
-                              {st}
-                            </option>
-                          ))}
-                        </select>
-                        {o.fulfillment_type === "in_house" && (
-                          <input
-                            type="text"
-                            name="tracking_number"
-                            placeholder="tracking #"
-                            class="fld"
-                            style="width:7rem; padding:.4rem .5rem;"
-                            aria-label={`Tracking number for order ${o.id}`}
-                          />
-                        )}
-                        <button type="submit" class="btn btn-ghost" style="padding:.45rem .8rem;">
-                          Save
-                        </button>
-                      </form>
-                    </td>
-                  </tr>
+      {orders.length === 0 ? (
+        <EmptyState
+          title="No orders yet"
+          detail="When a customer checks out, their order lands here — ready to fulfil and track."
+          ctaHref="/shop"
+          ctaLabel="View the shop"
+        />
+      ) : (
+        <div class="dash-table-wrap">
+          <table class="dash-table">
+            <thead>
+              <tr>
+                {["Date", "Email", "Fulfillment", "Status", "Total", "Printful", "Action"].map((h) => (
+                  <th class={h === "Total" ? "num" : undefined}>{h}</th>
                 ))}
-              </tbody>
-            </table>
-          </div>
-        </>
-      )
-    }
-  </section>
-</Base>
+              </tr>
+            </thead>
+            <tbody>
+              {orders.map((o) => (
+                <tr>
+                  <td class="muted" style="white-space:nowrap;">{fmtDate(o.created_at)}</td>
+                  <td>{o.email || "—"}</td>
+                  <td style="white-space:nowrap;">{o.fulfillment_type}</td>
+                  <td>
+                    <span class="tag-status" data-state={orderState(o.status)}>{o.status}</span>
+                  </td>
+                  <td class="num">{formatMoney(o.total_cents ?? 0, o.currency)}</td>
+                  <td class="muted" style="white-space:nowrap;">{o.printful_order_id || "—"}</td>
+                  <td>
+                    <form method="POST" action="/api/admin/order-status" style="display:flex; gap:.4rem; align-items:center;">
+                      <input type="hidden" name="order_id" value={o.id} />
+                      <label class="mono" for={`st-${o.id}`} style="position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0);">
+                        Status for order {o.id}
+                      </label>
+                      <select id={`st-${o.id}`} name="status" class="fld" style="width:auto; padding:.4rem 1.8rem .4rem .6rem;">
+                        {ORDER_STATUS.map((st) => (
+                          <option value={st} selected={st === o.status}>{st}</option>
+                        ))}
+                      </select>
+                      {o.fulfillment_type === "in_house" && (
+                        <input type="text" name="tracking_number" placeholder="tracking #" class="fld" style="width:7rem; padding:.4rem .5rem;" aria-label={`Tracking number for order ${o.id}`} />
+                      )}
+                      <button type="submit" class="btn btn-ghost btn-sm">Save</button>
+                    </form>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </>
+  )}
+</DashShell>

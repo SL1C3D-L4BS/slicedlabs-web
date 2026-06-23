@@ -1,7 +1,7 @@
 ---
 // SlicedLabs · commerce · © 2026 SlicedLabs — Admin cockpit: Workshops list + create
 export const prerender = false;
-import Base from "../../layouts/Base.astro";
+import DashShell from "../../layouts/DashShell.astro";
 import { createServiceSupabase } from "../../lib/supabase";
 import { isAdmin } from "../../lib/admin";
 import { formatMoney } from "../../lib/commerce/cart";
@@ -36,22 +36,14 @@ if (svc) {
     .from("workshops")
     .select("id,slug,title,status,starts_at,price_cents,currency,created_at")
     .order("created_at", { ascending: false });
-  if (error) loadError = error.message;
+  if (error) { loadError = "Couldn't load workshops right now. Refresh, or check the Supabase connection."; console.error("[admin/workshops]", error.message); }
   else workshops = (data as WorkshopRow[]) ?? [];
 }
 
 const WORKSHOP_STATUS = ["draft", "published", "archived"];
 
-const statusHue = (st: string): string => {
-  switch (st) {
-    case "published":
-      return "var(--teal)";
-    case "archived":
-      return "var(--muted)";
-    default:
-      return "var(--coral)"; // draft
-  }
-};
+const contentState = (st: string): string =>
+  st === "published" ? "success" : st === "archived" ? "neutral" : "warning"; // draft = warning
 
 const fmtWhen = (iso: string | null): string =>
   iso
@@ -63,28 +55,15 @@ const fmtPrice = (cents: number, currency: string): string =>
 const err = Astro.url.searchParams.get("err");
 ---
 
-<Base
-  title="Admin — Workshops · SlicedLabs"
+<DashShell
+  title="Workshops — Admin · SlicedLabs"
   description="SlicedLabs operator cockpit — workshops."
-  noindex={true}
+  section="admin"
+  active="/admin/workshops"
+  email={cu?.primaryEmailAddress?.emailAddress}
+  crumbs={[{ label: "Workshops" }]}
 >
-  <section class="wrap section">
-    <div
-      style="display:flex; align-items:baseline; gap:1rem; flex-wrap:wrap; justify-content:space-between;"
-    >
-      <div>
-        <p class="mono" data-reveal>operator cockpit</p>
-        <h1 class="t-h1" data-reveal style="--i:1; margin:.2rem 0 0;">
-          <span class="blend-text">Workshops</span>
-        </h1>
-      </div>
-      <nav data-reveal style="--i:2; display:flex; gap:1.2rem; align-items:center; flex-wrap:wrap;">
-        <a href="/admin">Orders</a>
-        <a href="/admin/products">Products</a>
-        <a href="/admin/vault">Vault</a>
-        <a href="/admin/truck">Truck</a>
-      </nav>
-    </div>
+    <h1 class="dash-h1">Workshops</h1>
 
     {
       err && (
@@ -211,7 +190,7 @@ const err = Astro.url.searchParams.get("err");
                       {w.slug}
                     </td>
                     <td style="padding:.7rem .8rem;">
-                      <span class="tag" style={`color:${statusHue(w.status)}; border-color:${statusHue(w.status)};`}>
+                      <span class="tag-status" data-state={contentState(w.status)}>
                         {w.status}
                       </span>
                     </td>
@@ -256,5 +235,4 @@ const err = Astro.url.searchParams.get("err");
         </>
       )
     }
-  </section>
-</Base>
+</DashShell>

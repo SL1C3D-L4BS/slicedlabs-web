@@ -1,7 +1,7 @@
 ---
 // SlicedLabs · commerce · © 2026 SlicedLabs — Admin cockpit: Vault assets
 export const prerender = false;
-import Base from "../../layouts/Base.astro";
+import DashShell from "../../layouts/DashShell.astro";
 import { createServiceSupabase } from "../../lib/supabase";
 import { isAdmin } from "../../lib/admin";
 import { VAULT_DROPS } from "../../lib/perks";
@@ -36,23 +36,15 @@ const fmtSize = (b: number) => (b >= 1e6 ? `${(b / 1e6).toFixed(1)} MB` : `${Mat
 const err = Astro.url.searchParams.get("err");
 const ok = Astro.url.searchParams.get("ok");
 ---
-<Base title="Vault — Admin" description="Upload entitlement-gated vault assets." noindex={true}>
-  <section class="wrap section">
-    <div
-      data-reveal
-      style="display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap; align-items:baseline; margin-bottom:1.4rem;"
-    >
-      <div>
-        <p class="mono" style="margin:0;">cockpit</p>
-        <h1 class="t-h2" style="margin:.2rem 0 0;">
-          <span class="blend-text">Vault drops</span>
-        </h1>
-      </div>
-      <nav style="display:flex; gap:1.2rem; align-items:center;">
-        <a href="/admin">Orders</a>
-        <a href="/admin/products">Products</a>
-      </nav>
-    </div>
+<DashShell
+  title="Vault drops — Admin · SlicedLabs"
+  description="Upload entitlement-gated vault assets."
+  section="admin"
+  active="/admin/vault"
+  email={cu?.primaryEmailAddress?.emailAddress}
+  crumbs={[{ label: "Vault" }]}
+>
+    <h1 class="dash-h1">Vault drops</h1>
 
     {!svc && (
       <p class="glass island" data-reveal style="color:var(--coral);">
@@ -102,5 +94,4 @@ const ok = Astro.url.searchParams.get("ok");
           </form>
         </article>
       ))}
-  </section>
-</Base>
+</DashShell>

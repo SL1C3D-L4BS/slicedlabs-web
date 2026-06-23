@@ -4,7 +4,7 @@
 // The operator edits the JSONB ingredients/steps as plain text (one per line); the
 // /api/admin/recipe endpoint parses them. Edit mode loads via ?edit=<id>.
 export const prerender = false;
-import Base from "../../layouts/Base.astro";
+import DashShell from "../../layouts/DashShell.astro";
 import { createServiceSupabase } from "../../lib/supabase";
 import { isAdmin } from "../../lib/admin";
 
@@ -47,8 +47,8 @@ const SECTIONS = [
 ];
 const RECIPE_STATUS = ["draft", "published", "archived"];
 
-const statusHue = (st: string): string =>
-  st === "published" ? "var(--teal)" : st === "archived" ? "var(--muted)" : "var(--coral)";
+const contentState = (st: string): string =>
+  st === "published" ? "success" : st === "archived" ? "neutral" : "warning"; // draft = warning
 
 // inverse of the /api/admin/recipe parsers — JSON → editable plain text
 const ingredientsToText = (rows: Ingredient[] | null): string =>
@@ -70,7 +70,7 @@ if (svc) {
     )
     .order("section")
     .order("sort");
-  if (error) loadError = error.message;
+  if (error) { loadError = "Couldn't load recipes right now. Refresh, or check the Supabase connection."; console.error("[admin/recipes]", error.message); }
   else recipes = (data as unknown as RecipeRow[]) ?? [];
   if (editId) editing = recipes.find((r) => r.id === editId) ?? null;
 }
@@ -80,23 +80,15 @@ const ok = Astro.url.searchParams.get("ok");
 const e = editing; // shorthand for the form defaults
 ---
 
-<Base title="Admin — Recipes · SlicedLabs" description="SlicedLabs operator cockpit — recipes." noindex={true}>
-  <section class="wrap section">
-    <div style="display:flex; align-items:baseline; gap:1rem; flex-wrap:wrap; justify-content:space-between;">
-      <div>
-        <p class="mono" data-reveal>operator cockpit</p>
-        <h1 class="t-h1" data-reveal style="--i:1; margin:.2rem 0 0;">
-          <span class="blend-text">Recipes</span>
-        </h1>
-      </div>
-      <nav data-reveal style="--i:2; display:flex; gap:1.2rem; align-items:center; flex-wrap:wrap;">
-        <a href="/admin">Orders</a>
-        <a href="/admin/products">Products</a>
-        <a href="/admin/workshops">Workshops</a>
-        <a href="/admin/vault">Vault</a>
-        <a href="/admin/truck">Truck</a>
-      </nav>
-    </div>
+<DashShell
+  title="Recipes — Admin · SlicedLabs"
+  description="SlicedLabs operator cockpit — recipes."
+  section="admin"
+  active="/admin/recipes"
+  email={cu?.primaryEmailAddress?.emailAddress}
+  crumbs={[{ label: "Recipes" }]}
+>
+    <h1 class="dash-h1">Recipes</h1>
 
     {err && <p class="mono" data-reveal style="color:var(--coral); margin-top:1rem;">{err}</p>}
     {ok && <p class="mono" data-reveal style="color:var(--teal); margin-top:1rem;">Saved · {ok}</p>}
@@ -232,7 +224,7 @@ const e = editing; // shorthand for the form defaults
                     <td style="padding:.7rem .8rem; color:var(--muted); white-space:nowrap;">{r.sl_code ?? "—"}</td>
                     <td style="padding:.7rem .8rem; color:var(--muted); white-space:nowrap;">{r.section}</td>
                     <td style="padding:.7rem .8rem;">
-                      <span class="tag" style={`color:${statusHue(r.status)}; border-color:${statusHue(r.status)};`}>{r.status}</span>
+                      <span class="tag-status" data-state={contentState(r.status)}>{r.status}</span>
                     </td>
                     <td style="padding:.7rem .8rem;">
                       <form method="POST" action="/api/admin/recipe" style="display:flex; gap:.4rem; align-items:center;">
@@ -258,8 +250,7 @@ const e = editing; // shorthand for the form defaults
         </>
       )
     }
-  </section>
-</Base>
+</DashShell>
 
 <style>
   .row2 { display: grid; gap: .8rem; grid-template-columns: 1fr; }

@@ -3,8 +3,8 @@
 // Shows the signed-in customer's own orders (RLS scopes the query to them).
 // Handles a sign-out POST. Gated: anonymous visitors bounce to the login page.
 export const prerender = false;
-import Base from "../../layouts/Base.astro";
-import { SignOutButton } from "@clerk/astro/components";
+import DashShell from "../../layouts/DashShell.astro";
+import EmptyState from "../../components/EmptyState.astro";
 import { getClerkSupabase } from "../../lib/supabase";
 import { ensureClerkProfile } from "../../lib/clerkProfile";
 import { formatMoney } from "../../lib/commerce/cart";
@@ -93,6 +93,15 @@ const fmtDate = (iso: string) =>
     day: "numeric",
   });
 
+// Humanize a "playbook:debt-in-order" entitlement slug into a readable title
+// (drop the prefix, de-kebab, title-case) so the dashboard never shows raw slugs.
+const playbookTitle = (kind: string): string =>
+  kind
+    .replace(/^playbook:/, "")
+    .replace(/[-_]+/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase())
+    .trim() || "Playbook";
+
 // Surface a Billing-Portal hiccup if /api/account/portal bounced back here.
 const billing = Astro.url.searchParams.get("billing");
 const BILLING_MSG: Record<string, string> = {
@@ -102,217 +111,142 @@ const BILLING_MSG: Record<string, string> = {
 };
 const billingMsg = billing ? BILLING_MSG[billing] : null;
 ---
-<Base
-  title="Your account — SlicedLabs"
+<DashShell
+  title="Dashboard — Account · SlicedLabs"
   description="Your SlicedLabs orders and account."
-  noindex={true}
+  section="account"
+  active="/account"
+  email={email}
+  crumbs={[{ label: "Dashboard" }]}
 >
-  <section class="wrap section">
-    <div
-      data-reveal
-      style="display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-bottom:1.6rem;"
-    >
-      <div>
-        <p class="mono" style="margin:0;">your account</p>
-        <h1 class="t-h2" style="margin:.2rem 0 0; line-height:1.05;">
-          <span class="blend-text">Welcome back</span>
-        </h1>
-        <p style="color:var(--muted); margin:.5rem 0 0;">
-          {email}
-          {isMember && (
-            <span
-              class="tag"
-              style="margin-left:.55rem; color:var(--muted-strong); border-color:color-mix(in oklab, var(--teal) 45%, var(--stroke));"
-            >Member</span>
-          )}
-        </p>
-      </div>
-      <SignOutButton redirectUrl="/">
-        <button class="btn-ghost" type="button" style="margin-top:.4rem;">Sign out</button>
-      </SignOutButton>
+  <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
+    <div>
+      <h1 class="dash-h1">Welcome back</h1>
+      <p class="dash-sub" style="margin-bottom:0;">
+        {email}
+        {isMember && <span class="tag-status" data-state="success" style="margin-left:.55rem;">Member</span>}
+      </p>
     </div>
+  </div>
 
-    <nav class="mono" data-reveal style="display:flex; gap:1.2rem; margin-bottom:1.8rem; flex-wrap:wrap;" aria-label="Account">
-      <a href="/account/settings" style="color:var(--muted); text-decoration:none;">Settings →</a>
-      {isMember && <a href="/api/account/portal" style="color:var(--muted); text-decoration:none;">Manage membership →</a>}
-    </nav>
+  {billingMsg && <p role="status" style="color:var(--danger); margin:1.2rem 0 0;">{billingMsg}</p>}
 
-    {billingMsg && (
-      <p role="status" data-reveal style="color:var(--coral); margin:0 0 1.4rem;">{billingMsg}</p>
-    )}
-
+  <div class="stack" style="margin-top:var(--space-6);">
     {!isMember && (
-      <a
-        href="/membership"
-        class="glass glass-focal island"
-        data-reveal
-        style="display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; text-decoration:none; margin-bottom:1.8rem;"
-      >
+      <a href="/membership" class="card" style="display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; text-decoration:none;">
         <span>
-          <span class="mono" style="color:var(--muted);">the inner circle</span>
-          <span style="display:block; font-weight:600; color:var(--ink); margin-top:.2rem;">Become a member — early drops, every playbook, the build updates.</span>
+          <span class="kpi-k">the inner circle</span>
+          <span style="display:block; font-weight:600; color:var(--ink); margin-top:.25rem;">Become a member — early drops, every playbook, the build updates.</span>
         </span>
-        <span class="btn">Become a member →</span>
+        <span class="btn btn-sm">Become a member →</span>
       </a>
     )}
 
-    <a
-      href="/kitchen/tools"
-      class="glass island"
-      data-reveal
-      style="display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; text-decoration:none; margin-bottom:1.8rem;"
-    >
+    <a href="/kitchen/tools" class="card" style="display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; text-decoration:none;">
       <span>
-        <span class="mono" style="color:var(--muted);">your kitchen</span>
-        <span style="display:block; font-weight:600; color:var(--ink); margin-top:.2rem;">Track food waste + your dietary profile — synced to your account.</span>
+        <span class="kpi-k">your kitchen</span>
+        <span style="display:block; font-weight:600; color:var(--ink); margin-top:.25rem;">Track food waste + your dietary profile — synced to your account.</span>
       </span>
-      <span class="btn-ghost btn">Open food tools →</span>
+      <span class="btn btn-ghost btn-sm">Open food tools →</span>
     </a>
+  </div>
 
-    <h2 class="t-h3" data-reveal style="--i:1; margin:0 0 1rem;">
-      Orders
-    </h2>
+  <h2 class="dash-h1" style="font-size:var(--step-1); margin:var(--space-6) 0 var(--space-4);">Orders</h2>
 
-    {orders.length === 0 ? (
-      <div
-        class="glass island"
-        data-reveal
-        style="--i:2; display:flex; flex-direction:column; gap:1rem; align-items:flex-start;"
-      >
-        <p style="margin:0; color:var(--muted);">
-          No orders yet —
-        </p>
-        <a class="btn" href="/shop">Shop the drop</a>
-      </div>
-    ) : (
-      <div style="display:flex; flex-direction:column; gap:1rem;">
-        {orders.map((o, i) => (
-          <article
-            class="glass island"
-            data-reveal
-            style={`--i:${i}; display:flex; flex-direction:column; gap:.75rem;`}
-          >
-            <div
-              style="display:flex; align-items:center; justify-content:space-between; gap:.8rem; flex-wrap:wrap;"
-            >
-              <span class="mono" style="color:var(--muted);">{fmtDate(o.created_at)}</span>
-              <span class="tag">{o.status}</span>
-            </div>
+  {orders.length === 0 ? (
+    <EmptyState
+      title="No orders yet"
+      detail="When you place an order, it shows up here with live status and tracking."
+      ctaHref="/shop"
+      ctaLabel="Shop the drop"
+    />
+  ) : (
+    <div class="stack">
+      {orders.map((o) => (
+        <article class="card stack-sm">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:.8rem; flex-wrap:wrap;">
+            <span class="kpi-k">{fmtDate(o.created_at)}</span>
+            <span class="tag-status" data-state={
+              o.status === "paid" || o.status === "delivered" ? "success"
+              : o.status === "fulfilling" ? "progress"
+              : o.status === "shipped" ? "info"
+              : o.status === "refunded" || o.status === "canceled" ? "danger"
+              : o.status === "pending" ? "warning" : "neutral"
+            }>{o.status}</span>
+          </div>
+          <p style="margin:0; font-weight:700; font-variant-numeric:tabular-nums; font-size:1.15rem;">{formatMoney(o.total_cents, o.currency)}</p>
+          {o.order_items?.length > 0 && (
+            <ul style="list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.3rem;">
+              {o.order_items.map((it) => (
+                <li style="color:var(--muted); display:flex; gap:.6rem;">
+                  <span class="mono">{it.qty}×</span>
+                  <span>{it.title}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+          {o.tracking?.url && (
+            <a href={o.tracking.url} target="_blank" rel="noopener noreferrer" style="color:var(--mark); text-decoration:underline; text-underline-offset:3px; font-weight:600; align-self:flex-start;">Track package →</a>
+          )}
+        </article>
+      ))}
+    </div>
+  )}
 
-            <p
-              class="mono"
-              style="margin:0; font-size:1.15rem;"
-            >
-              {formatMoney(o.total_cents, o.currency)}
-            </p>
-
-            {o.order_items?.length > 0 && (
-              <ul
-                style="list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.3rem;"
-              >
-                {o.order_items.map((it) => (
-                  <li style="color:var(--muted); display:flex; gap:.6rem;">
-                    <span class="mono">{it.qty}×</span>
-                    <span>{it.title}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-
-            {o.tracking?.url && (
-              <a
-                href={o.tracking.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                style="color:var(--muted-strong); text-decoration:underline; text-underline-offset:3px; font-weight:600; align-self:flex-start;"
-              >
-                Track package →
-              </a>
+  {vaultDrops.length > 0 && (
+    <>
+      <h2 class="dash-h1" style="font-size:var(--step-1); margin:var(--space-6) 0 var(--space-4);">Vault drops</h2>
+      <div class="stack">
+        {vaultDrops.map((d) => (
+          <article class="card" style="display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;">
+            <span>{d.ref_id ?? "Drop"}</span>
+            {d.ref_id ? (
+              <a class="btn btn-ghost btn-sm" href={`/api/vault/${encodeURIComponent(d.ref_id)}`}>Download →</a>
+            ) : (
+              <span class="kpi-k">preparing…</span>
             )}
           </article>
         ))}
       </div>
-    )}
+    </>
+  )}
 
-    {vaultDrops.length > 0 && (
-      <>
-        <h2 class="t-h3" data-reveal style="margin:2.6rem 0 1rem;">
-          Vault drops
-        </h2>
-        <div style="display:flex; flex-direction:column; gap:.8rem;">
-          {vaultDrops.map((d, i) => (
-            <article
-              class="glass island"
-              data-reveal
-              style={`--i:${i}; display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;`}
-            >
-              <span>{d.ref_id ?? "Drop"}</span>
-              {d.ref_id ? (
-                <a class="btn-ghost" href={`/api/vault/${encodeURIComponent(d.ref_id)}`}>
-                  Download →
-                </a>
-              ) : (
-                <span class="mono" style="color:var(--muted);">preparing…</span>
-              )}
-            </article>
-          ))}
-        </div>
-      </>
-    )}
+  {playbooks.length > 0 && (
+    <>
+      <h2 class="dash-h1" style="font-size:var(--step-1); margin:var(--space-6) 0 var(--space-4);">Playbooks</h2>
+      <div class="stack-sm" style="display:flex; flex-direction:column;">
+        {playbooks.map((p) => (
+          <div class="card card-sm">{playbookTitle(p.kind)}</div>
+        ))}
+      </div>
+    </>
+  )}
 
-    {playbooks.length > 0 && (
-      <>
-        <h2 class="t-h3" data-reveal style="margin:2.6rem 0 1rem;">
-          Playbooks
-        </h2>
-        <ul style="list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.5rem;">
-          {playbooks.map((p) => (
-            <li class="glass island" style="padding:.9rem 1.1rem;">
-              {p.kind.replace("playbook:", "")}
-            </li>
-          ))}
-        </ul>
-      </>
-    )}
+  {workshops.length > 0 && (
+    <>
+      <h2 class="dash-h1" style="font-size:var(--step-1); margin:var(--space-6) 0 var(--space-4);">Your workshops</h2>
+      <div class="stack-sm" style="display:flex; flex-direction:column;">
+        {workshops.map((w) => (
+          <a class="card card-sm" href={`/workshops/${w.ref_id}`} style="text-decoration:none; display:flex; justify-content:space-between; align-items:center; gap:.8rem;">
+            <span style="color:var(--ink);">{w.ref_id}</span>
+            <span class="mono" style="color:var(--teal);">View workshop →</span>
+          </a>
+        ))}
+      </div>
+    </>
+  )}
 
-    {workshops.length > 0 && (
-      <>
-        <h2 class="t-h3" data-reveal style="margin:2.6rem 0 1rem;">
-          Your workshops
-        </h2>
-        <div style="display:flex; flex-direction:column; gap:.6rem;">
-          {workshops.map((w) => (
-            <a
-              class="glass island"
-              href={`/workshops/${w.ref_id}`}
-              style="text-decoration:none; display:flex; justify-content:space-between; align-items:center; gap:.8rem;"
-            >
-              <span style="color:var(--ink);">{w.ref_id}</span>
-              <span class="mono" style="color:var(--teal);">View workshop →</span>
-            </a>
-          ))}
-        </div>
-      </>
-    )}
-
-    {recipes.length > 0 && (
-      <>
-        <h2 class="t-h3" data-reveal style="margin:2.6rem 0 1rem;">
-          Saved recipes
-        </h2>
-        <div style="display:flex; flex-direction:column; gap:.6rem;">
-          {recipes.map((r) => (
-            <a
-              class="glass island"
-              href={`/recipes/${r.recipe_slug}`}
-              style="text-decoration:none; display:block;"
-            >
-              <span style="color:var(--ink);">{recipeTitle[r.recipe_slug] ?? r.recipe_slug}</span>
-              {r.note && <p style="color:var(--muted); margin:.3rem 0 0;">{r.note}</p>}
-            </a>
-          ))}
-        </div>
-      </>
-    )}
-  </section>
-</Base>
+  {recipes.length > 0 && (
+    <>
+      <h2 class="dash-h1" style="font-size:var(--step-1); margin:var(--space-6) 0 var(--space-4);">Saved recipes</h2>
+      <div class="stack-sm" style="display:flex; flex-direction:column;">
+        {recipes.map((r) => (
+          <a class="card card-sm" href={`/recipes/${r.recipe_slug}`} style="text-decoration:none; display:block;">
+            <span style="color:var(--ink);">{recipeTitle[r.recipe_slug] ?? r.recipe_slug}</span>
+            {r.note && <p style="color:var(--muted); margin:.3rem 0 0;">{r.note}</p>}
+          </a>
+        ))}
+      </div>
+    </>
+  )}
+</DashShell>

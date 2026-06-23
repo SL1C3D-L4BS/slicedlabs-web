@@ -1,0 +1,145 @@
+/* SlicedLabs · dashboard kit · © 2026 SlicedLabs
+ * dash.css — the PRODUCT surface. Imported by DashShell.astro ONLY (not the marketing
+ * Base). A quiet, flat app shell: a persistent sidebar, breadcrumb, and a dense table /
+ * KPI / field / toolbar kit. Rides the same tokens as global.css so it re-skins with the
+ * brand, but it deliberately omits the marketing chrome (pillbar, footer, ShaderField,
+ * grain, vignette, exit-gate) and the heavy ambient glass shadows.
+ */
+
+/* ── shell layout ─────────────────────────────────────────────────────── */
+.dash {
+  display: grid;
+  grid-template-columns: 16rem 1fr;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--ink);
+}
+.dash-side {
+  position: sticky; top: 0; align-self: start;
+  height: 100vh; overflow-y: auto;
+  display: flex; flex-direction: column; gap: var(--space-2);
+  padding: var(--space-5) var(--space-4);
+  border-right: 1px solid var(--stroke);
+  background: var(--bg-alt);
+}
+.dash-brand { display: flex; align-items: center; gap: .6rem; text-decoration: none; margin-bottom: var(--space-3); }
+.dash-brand img { display: block; }
+.dash-brand .dash-word { font-family: var(--font-display); font-weight: 800; letter-spacing: -.01em; font-size: 1.05rem; color: var(--ink); }
+.dash-eyebrow { font-family: var(--font-mono); font-size: .66rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0 0 .5rem .2rem; }
+
+.dash-nav { display: flex; flex-direction: column; gap: 2px; }
+.dash-link {
+  display: flex; align-items: center; gap: .6rem;
+  padding: .5rem .7rem; border-radius: var(--radius-sm);
+  text-decoration: none; color: var(--muted-strong);
+  font-size: .92rem; font-weight: 500;
+  border: 1px solid transparent;
+  transition: background var(--t-quick), color var(--t-quick);
+}
+.dash-link:hover { background: color-mix(in oklab, var(--ink) 6%, transparent); color: var(--ink); }
+.dash-link[aria-current="page"] {
+  background: color-mix(in oklab, var(--mark) 12%, transparent);
+  border-color: color-mix(in oklab, var(--mark) 30%, transparent);
+  color: var(--ink); font-weight: 600;
+}
+.dash-link .dash-dot { width: .4rem; height: .4rem; border-radius: 999px; background: currentColor; opacity: .55; flex: none; }
+.dash-link[aria-current="page"] .dash-dot { opacity: 1; background: var(--mark); }
+
+.dash-side-foot { margin-top: auto; padding-top: var(--space-4); border-top: 1px solid var(--stroke); display: flex; flex-direction: column; gap: .5rem; }
+.dash-user { font-size: .82rem; color: var(--muted); word-break: break-all; }
+.dash-side-foot .btn-ghost { width: 100%; justify-content: center; }
+
+/* ── main column ──────────────────────────────────────────────────────── */
+.dash-main { display: flex; flex-direction: column; min-width: 0; }
+.dash-topbar {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-4);
+  padding: var(--space-4) var(--space-6);
+  border-bottom: 1px solid var(--stroke);
+  background: color-mix(in oklab, var(--bg) 86%, transparent);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+}
+.dash-crumb { display: flex; align-items: center; gap: .5rem; font-size: .85rem; color: var(--muted); flex-wrap: wrap; }
+.dash-crumb a { color: var(--muted); text-decoration: none; }
+.dash-crumb a:hover { color: var(--ink); }
+.dash-crumb .sep { opacity: .5; }
+.dash-crumb .here { color: var(--ink); font-weight: 600; }
+.dash-body { padding: var(--space-6); max-width: 72rem; width: 100%; }
+.dash-h1 { font-size: var(--step-2); font-weight: 700; letter-spacing: -.01em; line-height: 1.1; margin: 0 0 var(--space-2); color: var(--ink); }
+.dash-sub { color: var(--muted); margin: 0 0 var(--space-5); }
+
+/* ── KPI cards — numbers ride the BODY font + tabular-nums (NOT the serif display) ── */
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: var(--space-4); margin-bottom: var(--space-6); }
+.kpi {
+  display: flex; flex-direction: column; gap: .35rem;
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--stroke); border-radius: var(--radius);
+  background: var(--bg-alt); box-shadow: var(--shadow-1);
+}
+.kpi-k { font-family: var(--font-mono); font-size: .68rem; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+.kpi-n { font-family: var(--font-body); font-weight: 700; font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; font-size: var(--step-3); line-height: 1; color: var(--ink); }
+.kpi-meta { font-size: .78rem; color: var(--muted); }
+
+/* ── tables — zebra + hover + sticky thead + right-aligned tabular money ── */
+.dash-table-wrap { border: 1px solid var(--stroke); border-radius: var(--radius); overflow: auto; background: var(--bg-alt); box-shadow: var(--shadow-1); }
+.dash-table { width: 100%; border-collapse: collapse; font-size: .9rem; min-width: 44rem; }
+.dash-table thead th {
+  position: sticky; top: 0; z-index: 1;
+  text-align: left; padding: .7rem .85rem; white-space: nowrap;
+  font-family: var(--font-mono); font-size: .68rem; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--muted); background: var(--bg-alt);
+  border-bottom: 1px solid var(--stroke);
+}
+.dash-table tbody td { padding: .7rem .85rem; border-bottom: 1px solid color-mix(in oklab, var(--stroke) 70%, transparent); vertical-align: middle; }
+.dash-table tbody tr:last-child td { border-bottom: 0; }
+.dash-table tbody tr:nth-child(even) { background: color-mix(in oklab, var(--ink) 3%, transparent); }
+.dash-table tbody tr:hover { background: color-mix(in oklab, var(--mark) 7%, transparent); }
+.dash-table .num { text-align: right; font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; white-space: nowrap; }
+.dash-table .muted { color: var(--muted); }
+.dash-table th.num { text-align: right; }
+
+/* ── fields + toolbar — labeled inputs, action bars ──────────────────── */
+.field { display: flex; flex-direction: column; gap: .35rem; }
+.field-label { font-family: var(--font-mono); font-size: .68rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.field-hint { font-size: .78rem; color: var(--muted); }
+.toolbar { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; margin-bottom: var(--space-5); }
+.toolbar .spacer { flex: 1; }
+
+/* ── panels — quiet card for forms / sections inside the dash (flat, shadow-1) ── */
+.dash-panel { padding: var(--space-5); border: 1px solid var(--stroke); border-radius: var(--radius); background: var(--bg-alt); box-shadow: var(--shadow-1); margin-bottom: var(--space-5); }
+.dash-panel-h { font-family: var(--font-display); font-weight: 700; font-size: var(--step-1); margin: 0 0 var(--space-4); color: var(--ink); }
+
+/* ── empty state ──────────────────────────────────────────────────────── */
+.empty {
+  display: flex; flex-direction: column; align-items: center; gap: var(--space-3);
+  text-align: center; padding: var(--space-7) var(--space-5);
+  border: 1px dashed var(--stroke); border-radius: var(--radius); background: color-mix(in oklab, var(--bg-alt) 60%, transparent);
+}
+.empty-ico { width: 2.4rem; height: 2.4rem; color: var(--muted); opacity: .7; }
+.empty-t { font-family: var(--font-display); font-weight: 700; font-size: var(--step-1); color: var(--ink); margin: 0; }
+.empty-d { color: var(--muted); max-width: 28rem; margin: 0; }
+
+/* ── notices (flat, not the marketing glass island) ──────────────────── */
+.dash-notice { padding: var(--space-4) var(--space-5); border: 1px solid var(--stroke); border-radius: var(--radius); background: var(--bg-alt); margin-bottom: var(--space-5); }
+.dash-notice.warn { border-color: color-mix(in oklab, var(--warn) 40%, var(--stroke)); }
+.dash-notice.danger { border-color: color-mix(in oklab, var(--danger) 40%, var(--stroke)); }
+
+/* ── responsive: sidebar collapses to a top strip on narrow viewports ── */
+@media (max-width: 860px) {
+  .dash { grid-template-columns: 1fr; }
+  .dash-side {
+    position: static; height: auto; flex-direction: row; flex-wrap: wrap; align-items: center;
+    gap: .4rem; padding: var(--space-3) var(--space-4);
+    border-right: 0; border-bottom: 1px solid var(--stroke);
+  }
+  .dash-eyebrow { display: none; }
+  .dash-brand { margin-bottom: 0; margin-right: var(--space-3); }
+  .dash-nav { flex-direction: row; flex-wrap: wrap; gap: .3rem; }
+  .dash-link { padding: .35rem .6rem; font-size: .85rem; }
+  .dash-link .dash-dot { display: none; }
+  .dash-side-foot { margin: 0 0 0 auto; padding-top: 0; border-top: 0; flex-direction: row; align-items: center; gap: .7rem; }
+  .dash-side-foot .btn-ghost { width: auto; }
+  .dash-user { display: none; }
+  .dash-body { padding: var(--space-5) var(--space-4); }
+  .dash-topbar { padding: var(--space-3) var(--space-4); }
+}
