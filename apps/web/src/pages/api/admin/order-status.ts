@@ -1,10 +1,14 @@
 import type { APIRoute } from "astro";
 // SlicedLabs · commerce · © 2026 SlicedLabs
-// Admin endpoint to advance an order's status. Auth-gated (signed-in admin only),
-// writes via the service-role client (bypasses RLS). POST-only; redirects back to
-// the Referer so the operator stays on the cockpit.
+// Admin endpoint to advance an order's status. Auth-gated (signed-in admin only), writes
+// via the service-role client. POST-only; redirects back to the Referer. For IN-HOUSE
+// orders (which Printful never touches), marking "shipped" captures the operator-entered
+// tracking and emails the customer — POD ships are emailed by the Printful webhook, so we
+// only fire here for in_house to avoid double-emailing.
+import type { TablesUpdate } from "@slicedlabs/supabase";
 import { getServerSupabase, createServiceSupabase } from "../../../lib/supabase";
 import { isAdmin } from "../../../lib/admin";
+import { sendShippingUpdate } from "../../../lib/commerce/email";
 
 export const prerender = false;
 
@@ -43,9 +47,30 @@ export const POST: APIRoute = async ({ request, cookies }) => {
   if (!(ORDER_STATUS as readonly string[]).includes(status))
     return json({ error: "bad_status" }, 400);
 
+  const trackingNumber = String(form.get("tracking_number") || "").trim() || null;
+  const carrier = String(form.get("carrier") || "").trim() || null;
+  const trackingUrl = String(form.get("tracking_url") || "").trim() || null;
+
+  // current order — email + fulfillment_type + any existing tracking
+  const { data: order } = await svc
+    .from("orders")
+    .select("email, fulfillment_type, tracking")
+    .eq("id", orderId)
+    .maybeSingle();
+
+  const patch: Record<string, unknown> = { status };
+  if (status === "shipped" && (trackingNumber || carrier || trackingUrl)) {
+    patch.tracking = {
+      carrier,
+      number: trackingNumber,
+      url: trackingUrl,
+      shipped_at: new Date().toISOString(),
+    };
+  }
+
   const { error } = await svc
     .from("orders")
-    .update({ status: status as (typeof ORDER_STATUS)[number] })
+    .update(patch as TablesUpdate<"orders">)
     .eq("id", orderId);
 
   const back = request.headers.get("referer") || "/admin";
@@ -54,5 +79,26 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     url.searchParams.set("err", error.message);
     return new Response(null, { status: 303, headers: { location: url.toString() } });
   }
+
+  // In-house ship → email the customer the shipping update (best-effort).
+  if (status === "shipped" && order?.fulfillment_type === "in_house" && order?.email) {
+    const t = (patch.tracking ?? order.tracking ?? {}) as {
+      carrier?: string | null;
+      number?: string | null;
+      url?: string | null;
+    };
+    try {
+      await sendShippingUpdate({
+        to: order.email,
+        orderId,
+        carrier: t.carrier ?? null,
+        trackingNumber: t.number ?? null,
+        trackingUrl: t.url ?? null,
+      });
+    } catch (e) {
+      console.error("ship email failed:", (e as Error).message);
+    }
+  }
+
   return new Response(null, { status: 303, headers: { location: back } });
 };

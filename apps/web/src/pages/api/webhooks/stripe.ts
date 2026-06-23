@@ -12,6 +12,8 @@ import { sendOrderConfirmation } from "../../../lib/commerce/email";
 import { fulfillWorkshopTicket } from "../../../lib/workshops";
 import { fulfillPlaybookPurchase } from "../../../lib/playbooks";
 import { grantMembership, revokeMembership } from "../../../lib/membership";
+import { formatMoney } from "../../../lib/commerce/cart";
+import { notifyOperator } from "../../../lib/notify";
 
 export const prerender = false;
 
@@ -187,6 +189,23 @@ export const POST: APIRoute = async ({ request }) => {
       } catch (e) {
         console.error("printful order failed:", (e as Error).message);
       }
+    }
+  }
+
+  // Orders WE fulfill by hand (in-house / digital) don't auto-dispatch to Printful — ping the
+  // ops inbox so the operator knows to ship/deliver and mark it shipped in /admin.
+  if (order && order.fulfillment_type !== "pod") {
+    try {
+      await notifyOperator("🧾 New order to fulfill", [
+        `**Type:** ${order.fulfillment_type}`,
+        `**Order:** ${orderId.slice(0, 8)}`,
+        `**Total:** ${formatMoney(order.total_cents ?? 0, order.currency ?? "usd")}`,
+        `**Email:** ${email || "—"}`,
+        name ? `**Ship to:** ${name}` : "",
+        "Mark it shipped in /admin when it's out.",
+      ]);
+    } catch (e) {
+      console.error("operator alert failed:", (e as Error).message);
     }
   }
 

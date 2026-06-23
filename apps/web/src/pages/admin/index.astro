@@ -234,6 +234,16 @@ const fmtDate = (iso: string) =>
                             </option>
                           ))}
                         </select>
+                        {o.fulfillment_type === "in_house" && (
+                          <input
+                            type="text"
+                            name="tracking_number"
+                            placeholder="tracking #"
+                            class="fld"
+                            style="width:7rem; padding:.4rem .5rem;"
+                            aria-label={`Tracking number for order ${o.id}`}
+                          />
+                        )}
                         <button type="submit" class="btn btn-ghost" style="padding:.45rem .8rem;">
                           Save
                         </button>
