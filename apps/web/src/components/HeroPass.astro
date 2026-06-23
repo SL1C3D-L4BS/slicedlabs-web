@@ -1,35 +1,56 @@
 ---
-// HeroPass.astro — "THE CHEF'S PASS": Liquid-Glass parallax-depth hero, food-first.
+// HeroPass.astro — "THE PASS, EXPLODED": a neural-net field of food-photo tiles.
 //
-// The expediter's pass — the one counter where everything a kitchen makes is plated,
-// called, and sent. A crisp centred lockup (eyebrow · mark · "The future, sliced." ·
-// promise · CTAs · blade) sits in a protected SAFE LANE while plated dishes, ingredient
-// chips, a shop listing, and kitchen ORDER TICKETS float around it in real CSS Z-depth.
-// The tickets reframe our metrics as honest kitchen chits ("fired", "every number →
-// /numbers") so there is ZERO fabricated data on the hero — the cinema IS the proof.
+// A crisp centred lockup (eyebrow · mark · "The future, sliced." · promise · CTAs · blade)
+// sits in a protected SAFE LANE while a scatter of photo tiles "explodes" all over the
+// frame in real CSS Z-depth — denser near the gutters, deep + faint behind the headline —
+// wired together by faint synapse lines into a neural-net of dishes. Several tiles carry
+// honest sourcing tags (local · in season · Spokane …); two double as the real shop /
+// numbers links so the affordances survive. Pointer parallax drifts the whole web.
 //
-// PLACEHOLDER STRATEGY (owned, swappable — operator's choice): every "food image" is a
-// pure CSS/SVG duotone "dish" in the brand hues (radial blooms + specular + film grain),
-// framed in a glass plate. ZERO external stock, ZERO image bytes today, CLS 0. Dropping a
-// real photo later = set ONE custom property per plate:  style="--photo:url('/food/x.webp')"
-// — the photo paints over the duotone (which stays as a tasteful mat), frame/grain/depth
-// all unchanged. See `.dish` below.
+// BLANK-LIKE-THE-SHOP-MERCH (operator's call): every tile uses the SAME blank treatment as
+// the shop's coming-soon merch (`.ghost-media` in shop.astro) — a branded bloom panel with
+// a faint masked chevron-mark watermark, NO "coming soon" text. ZERO stock, CLS 0. Each
+// tile is a full-bleed image slot: drop a real photo with ONE property —
+//   style="--photo:url('/food/x.webp')"  → the photo covers the blank panel (.ntile-img::after).
+// When a tile gets a real photo, give that <figure> role="img" + an aria-label describing the
+// dish and drop aria-hidden — a bare `alt` is a no-op on <figure>/<span> and the image is a CSS
+// background, so role+label is how AT gets it; or keep it decorative with aria-hidden. The
+// watermark sits UNDER the photo so the swap is clean.
 //
-// Reuses verbatim: the operator mark (/slicedlabs-mark.svg — NEVER redrawn), the token
-// hues (--coral/--orange/--teal/--blue/--brass/--ink/--muted-strong), .glass/.glass-focal,
-// .btn/.btn-ghost, .kinetic/.blend-text.spectrum, .blade, and the [data-reveal]
-// IntersectionObserver in Base.astro (reveal + .blade slice). Only ONE plate pulls the
-// heavier #sl-lens refraction (.glass-focal) — perf budget.
+// Reuses verbatim: the operator mark (/slicedlabs-mark.svg — NEVER redrawn, here as a mask),
+// the token hues, .btn/.btn-ghost, .kinetic/.blend-text.spectrum, .blade, and Base.astro's
+// [data-reveal] IntersectionObserver (reveal + .blade slice). Tiles are FLAT bloom panels
+// (no backdrop-blur) so a dense field stays cheap — only the lockup is heavy.
 //
-// A11y: the lockup is the FIRST child of the stage so keyboard tab order is CTAs-first
-// (Watch → Read → then the peripheral shop/numbers links), matching the visual hierarchy;
-// the lockup stays painted on top via z-index, independent of DOM order. Decorative floats
-// (lamp, field, label, chips, rails) are aria-hidden; the dish plates carry honest alt.
-//
-// LCP = the server-rendered focal lockup (mark + headline). Only NEW js = pointer parallax:
-// input-driven (no idle loop → upholds the no-shimmer law), mouse-only, rAF self-cancels
-// when settled, NEVER attached under reduced-motion. No island, no hydration.
-// (The living GPU field is mounted once site-wide in Base.astro — it shows behind here too.)
+// A11y: the lockup is the FIRST child (CTAs lead tab order; painted on top via z-index). All
+// blank tiles + the synapse web + sourcing tags are decorative → aria-hidden; the two link
+// tiles are real <a> with aria-labels and keyboard-reachable. CLS 0 (every tile reserved via
+// width + aspect-ratio). Parallax is input-driven (no idle loop), mouse-only, rAF
+// self-cancels, NEVER attached under reduced-motion. LCP = the server-rendered lockup.
+
+// Tiles: pos = inset anchors (edge-gutters + a deep inner cloud that stays behind the
+// lockup); d = depth 1(deep)..3(near); rot baked into every transform state; tier = the
+// responsive shed (core ≥520 · mid ≥760 · extra ≥1080). Two carry href → real links.
+const tiles = [
+  // ── corners (f-core: present from tablet up; includes both real links) ──
+  { pos: "top:4%;left:1%",     w: "11rem",  ar: "4 / 3", d: 3, rot: -4, i: 11, tier: "f-core",  tag: "local" },
+  { pos: "top:5%;right:1%",    w: "12rem",  ar: "4 / 3", d: 3, rot:  4, i: 11, tier: "f-core",  tag: "Spokane" },
+  { pos: "bottom:5%;left:1%",  w: "12rem",  ar: "4 / 3", d: 2, rot:  2, i: 9,  tier: "f-core",  tag: "shop →",        href: "/shop",    label: "Visit the shop" },
+  { pos: "bottom:4%;right:1%", w: "11rem",  ar: "4 / 3", d: 2, rot: -4, i: 9,  tier: "f-core",  tag: "the numbers →", href: "/numbers", label: "See the numbers" },
+  // ── mid gutters (f-mid) ──
+  { pos: "top:31%;left:0",     w: "8rem",   ar: "1 / 1", d: 2, rot:  3, i: 8,  tier: "f-mid",   tag: "in season" },
+  { pos: "top:34%;right:0",    w: "8.5rem", ar: "1 / 1", d: 2, rot: -3, i: 8,  tier: "f-mid" },
+  // ── outer extras (f-extra: the full explosion ≥1080) ──
+  { pos: "top:55%;left:2.5%",  w: "9.5rem", ar: "3 / 4", d: 3, rot: -3, i: 12, tier: "f-extra", tag: "from scratch" },
+  { pos: "top:57%;right:3.5%", w: "9rem",   ar: "3 / 4", d: 3, rot:  3, i: 12, tier: "f-extra", tag: "wood-fired" },
+  // ── deep inner cloud (faint, behind the lockup edges — never the dead centre) ──
+  { pos: "top:8%;left:27%",    w: "6.5rem", ar: "1 / 1", d: 1, rot:  5, i: 6,  tier: "f-extra" },
+  { pos: "top:11%;right:28%",  w: "6rem",   ar: "4 / 3", d: 1, rot: -5, i: 6,  tier: "f-extra" },
+  { pos: "bottom:11%;left:31%",w: "6rem",   ar: "1 / 1", d: 1, rot:  4, i: 7,  tier: "f-extra" },
+  { pos: "bottom:12%;right:30%",w:"6.5rem", ar: "3 / 4", d: 1, rot: -4, i: 7,  tier: "f-extra", tag: "on the pass" },
+];
+const tstyle = (t: (typeof tiles)[number]) => `${t.pos}; --w:${t.w}; --ar:${t.ar}; --rot:${t.rot}deg; --i:${t.i};`;
 ---
 <section class="pass" aria-label="SlicedLabs — the future, sliced. A food empire built in public.">
   <div class="pass-stage" data-pass-stage>
@@ -74,54 +95,44 @@
     <div class="pass-field" data-depth="0" aria-hidden="true"></div>
     <div class="pass-lamp" aria-hidden="true"></div>
 
-    <!-- ── the floats — plated dishes, ingredients, a shop listing, order tickets ── -->
+    <!-- the neural-net wiring — faint synapse lines threading the photo tiles together.
+         Stretched to the stage so node coords map to tile positions; decorative. -->
+    <svg class="pass-float synapse f-mid" data-depth="1" data-reveal style="--i:6;"
+         viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+      <g class="synapse-lines">
+        <line x1="9" y1="16" x2="5"  y2="38"/><line x1="5"  y1="38" x2="8"  y2="62"/>
+        <line x1="8" y1="62" x2="8"  y2="90"/><line x1="9"  y1="16" x2="31" y2="16"/>
+        <line x1="31" y1="16" x2="70" y2="18"/><line x1="70" y1="18" x2="91" y2="16"/>
+        <line x1="91" y1="16" x2="95" y2="40"/><line x1="95" y1="40" x2="92" y2="64"/>
+        <line x1="92" y1="64" x2="91" y2="90"/><line x1="31" y1="16" x2="34" y2="86"/>
+        <line x1="70" y1="18" x2="70" y2="84"/><line x1="34" y1="86" x2="70" y2="84"/>
+        <line x1="5"  y1="38" x2="31" y2="16"/><line x1="95" y1="40" x2="70" y2="18"/>
+        <line x1="8"  y1="62" x2="34" y2="86"/><line x1="92" y1="64" x2="70" y2="84"/>
+        <line x1="8"  y1="90" x2="34" y2="86"/><line x1="91" y1="90" x2="70" y2="84"/>
+      </g>
+      <g class="synapse-nodes">
+        <circle cx="31" cy="16" r="0.6"/><circle cx="70" cy="18" r="0.6"/>
+        <circle cx="34" cy="86" r="0.6"/><circle cx="70" cy="84" r="0.6"/>
+        <circle cx="5"  cy="38" r="0.5"/><circle cx="95" cy="40" r="0.5"/>
+      </g>
+    </svg>
 
-    <!-- deep, decorative pass label (z1, top-centre) -->
-    <p class="pass-float pass-tag mono at-pass f-extra" data-depth="1" data-reveal style="--i:6;" aria-hidden="true">· · the pass · ·</p>
-
-    <!-- ingredient chips — fully decorative garnish, hidden from assistive tech -->
-    <div class="pass-float chip chip-citrus at-citrus f-extra" data-depth="1" data-reveal style="--i:6;" aria-hidden="true">
-      <span class="chip-dot"></span><span class="mono">citrus, zested</span>
-    </div>
-    <div class="pass-float chip chip-mise at-mise f-extra" data-depth="3" data-reveal style="--i:12;" aria-hidden="true">
-      <span class="chip-dot"></span><span class="mono">mise en place</span>
-    </div>
-
-    <!-- hero plate (warm) — the one #sl-lens focal tile -->
-    <figure class="pass-float plate plate-warm glass glass-focal at-plate-hero f-core" data-depth="3" data-reveal style="--i:10;">
-      <span class="dish" role="img" aria-label="Placeholder for SlicedLabs food photography — a plated dish in coral & ember tones. Real shots arrive as we cook in public."></span>
-      <figcaption class="plate-cap mono"><span class="cap-dot" aria-hidden="true"></span>today's plate</figcaption>
-    </figure>
-
-    <!-- second plate (cool) -->
-    <figure class="pass-float plate plate-cool glass at-plate2 f-mid" data-depth="2" data-reveal style="--i:8;">
-      <span class="dish" role="img" aria-label="Placeholder for SlicedLabs food photography — a fresh, local plate in teal & blue tones. Real shots arrive as we cook in public."></span>
-      <figcaption class="plate-cap mono"><span class="cap-dot" aria-hidden="true"></span>fresh · local</figcaption>
-    </figure>
-
-    <!-- shop listing (category-level; links to /shop — honest about what the shop sells) -->
-    <article class="pass-float listing glass at-listing f-mid" data-depth="2" data-reveal style="--i:8;">
-      <p class="listing-eyebrow mono">in the shop</p>
-      <p class="listing-name">Engraved boards</p>
-      <p class="listing-desc">The maker's table — chevron-S, cut by hand.</p>
-      <a class="listing-link mono" href="/shop">Visit the shop →</a>
-    </article>
-
-    <!-- order ticket — honest kitchen chit (evocative framing, no fabricated numbers) -->
-    <aside class="pass-float ticket at-ticket glass f-extra" data-depth="3" data-reveal style="--i:11;" aria-hidden="true">
-      <span class="ticket-rail"></span>
-      <p class="ticket-no mono"><span>order #001</span><span>on the line</span></p>
-      <p class="ticket-line">The future — sliced.</p>
-      <p class="ticket-stamp"><span class="ticket-fired">fired ✓</span></p>
-    </aside>
-
-    <!-- receipts ticket — defers every real number to /numbers (the honesty law) -->
-    <aside class="pass-float ticket ticket-receipts at-receipts glass f-mid" data-depth="2" data-reveal style="--i:9;">
-      <span class="ticket-rail" aria-hidden="true"></span>
-      <p class="ticket-no mono"><span>receipts</span><span>·sl·</span></p>
-      <p class="ticket-line">Every cost &amp; number — shown.</p>
-      <a class="ticket-link mono" href="/numbers">See the numbers →</a>
-    </aside>
+    <!-- ── the exploded photo tiles — blank shop-merch panels, swap-ready for full images ── -->
+    {tiles.map((t) => (
+      t.href ? (
+        <a class:list={["pass-float", "ntile", t.tier]} href={t.href} aria-label={t.label}
+           data-depth={t.d} data-reveal style={tstyle(t)}>
+          <span class="ntile-img"></span>
+          <span class="ntile-tag ntile-tag-link mono">{t.tag}</span>
+        </a>
+      ) : (
+        <figure class:list={["pass-float", "ntile", t.tier]} aria-hidden="true"
+           data-depth={t.d} data-reveal style={tstyle(t)}>
+          <span class="ntile-img"></span>
+          {t.tag && <span class="ntile-tag mono">{t.tag}</span>}
+        </figure>
+      )
+    ))}
   </div>
 </section>
 
@@ -129,7 +140,7 @@
   /* ── the camera + reserved frame (no CLS: fixed min-height, transforms only) ── */
   .pass {
     position: relative;
-    min-height: clamp(36rem, 86vh, 50rem);
+    min-height: clamp(38rem, 88vh, 52rem);
     display: grid;
     place-items: center;
     padding-block: clamp(2rem, 6vw, 4rem);
@@ -161,11 +172,12 @@
   }
   .pass-lockup a,
   .pass-lockup .pass-cta { pointer-events: auto; }
-  /* the SAFE LANE scrim — a theme-aware radial behind the text so any float passing
-     behind never drops the headline's contrast (darkens on dark, lifts on cream). */
+  /* the SAFE LANE scrim — a theme-aware radial behind the text so the dense field never
+     drops the headline's contrast (darkens on dark, lifts on cream). Stronger than before
+     because there are more tiles behind it. */
   .pass-lockup::before {
     content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
-    background: radial-gradient(60% 58% at 50% 50%, color-mix(in oklab, var(--bg) 60%, transparent), transparent 74%);
+    background: radial-gradient(62% 56% at 50% 50%, color-mix(in oklab, var(--bg) 66%, transparent), transparent 76%);
   }
 
   .pass-mark {
@@ -196,86 +208,64 @@
   .pass-head[data-reveal] { --reveal-rise: 0px; --reveal-scale: 1; }
 
   /* ── the floats — shared depth + entrance behaviour ─────────────────────────
-     z-order by depth so nearer plates sit over deeper ones; the lockup (z5) always wins. */
+     z-order by depth so nearer tiles sit over deeper ones; the lockup (z5) always wins. */
   .pass-float { z-index: 2; }
   .pass-float[data-depth="1"] { z-index: 1; }
   .pass-float[data-depth="3"] { z-index: 3; }
 
-  /* ── duotone "dish" plates — owned placeholder food art (swap to a photo via --photo) ── */
-  .plate { width: clamp(10rem, 13vw, 12.5rem); padding: .55rem .55rem .5rem; }
-  .plate-warm { --plate-a: var(--coral); --plate-b: var(--orange); }
-  .plate-cool { --plate-a: var(--teal);  --plate-b: var(--blue); }
-  .dish {
-    position: relative; display: block; width: 100%; aspect-ratio: 1 / 1; border-radius: 50%;
+  /* ── exploded photo tiles — blank, branded, swap-ready (the shop ghost-media recipe) ── */
+  .ntile {
+    width: var(--w);
+    border: 0; padding: 0; background: none; cursor: inherit;
+    text-decoration: none; color: inherit;
+    filter: drop-shadow(0 14px 30px rgba(0,0,0,.30));
+  }
+  a.ntile { cursor: pointer; }
+  .ntile-img {
+    position: relative; display: block; width: 100%; aspect-ratio: var(--ar, 4 / 3);
+    border-radius: var(--radius); border: 1px solid var(--stroke); overflow: hidden;
     background:
-      var(--photo, linear-gradient(transparent, transparent)) center / cover no-repeat,           /* real photo drops in here */
-      radial-gradient(42% 32% at 30% 20%, color-mix(in oklab, #fff 22%, transparent), transparent 62%),
-      radial-gradient(66% 60% at 32% 30%, color-mix(in oklab, var(--plate-a) 72%, transparent), transparent 72%),
-      radial-gradient(72% 66% at 72% 78%, color-mix(in oklab, var(--plate-b) 64%, transparent), transparent 74%),
-      radial-gradient(120% 120% at 50% 50%, color-mix(in oklab, var(--bg) 64%, #000), color-mix(in oklab, var(--bg) 32%, #000));
-    box-shadow:
-      inset 0 0 0 2px color-mix(in oklab, #fff 9%, transparent),                                   /* plate rim */
-      inset 0 10px 28px rgba(0,0,0,.55),
-      inset 0 -6px 18px color-mix(in oklab, var(--plate-b) 20%, transparent);
+      radial-gradient(60% 60% at 30% 20%, color-mix(in oklab, var(--coral) 14%, transparent), transparent 70%),
+      radial-gradient(70% 70% at 80% 90%, color-mix(in oklab, var(--blue)  14%, transparent), transparent 70%),
+      var(--bg-alt);
+    box-shadow: inset 0 1px 0 var(--rim);
   }
-  /* static film grain — kills banding, reads as a lit surface (no animation = no shimmer) */
-  .dish::after {
+  /* faint masked chevron-mark watermark — sits UNDER the photo so the --photo swap is clean */
+  .ntile-img::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    -webkit-mask: url("/slicedlabs-mark.svg") center / 34% no-repeat;
+    mask: url("/slicedlabs-mark.svg") center / 34% no-repeat;
+    background: var(--blend); opacity: .3;
+  }
+  /* the full-image slot — real photo paints over the blank panel with one --photo prop */
+  .ntile-img::after {
     content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
-    opacity: .5; mix-blend-mode: soft-light;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-image: var(--photo, none); background-size: cover; background-position: center;
   }
-  .plate-cap { display: flex; align-items: center; gap: .4rem; margin: .5rem .15rem 0; font-size: .64rem; color: var(--muted-strong); }
-  .plate-cap .cap-dot { width: .4rem; height: .4rem; border-radius: 50%; background: var(--plate-a); flex: none; }
+  a.ntile:hover .ntile-img { border-color: color-mix(in oklab, var(--mark) 42%, var(--stroke)); }
 
-  /* ── ingredient chips ── */
-  .chip { display: inline-flex; align-items: center; gap: .5rem; padding: .48rem .8rem; }
-  .chip .mono { color: var(--muted-strong); }
-  .chip .chip-dot {
-    width: .62rem; height: .62rem; border-radius: 50%; flex: none;
-    background: radial-gradient(circle at 32% 30%, color-mix(in oklab, #fff 45%, transparent), transparent 58%), var(--chip-c);
-    box-shadow: 0 0 10px color-mix(in oklab, var(--chip-c) 55%, transparent);
+  /* sourcing / nav tags */
+  .ntile-tag {
+    position: absolute; left: .45rem; bottom: .45rem; z-index: 2;
+    font-size: .56rem; letter-spacing: .08em; text-transform: uppercase;
+    padding: .16rem .44rem; border-radius: 999px;
+    background: color-mix(in oklab, var(--bg-alt) 86%, transparent);
+    border: 1px solid var(--stroke); color: var(--muted-strong);
   }
-  .chip-citrus { --chip-c: var(--orange); }
-  .chip-mise   { --chip-c: var(--teal); }
+  /* link labels read --muted-strong (AA on both temperatures — raw --mark fails on cream);
+     the brand-blue accent lives on the border + the hover lift instead. */
+  .ntile-tag-link { color: var(--muted-strong); font-weight: 600; border-color: color-mix(in oklab, var(--mark) 45%, var(--stroke)); }
+  a.ntile:hover .ntile-tag-link { color: var(--ink); background: color-mix(in oklab, var(--mark) 14%, var(--bg-alt)); }
 
-  /* ── shop listing ── */
-  .listing { width: clamp(10.5rem, 15vw, 13rem); padding: .9rem 1rem; }
-  .listing-eyebrow { margin: 0 0 .4rem; }
-  .listing-name { font-family: var(--font-display); font-weight: 700; font-size: 1.08rem; line-height: 1.08; margin: 0; color: var(--ink); }
-  .listing-desc { font-size: .82rem; line-height: 1.35; color: var(--muted-strong); margin: .32rem 0 .65rem; }
-  .listing-link { color: var(--mark); text-decoration: none; }
-  .listing-link:hover { text-decoration: underline; text-underline-offset: 3px; }
-
-  /* ── kitchen order tickets ── */
-  .ticket { width: clamp(9rem, 12vw, 11rem); padding: .8rem .9rem .8rem 1.15rem; }
-  .ticket-rail { position: absolute; left: .5rem; top: .55rem; bottom: .55rem; border-left: 2px dashed color-mix(in oklab, var(--muted) 55%, transparent); }
-  .ticket-no { display: flex; justify-content: space-between; gap: .6rem; margin: 0 0 .35rem; font-size: .64rem; color: var(--muted-strong); }
-  .ticket-line { margin: 0; font-family: var(--font-display); font-weight: 600; font-size: .98rem; line-height: 1.14; color: var(--ink); }
-  .ticket-stamp { margin: .5rem 0 0; }
-  .ticket-fired {
-    display: inline-block; font-family: var(--font-mono); font-size: .6rem; letter-spacing: .14em; text-transform: uppercase;
-    color: color-mix(in oklab, var(--ok) 78%, var(--ink));
-    border: 1.5px solid color-mix(in oklab, var(--ok) 48%, transparent); border-radius: 6px; padding: .14rem .42rem;
+  /* ── the neural-net wiring ── */
+  .synapse { inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .synapse-lines line {
+    stroke: color-mix(in oklab, var(--mark) 34%, transparent);
+    stroke-width: 1; vector-effect: non-scaling-stroke;
   }
-  .ticket-link { display: inline-block; margin-top: .5rem; color: var(--mark); text-decoration: none; }
-  .ticket-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .synapse-nodes circle { fill: color-mix(in oklab, var(--teal) 70%, var(--mark)); opacity: .7; }
 
-  /* the deep decorative pass label */
-  .pass-tag { letter-spacing: .5em; font-size: .7rem; color: color-mix(in oklab, var(--muted) 70%, transparent); pointer-events: none; }
-
-  /* ── placement — every float anchored to an EDGE gutter, never the centre safe lane.
-        Vertical bands chosen so floats clear each other on both the short (36rem) and
-        tall (50rem) stage; floats at different depths may graze (that's the depth look). */
-  .at-pass       { top: 2%;    left: 0; right: 0; text-align: center; }   /* f-extra · d1 · top-centre */
-  .at-listing    { top: 8%;    left: 0; }                                  /* f-mid   · d2 · upper-left */
-  .at-citrus     { top: 43%;   left: 1.5%; }                               /* f-extra · d1 · mid-left   */
-  .at-plate2     { bottom: 6%; left: 2.5%; }                               /* f-mid   · d2 · lower-left */
-  .at-plate-hero { top: 6%;    right: 1%; }                                /* f-core  · d3 · upper-right */
-  .at-ticket     { top: 50%;   right: 5%; }                                /* f-extra · d3 · mid-right  */
-  .at-mise       { top: 70%;   right: 3%; }                                /* f-extra · d3 · lower-right */
-  .at-receipts   { bottom: 6%; right: 1%; }                                /* f-mid   · d2 · lower-right */
-
-  /* the field — a faint brand-bloom veil pushed deep; lenses through the floats */
+  /* the field — a faint brand-bloom veil pushed deep; lenses through the tiles */
   .pass-field {
     inset: -10%;
     z-index: 0;
@@ -285,8 +275,7 @@
       radial-gradient(36rem 28rem at 16% 84%, color-mix(in oklab, var(--coral) 12%, transparent), transparent 60%);
     transform: translateZ(-320px) scale(1.34);
   }
-  /* the warm heat-lamp wash pooling from top-centre over the pass (no data-depth →
-     excluded from parallax; its translateX stays put). */
+  /* the warm heat-lamp wash pooling from top-centre (no data-depth → excluded from parallax) */
   .pass-lamp {
     left: 50%; top: -6%; width: min(72%, 42rem); height: 46%;
     transform: translateX(-50%);
@@ -296,62 +285,62 @@
   [data-temp="warm"] .pass-lamp { background: radial-gradient(50% 72% at 50% 0%, color-mix(in oklab, var(--orange) 20%, transparent), transparent 70%); }
 
   /* ── entrance "pass": extend [data-reveal] with a Z-arrival on the floats ──
-     The .is-in toggle is added by Base.astro's observer — we only define the from/to
-     transforms. Far (deep) floats arrive first, near floats last → reads like tickets
-     and plates being SET DOWN on the pass in sequence. */
+     The .is-in toggle is added by Base.astro's observer. Each tile keeps its baked --rot
+     through every state (entrance / rest / parallax / reduced-motion) so rotation never
+     fights the JS transform. Deep tiles arrive first → the web assembles toward the camera. */
   .pass-float[data-reveal] {
-    --rest-z: 0px;
-    transform: translateZ(-600px) translateY(26px);
+    --rest-z: 0px; --rot: 0deg;
+    transform: translateZ(-600px) translateY(26px) rotate(var(--rot));
     opacity: 0;
     transition: transform var(--t-slow) var(--ease), opacity var(--t-slow) var(--ease);
-    transition-delay: calc(var(--i) * 80ms);
-    will-change: transform, opacity;
+    transition-delay: calc(var(--i) * 55ms);
+    /* no persistent will-change — the entrance is one-shot + parallax rAF self-cancels when
+       idle; a standing compositor layer per tile is the cost the substrate policy avoids. */
   }
   .pass-float[data-depth="1"][data-reveal] { --rest-z: -180px; }
   .pass-float[data-depth="2"][data-reveal] { --rest-z:  -90px; }
   .pass-float[data-depth="3"][data-reveal] { --rest-z:  -30px; }
-  .pass-float[data-reveal].is-in { transform: translateZ(var(--rest-z)); opacity: 1; }
-  .pass-float[data-depth="1"][data-reveal].is-in { opacity: .82; }   /* far reads softer */
-  .pass-float[data-depth="2"][data-reveal].is-in { opacity: .94; }
+  .pass-float[data-reveal].is-in { transform: translateZ(var(--rest-z)) rotate(var(--rot)); opacity: 1; }
+  .pass-float[data-depth="1"][data-reveal].is-in { opacity: .55; }   /* deep cloud reads whispery */
+  .pass-float[data-depth="2"][data-reveal].is-in { opacity: .96; }
+  /* synapse must out-specify the depth-1 cloud rule above (both match it) → its intended .9 */
+  .synapse.pass-float[data-depth="1"][data-reveal].is-in { opacity: .9; }
 
-  /* ── responsive — progressively shed floats so the lockup always owns the frame ──
-     ≥1080: all 8 · 760–1080: drop f-extra (label, 2 chips, order ticket) → 2 plates +
-     listing + receipts · 520–760: also drop f-mid (plate2, listing, receipts) → hero
-     plate only · <520: drop f-core too → lockup only, dignified. */
+  /* ── responsive — progressively shed tiles so the lockup always owns the frame ──
+     ≥1080: all 12 + synapse · 1025–1080: drop f-extra → 4 corners + 2 mid + synapse ·
+     761–1024: drop f-mid + synapse → 4 corner tiles (incl. both links) · 521–760: same, shrunk ·
+     <520: lockup only. (f-mid sheds at ≤1024 so the mid tiles only show where the side gutters
+     clearly clear the 44rem text column.) */
   @media (max-width: 1080px) { .f-extra { display: none; } }
-  @media (max-width: 760px)  {
-    .f-mid { display: none; }
-    .at-plate-hero { top: 4%; right: -2%; }
-    .plate { width: clamp(8.5rem, 32vw, 10.5rem); }
-    /* cap backdrop blur cost on phones */
-    .glass-focal { backdrop-filter: blur(12px) saturate(1.4); -webkit-backdrop-filter: blur(12px) saturate(1.4); }
-  }
-  @media (max-width: 520px)  { .f-core { display: none; } }
+  @media (max-width: 1024px) { .f-mid   { display: none; } }
+  @media (max-width: 760px)  { .ntile   { width: min(var(--w), 8.5rem); } }
+  @media (max-width: 520px)  { .f-core  { display: none; } }
 
   /* ── reduced-motion: no entrance pass, no wipe — resting scene, full + crisp ──
-     (global block forces [data-reveal].is-in + .blade full; we add the floats' resting-Z
-      and pin the headline lines open.) */
+     (global block forces [data-reveal].is-in + .blade full; we add the resting-Z + baked
+      rotation, the deep-tile opacities, and pin the headline lines open.) */
   @media (prefers-reduced-motion: reduce) {
-    .pass-float[data-reveal] { transform: translateZ(var(--rest-z)) !important; opacity: 1 !important; }
-    .pass-float[data-depth="1"][data-reveal] { opacity: .82 !important; }
-    .pass-float[data-depth="2"][data-reveal] { opacity: .94 !important; }
+    .pass-float[data-reveal] { transform: translateZ(var(--rest-z)) rotate(var(--rot)) !important; opacity: 1 !important; }
+    .pass-float[data-depth="1"][data-reveal] { opacity: .55 !important; }
+    .pass-float[data-depth="2"][data-reveal] { opacity: .96 !important; }
+    .synapse.pass-float[data-depth="1"][data-reveal] { opacity: .9 !important; }
     .pass-line-in { transform: none !important; }
   }
 
-  /* ── reduced-transparency: global block flattens .glass to solid --bg-alt; kill the
-        ambient washes + grain (nothing to lens through), keep the depth composition +
-        the duotone dishes (they're backgrounds, still legible). */
+  /* ── reduced-transparency: kill the ambient washes; tiles are already flat opaque panels,
+        tags lose their translucency to stay legible. */
   @media (prefers-reduced-transparency: reduce) {
     .pass-field, .pass-lamp { display: none; }
-    .dish::after { display: none; }
+    .ntile-tag { background: var(--bg-alt); }
   }
 </style>
 
 <script is:inline>
   // THE PASS — pointer parallax. Input-driven (NOT a perpetual loop → satisfies the
-  // no-shimmer law), mouse-only (touch/coarse stays static), rAF self-cancels when
-  // settled, and is NEVER attached under reduced-motion. The entrance reveal + the
-  // .blade sweep are driven by Base.astro's observer — unchanged.
+  // no-shimmer law), mouse-only (touch/coarse stays static), rAF self-cancels when settled,
+  // and is NEVER attached under reduced-motion. The entrance reveal + the .blade sweep are
+  // driven by Base.astro's observer — unchanged. Each tile's baked --rot is composed into
+  // the transform so rotation survives the parallax write.
   (function () {
     if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     var stage = document.querySelector("[data-pass-stage]");
@@ -363,32 +352,36 @@
     var ZMAP = { "0": -320, "1": -180, "2": -90, "3": -30, "4": 0 };   // matches CSS --rest-z
     var planes = [].map.call(stage.querySelectorAll("[data-depth]:not(.pass-lockup)"), function (el) {
       var d = +el.dataset.depth;
-      return { el: el, gain: GAIN[d] != null ? GAIN[d] : 0.5, z: ZMAP[el.dataset.depth] || 0 };
+      var rot = parseFloat(getComputedStyle(el).getPropertyValue("--rot")) || 0;   // read once, baked rotation
+      return { el: el, gain: GAIN[d] != null ? GAIN[d] : 0.5, z: ZMAP[el.dataset.depth] || 0, rot: rot };
     });
 
-    // Hold parallax until the one-shot entrance has fully landed (slowest float =
-    // max --i 12 → 12*80ms + --t-slow ≈ 1420ms), measured from first paint. Writing an
-    // inline transform mid-entrance would retarget the in-flight transition; and once we
-    // take over we STRIP the entrance transition so the per-frame lerp drives motion
-    // directly (otherwise every parallax frame inherits the 460ms ease + delay = sluggish).
+    // Hold parallax until the one-shot entrance has fully landed (slowest tile = max --i 12
+    // → 12*55ms + --t-slow ≈ 1120ms), measured from first paint. Writing an inline transform
+    // mid-entrance would retarget the in-flight transition; once we take over we STRIP the
+    // entrance transition so the per-frame lerp drives motion directly (otherwise every
+    // parallax frame inherits the ease + delay = sluggish).
+    // Parallax may begin only after the one-shot entrance has had time to land (slowest tile
+    // ≈ 1120ms from first paint); rAF-gated so a backgrounded tab doesn't burn the clock.
     var ready = false;
-    requestAnimationFrame(function () {
-      setTimeout(function () {
-        ready = true;
-        for (var i = 0; i < planes.length; i++) planes[i].el.style.transition = "none";
-      }, 1500);
-    });
+    requestAnimationFrame(function () { setTimeout(function () { ready = true; }, 1300); });
 
     var tx = 0, ty = 0, cx = 0, cy = 0, raf = 0;
     function tick() {
       cx += (tx - cx) * 0.08;
       cy += (ty - cy) * 0.08;
       for (var i = 0; i < planes.length; i++) {
-        var p = planes[i];
-        var sx = (p.el.dataset.depth === "0") ? 1.34 : 1;   // keep the field's scale
-        p.el.style.transform =
+        var p = planes[i], el = p.el;
+        // never drive a reveal tile that hasn't entered yet — let its CSS entrance play first
+        // (covers a scrolled-past / bfcache load where .is-in lands late, so it never pops).
+        if (el.hasAttribute("data-reveal") && !el.classList.contains("is-in")) continue;
+        // hand each tile off from the CSS entrance tween to the lerp on its first parallax write
+        if (!p.stripped) { el.style.transition = "none"; p.stripped = true; }
+        var sx = (el.dataset.depth === "0") ? 1.34 : 1;     // keep the field's scale
+        el.style.transform =
           "translate3d(" + (cx * p.gain * 18).toFixed(2) + "px," +
                            (cy * p.gain * 12).toFixed(2) + "px," + p.z + "px)" +
+          " rotate(" + p.rot + "deg)" +
           (sx !== 1 ? " scale(" + sx + ")" : "");
       }
       if (Math.abs(tx - cx) > 0.001 || Math.abs(ty - cy) > 0.001) raf = requestAnimationFrame(tick);
