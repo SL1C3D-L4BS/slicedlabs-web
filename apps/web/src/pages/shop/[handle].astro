@@ -78,15 +78,16 @@ const images = product ? imageList(product.images) : [];
     description={product.description ?? `${product.title} — order from SlicedLabs.`}
   >
     <section class="wrap section">
-      <p class="mono" data-reveal><a href="/shop" style="color:var(--muted); text-decoration:none;">← back to shop</a></p>
+      <p class="mono" data-reveal style="margin-bottom:1rem;"><a href="/shop" style="color:var(--muted); text-decoration:none;">← back to shop</a></p>
 
       <div
+        class="pdp"
         data-product-root
         data-default-variant={defaultVariant?.id ?? ""}
         data-default-currency={defaultVariant?.currency ?? "usd"}
-        style="display:grid; gap:clamp(1.5rem,4vw,2.5rem); grid-template-columns:1fr; margin-top:1rem;"
       >
-        <div data-reveal style={`view-transition-name: tile-${product.slug};`}>
+        {/* ── gallery column ── */}
+        <div class="pdp-gallery" data-reveal style={`view-transition-name: tile-${product.slug};`}>
           {product.model_url ? (
             <ProductViewer
               src={product.model_url}
@@ -94,87 +95,101 @@ const images = product ? imageList(product.images) : [];
               alt={`${product.title} — interactive 3D preview`}
             />
           ) : (
-            <div style="aspect-ratio:1/1; border-radius:var(--radius); overflow:hidden; background:var(--panel); border:1px solid var(--stroke);">
+            <div class="pdp-hero">
               <img
                 id="hero-image"
                 src={images[0] ?? "/placeholder-product.svg"}
                 alt={product.title}
-                style="width:100%; height:100%; object-fit:cover; display:block;"
               />
             </div>
           )}
           {!product.model_url && images.length > 1 && (
-            <div style="display:flex; gap:.6rem; margin-top:.8rem; flex-wrap:wrap;">
+            <div class="pdp-thumbs">
               {images.map((src, i) => (
-                <button
-                  type="button"
-                  class="thumb"
-                  data-thumb={src}
-                  aria-label={`View image ${i + 1}`}
-                  style="width:5rem; height:5rem; padding:0; border-radius:12px; overflow:hidden; border:1px solid var(--stroke); background:var(--panel); cursor:pointer;"
-                >
-                  <img src={src} alt="" loading="lazy" style="width:100%; height:100%; object-fit:cover; display:block;" />
+                <button type="button" class="thumb" data-thumb={src} aria-label={`View image ${i + 1}`}>
+                  <img src={src} alt="" loading="lazy" />
                 </button>
               ))}
             </div>
           )}
         </div>
 
-        <div data-reveal style="--i:1;">
-          <span class="tag">{FULFILL_LABEL[product.fulfillment_type]}</span>
-          <h1 class="t-h1" style="margin:.6rem 0 .2rem;"><span class="blend-text">{product.title}</span></h1>
-          {product.subtitle && (
-            <p class="mono" style="margin:0 0 .5rem; color:var(--muted);">{product.subtitle}</p>
-          )}
+        {/* ── sticky buy-box ── */}
+        <div class="pdp-buy" data-reveal style="--i:1;">
+          <div class="pdp-buy-inner">
+            <span class="tag">{FULFILL_LABEL[product.fulfillment_type]}</span>
+            <h1 class="t-h2" style="margin:.6rem 0 .2rem;">{product.title}</h1>
+            {product.subtitle && (
+              <p class="mono" style="margin:0 0 .6rem; color:var(--muted);">{product.subtitle}</p>
+            )}
 
-          <p id="price" class="mono" style="font-size:1.4rem; margin:.4rem 0 1.2rem; color:var(--ink);">
-            {defaultVariant ? formatMoney(defaultVariant.price_cents, defaultVariant.currency) : "—"}
-          </p>
+            <p id="price" class="pdp-price">
+              {defaultVariant ? formatMoney(defaultVariant.price_cents, defaultVariant.currency) : "—"}
+            </p>
 
-          {product.description && (
-            <p style="color:var(--muted); max-width:42rem; line-height:1.6; margin:0 0 1.4rem; white-space:pre-line;">{product.description}</p>
-          )}
+            {product.description && (
+              <p style="color:var(--muted); line-height:1.6; margin:0 0 1.4rem; white-space:pre-line;">{product.description}</p>
+            )}
 
-          {product.materials && product.materials.length > 0 && (
-            <div style="display:flex; gap:.4rem; flex-wrap:wrap; margin:0 0 1.4rem;">
-              {product.materials.map((m) => <span class="tag">{m}</span>)}
+            {product.materials && product.materials.length > 0 && (
+              <div style="display:flex; gap:.4rem; flex-wrap:wrap; margin:0 0 1.4rem;">
+                {product.materials.map((m) => <span class="tag">{m}</span>)}
+              </div>
+            )}
+
+            {variants.length > 1 && (
+              <div class="pdp-field">
+                <span class="pdp-field-label mono">Option</span>
+                <div class="seg" role="radiogroup" aria-label="Option" id="variant-pills">
+                  {variants.map((v) => (
+                    <button
+                      type="button"
+                      class:list={["seg-pill", defaultVariant?.id === v.id && "is-on"]}
+                      role="radio"
+                      aria-checked={defaultVariant?.id === v.id ? "true" : "false"}
+                      data-variant={v.id}
+                      data-price={v.price_cents}
+                      data-currency={v.currency}
+                    >
+                      {v.title && v.title !== "Default" ? v.title : product.title}
+                    </button>
+                  ))}
+                </div>
+                {/* progressive-enhancement fallback: a real select for no-JS */}
+                <select id="variant" class="fld" style="margin-top:.6rem;" hidden>
+                  {variants.map((v) => (
+                    <option value={v.id} data-price={v.price_cents} data-currency={v.currency} selected={defaultVariant?.id === v.id}>
+                      {v.title && v.title !== "Default" ? v.title : product.title} — {formatMoney(v.price_cents, v.currency)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            <div class="pdp-field">
+              <span class="pdp-field-label mono">Quantity</span>
+              <div class="stepper" role="group" aria-label="Quantity">
+                <button type="button" class="stepper-btn" id="qty-dec" aria-label="Decrease quantity">−</button>
+                <input id="qty" class="stepper-input" type="number" min="1" max="99" value="1" inputmode="numeric" aria-label="Quantity" />
+                <button type="button" class="stepper-btn" id="qty-inc" aria-label="Increase quantity">+</button>
+              </div>
             </div>
-          )}
 
-          {variants.length > 1 && (
-            <div style="margin-bottom:1rem; max-width:24rem;">
-              <label class="mono" for="variant" style="display:block; margin-bottom:.4rem; color:var(--muted);">Option</label>
-              <select id="variant" class="fld">
-                {variants.map((v) => (
-                  <option
-                    value={v.id}
-                    data-price={v.price_cents}
-                    data-currency={v.currency}
-                    selected={defaultVariant?.id === v.id}
-                  >
-                    {v.title && v.title !== "Default" ? v.title : product.title}
-                    {" — "}
-                    {formatMoney(v.price_cents, v.currency)}
-                  </option>
-                ))}
-              </select>
+            <div class="pdp-actions">
+              <button id="add" class="btn" type="button">Add to cart</button>
+              <button id="buy" class="btn btn-ghost" type="button">Buy now</button>
             </div>
-          )}
+            <span id="added" class="mono" role="status" aria-live="polite" hidden style="display:block; margin-top:.7rem; color:var(--teal);">Added to cart ✓</span>
 
-          <div style="margin-bottom:1.2rem; max-width:8rem;">
-            <label class="mono" for="qty" style="display:block; margin-bottom:.4rem; color:var(--muted);">Quantity</label>
-            <input id="qty" class="fld" type="number" min="1" max="99" value="1" inputmode="numeric" />
+            <ul class="pdp-trust">
+              <li>{FULFILL_LABEL[product.fulfillment_type] === "made to order" ? "Made to order · ships in 5–7 days" : FULFILL_LABEL[product.fulfillment_type] === "digital" ? "Instant access after checkout" : "Limited drop · ships in 3–5 days"}</li>
+              <li>Secure checkout · easy returns</li>
+            </ul>
+
+            <p class="mono" style="margin-top:1rem; color:var(--muted);">
+              <a href="/cart" style="color:inherit; text-decoration:underline;">View cart →</a>
+            </p>
           </div>
-
-          <div style="display:flex; gap:.7rem; flex-wrap:wrap; align-items:center;">
-            <button id="add" class="btn btn-ghost" type="button">Add to cart</button>
-            <button id="buy" class="btn" type="button">Buy now</button>
-            <span id="added" class="mono" role="status" aria-live="polite" hidden style="color:var(--teal);">Added ✓</span>
-          </div>
-
-          <p class="mono" style="margin-top:1.2rem; color:var(--muted);">
-            <a href="/cart" style="color:inherit; text-decoration:underline;">View cart →</a>
-          </p>
         </div>
       </div>
     </section>
@@ -185,32 +200,54 @@ const images = product ? imageList(product.images) : [];
 
       const root = document.querySelector("[data-product-root]") as HTMLElement | null;
       const select = document.getElementById("variant") as HTMLSelectElement | null;
+      const pills = Array.from(document.querySelectorAll<HTMLButtonElement>(".seg-pill"));
       const qtyInput = document.getElementById("qty") as HTMLInputElement | null;
       const priceEl = document.getElementById("price");
       const heroImg = document.getElementById("hero-image") as HTMLImageElement | null;
       const addedEl = document.getElementById("added");
 
-      function selectedVariant(): string {
-        if (select && select.value) return select.value;
-        return root?.dataset.defaultVariant ?? "";
+      // segmented pills own the selection; the <select> stays in sync as a fallback mirror.
+      let currentVariant = root?.dataset.defaultVariant ?? "";
+
+      function setVariant(id: string, cents: number, currency: string) {
+        currentVariant = id;
+        pills.forEach((p) => {
+          const on = p.dataset.variant === id;
+          p.classList.toggle("is-on", on);
+          p.setAttribute("aria-checked", on ? "true" : "false");
+        });
+        if (select) select.value = id;
+        if (priceEl && Number.isFinite(cents)) priceEl.textContent = formatMoney(cents, currency);
       }
 
+      pills.forEach((p) => {
+        p.addEventListener("click", () => {
+          setVariant(p.dataset.variant ?? "", Number(p.dataset.price ?? "0"), p.dataset.currency ?? root?.dataset.defaultCurrency ?? "usd");
+        });
+      });
+      select?.addEventListener("change", () => {
+        const opt = select.selectedOptions[0];
+        setVariant(select.value, Number(opt?.dataset.price ?? "0"), opt?.dataset.currency ?? "usd");
+      });
+
+      function selectedVariant(): string {
+        return currentVariant || (select?.value ?? root?.dataset.defaultVariant ?? "");
+      }
       function selectedQty(): number {
         const n = Math.floor(Number(qtyInput?.value ?? "1"));
         return Number.isFinite(n) && n > 0 ? Math.min(n, 99) : 1;
       }
 
-      function syncPrice() {
-        if (!select || !priceEl) return;
-        const opt = select.selectedOptions[0];
-        const cents = Number(opt?.dataset.price ?? "0");
-        const currency = opt?.dataset.currency ?? root?.dataset.defaultCurrency ?? "usd";
-        if (Number.isFinite(cents)) priceEl.textContent = formatMoney(cents, currency);
-      }
+      // designed −/+ stepper
+      function clampQty(n: number) { return Math.min(Math.max(n, 1), 99); }
+      document.getElementById("qty-dec")?.addEventListener("click", () => {
+        if (qtyInput) qtyInput.value = String(clampQty(selectedQty() - 1));
+      });
+      document.getElementById("qty-inc")?.addEventListener("click", () => {
+        if (qtyInput) qtyInput.value = String(clampQty(selectedQty() + 1));
+      });
 
-      select?.addEventListener("change", syncPrice);
-
-      // Thumbnail → swap hero image.
+      // thumbnail → swap hero image
       for (const btn of document.querySelectorAll<HTMLButtonElement>("[data-thumb]")) {
         btn.addEventListener("click", () => {
           const src = btn.dataset.thumb;
@@ -218,18 +255,28 @@ const images = product ? imageList(product.images) : [];
         });
       }
 
-      let addedTimer: number | undefined;
+      // toast helper — a brief confirm pulse (also feeds the nav badge via cart.add's event)
+      function toast(msg: string) {
+        let t = document.getElementById("sl-toast");
+        if (!t) {
+          t = document.createElement("div");
+          t.id = "sl-toast";
+          t.setAttribute("role", "status");
+          t.setAttribute("aria-live", "polite");
+          document.body.appendChild(t);
+        }
+        t.textContent = msg;
+        t.classList.add("is-in");
+        window.clearTimeout((t as any)._timer);
+        (t as any)._timer = window.setTimeout(() => t!.classList.remove("is-in"), 2400);
+      }
+
       document.getElementById("add")?.addEventListener("click", () => {
         const id = selectedVariant();
         if (!id) return;
         cart.add(id, selectedQty());
-        if (addedEl) {
-          addedEl.hidden = false;
-          window.clearTimeout(addedTimer);
-          addedTimer = window.setTimeout(() => {
-            addedEl.hidden = true;
-          }, 2000);
-        }
+        if (addedEl) { addedEl.hidden = false; }
+        toast("Added to cart");
       });
 
       document.getElementById("buy")?.addEventListener("click", () => {
@@ -250,3 +297,63 @@ const images = product ? imageList(product.images) : [];
     </section>
   </Base>
 )}
+
+<style>
+  /* ── PDP layout — responsive two-column with a sticky buy-box ──────────── */
+  .pdp { display: grid; gap: clamp(1.5rem, 4vw, 3rem); grid-template-columns: 1fr; align-items: start; }
+  @media (min-width: 880px) { .pdp { grid-template-columns: 1.05fr .95fr; } }
+
+  .pdp-hero { aspect-ratio: 1 / 1; border-radius: var(--radius-lg); overflow: hidden; background: var(--bg-alt); border: 1px solid var(--stroke); box-shadow: var(--shadow-1); }
+  .pdp-hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .pdp-thumbs { display: flex; gap: .6rem; margin-top: .8rem; flex-wrap: wrap; }
+  .thumb { width: 5rem; height: 5rem; padding: 0; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--stroke); background: var(--bg-alt); cursor: pointer; transition: border-color var(--t-quick); }
+  .thumb:hover { border-color: color-mix(in oklab, var(--mark) 45%, var(--stroke)); }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  .pdp-buy-inner { position: sticky; top: 84px; }
+  @media (max-width: 879px) { .pdp-buy-inner { position: static; } }
+
+  /* price — heavier DISPLAY type, not mono; cents de-emphasized via the body weight */
+  .pdp-price { font-family: var(--font-display); font-optical-sizing: auto; font-weight: 800; font-size: var(--step-3); line-height: 1; color: var(--ink); margin: .4rem 0 1.2rem; }
+
+  .pdp-field { margin: 0 0 1.2rem; }
+  .pdp-field-label { display: block; margin-bottom: .5rem; color: var(--muted); }
+
+  /* segmented variant pills */
+  .seg { display: inline-flex; flex-wrap: wrap; gap: .4rem; }
+  .seg-pill {
+    font: inherit; cursor: pointer; padding: .5rem .9rem; border-radius: var(--radius-pill);
+    border: 1px solid var(--stroke); background: transparent; color: var(--muted-strong);
+    transition: border-color var(--t-quick), background var(--t-quick), color var(--t-quick);
+  }
+  .seg-pill:hover { color: var(--ink); border-color: color-mix(in oklab, var(--mark) 35%, var(--stroke)); }
+  .seg-pill.is-on { color: var(--ink); border-color: color-mix(in oklab, var(--mark) 55%, transparent); background: color-mix(in oklab, var(--mark) 14%, transparent); }
+  .seg-pill:focus-visible { outline: 2px solid var(--mark); outline-offset: 2px; }
+
+  /* designed −/+ stepper */
+  .stepper { display: inline-flex; align-items: stretch; border: 1px solid var(--stroke); border-radius: var(--radius); overflow: hidden; background: var(--bg); }
+  .stepper-btn { font: inherit; font-size: 1.2rem; line-height: 1; width: 2.6rem; border: 0; background: transparent; color: var(--ink); cursor: pointer; transition: background var(--t-quick); }
+  .stepper-btn:hover { background: color-mix(in oklab, var(--ink) 8%, transparent); }
+  .stepper-btn:focus-visible { outline: 2px solid var(--mark); outline-offset: -2px; }
+  .stepper-input { width: 3rem; text-align: center; border: 0; border-inline: 1px solid var(--stroke); background: transparent; color: var(--ink); font: inherit; font-variant-numeric: tabular-nums; padding: .55rem 0; -moz-appearance: textfield; }
+  .stepper-input::-webkit-outer-spin-button, .stepper-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+  .pdp-actions { display: flex; gap: .7rem; flex-wrap: wrap; align-items: center; margin-top: .4rem; }
+  .pdp-trust { list-style: none; margin: 1.4rem 0 0; padding: 0; display: flex; flex-direction: column; gap: .4rem; }
+  .pdp-trust li { color: var(--muted); font-size: .9rem; display: flex; gap: .5rem; align-items: center; }
+  .pdp-trust li::before { content: ""; width: .4rem; height: .4rem; border-radius: 999px; background: var(--teal); flex: none; }
+</style>
+
+<style is:global>
+  /* add-to-cart toast — a brief confirm pulse, bottom-center, one-shot (no loop) */
+  #sl-toast {
+    position: fixed; left: 50%; bottom: 1.4rem; transform: translate(-50%, 1.5rem);
+    z-index: 80; padding: .7rem 1.2rem; border-radius: var(--radius-pill);
+    background: var(--panel); border: 1px solid var(--stroke); color: var(--ink);
+    box-shadow: var(--shadow-2); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    font-family: var(--font-mono); font-size: .82rem; letter-spacing: .02em;
+    opacity: 0; pointer-events: none; transition: opacity var(--t-normal) var(--ease), transform var(--t-normal) var(--ease);
+  }
+  #sl-toast.is-in { opacity: 1; transform: translate(-50%, 0); }
+  @media (prefers-reduced-motion: reduce) { #sl-toast { transition: opacity 1ms; transform: translate(-50%, 0); } }
+</style>

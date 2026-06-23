@@ -8,6 +8,7 @@ export const prerender = false;
 import Base from "../layouts/Base.astro";
 import { getServerSupabase } from "../lib/supabase";
 import { formatMoney } from "../lib/commerce/cart";
+import LeadForm from "../components/LeadForm.astro";
 
 const supabase = getServerSupabase(Astro.cookies, Astro.request);
 
@@ -193,167 +194,43 @@ const TABS = [
           <p style="color:var(--muted); max-width:38rem; margin:0 auto 1.2rem;">The anchor's locked and the drops are in prep. Want us at your event in the meantime?</p>
           <a class="btn" href="/truck#catering">Book the truck →</a>
         </article>
-      ) : (
+) : (
         <>
-          {anchors.length > 0 && (
+          {[
+            { rows: anchors, h: "The Anchors", tag: "always on" },
+            { rows: drops, h: "This Week — Drops", tag: "scarce" },
+            { rows: sides, h: "Sides", tag: "" },
+            { rows: sweets, h: "Sweet", tag: "" },
+          ].filter((g) => g.rows.length > 0).map((g) => (
             <div class="grp">
               <div class="grp-head" data-reveal>
-                <h2>The Anchors</h2>
-                <span class="tag">always on</span>
+                <h2>{g.h}</h2>
+                {g.tag && <span class="tag">{g.tag}</span>}
               </div>
-              <div class="bento">
-                {anchors.map((m, i) => (
-                  <button
-                    type="button"
-                    class={`tile glass island col-2${m.hero ? " glass-focal tile-focal" : ""}`}
-                    data-reveal
-                    style={`--i:${i};${m.hero ? ` border-color:${focalBorder};` : ""}`}
-                    data-modal
-                    data-title={m.name}
-                    data-price={m.price_label ?? ""}
-                    data-body={m.blurb ?? ""}
-                    data-dietary={dietJoin(m.dietary)}
-                    data-note={m.note ?? ""}
-                    data-tag={m.season ?? ""}
-                    data-href={foodHref(m.slug)}
-                    data-cta={foodCta(m.slug)}
-                    data-food="1"
-                  >
-                    <div class="tile-row">
-                      <h3>{m.hero ? <span class="blend-text">{m.name}</span> : m.name}</h3>
-                      {m.price_label && <span class="price mono">{m.price_label}</span>}
-                    </div>
-                    {m.blurb && <p class="tile-blurb">{m.blurb}</p>}
-                    {(m.dietary.length > 0 || m.season) && (
-                      <div class="chips">
-                        {m.season && <span class="tag">{m.season}</span>}
-                        {m.dietary.map((d) => <span class="tag diet">{dietLabel(d)}</span>)}
-                      </div>
-                    )}
-                  </button>
+              <ul class="menu-list">
+                {g.rows.map((m, i) => (
+                  <li class="menu-row" data-reveal style={`--i:${i};`}>
+                    <a class="menu-link" href={foodHref(m.slug)}>
+                      <span class="menu-head">
+                        <span class="menu-name">{m.name}</span>
+                        <span class="menu-leader" aria-hidden="true"></span>
+                        {m.price_label && <span class="menu-price">{m.price_label}</span>}
+                      </span>
+                      {m.blurb && <span class="menu-blurb">{m.blurb}</span>}
+                      {(m.dietary.length > 0 || m.season || m.note) && (
+                        <span class="menu-meta">
+                          {m.season && <span class="tag">{m.season}</span>}
+                          {m.dietary.map((d) => <span class="tag diet">{dietLabel(d)}</span>)}
+                          {m.note && <span class="menu-note">{m.note}</span>}
+                        </span>
+                      )}
+                      <span class="menu-cta mono">{foodCta(m.slug)}</span>
+                    </a>
+                  </li>
                 ))}
-              </div>
+              </ul>
             </div>
-          )}
-
-          {drops.length > 0 && (
-            <div class="grp">
-              <div class="grp-head" data-reveal>
-                <h2>This Week — Drops</h2>
-                <span class="tag">scarce</span>
-              </div>
-              <div class="bento">
-                {drops.map((m, i) => (
-                  <button
-                    type="button"
-                    class="tile glass island col-2"
-                    data-reveal
-                    style={`--i:${i};`}
-                    data-modal
-                    data-title={m.name}
-                    data-price={m.price_label ?? ""}
-                    data-body={m.blurb ?? ""}
-                    data-dietary={dietJoin(m.dietary)}
-                    data-note={m.note ?? ""}
-                    data-tag={m.season ?? ""}
-                    data-href={foodHref(m.slug)}
-                    data-cta={foodCta(m.slug)}
-                    data-food="1"
-                  >
-                    <div class="tile-row">
-                      <h3><span class="blend-text">{m.name}</span></h3>
-                      {m.price_label && <span class="price mono">{m.price_label}</span>}
-                    </div>
-                    {m.blurb && <p class="tile-blurb">{m.blurb}</p>}
-                    {(m.dietary.length > 0 || m.season) && (
-                      <div class="chips">
-                        {m.season && <span class="tag">{m.season}</span>}
-                        {m.dietary.map((d) => <span class="tag diet">{dietLabel(d)}</span>)}
-                      </div>
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {sides.length > 0 && (
-            <div class="grp">
-              <div class="grp-head" data-reveal>
-                <h2>Sides</h2>
-              </div>
-              <div class="bento">
-                {sides.map((m, i) => (
-                  <button
-                    type="button"
-                    class="tile glass island col-2"
-                    data-reveal
-                    style={`--i:${i};`}
-                    data-modal
-                    data-title={m.name}
-                    data-price={m.price_label ?? ""}
-                    data-body={m.blurb ?? ""}
-                    data-dietary={dietJoin(m.dietary)}
-                    data-note={m.note ?? ""}
-                    data-tag={m.season ?? ""}
-                    data-href={foodHref(m.slug)}
-                    data-cta={foodCta(m.slug)}
-                    data-food="1"
-                  >
-                    <div class="tile-row">
-                      <h3>{m.name}</h3>
-                      {m.price_label && <span class="price mono">{m.price_label}</span>}
-                    </div>
-                    {m.blurb && <p class="tile-blurb">{m.blurb}</p>}
-                    {m.dietary.length > 0 && (
-                      <div class="chips">
-                        {m.dietary.map((d) => <span class="tag diet">{dietLabel(d)}</span>)}
-                      </div>
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {sweets.length > 0 && (
-            <div class="grp">
-              <div class="grp-head" data-reveal>
-                <h2>Sweet</h2>
-              </div>
-              <div class="bento">
-                {sweets.map((m, i) => (
-                  <button
-                    type="button"
-                    class="tile glass island col-2"
-                    data-reveal
-                    style={`--i:${i};`}
-                    data-modal
-                    data-title={m.name}
-                    data-price={m.price_label ?? ""}
-                    data-body={m.blurb ?? ""}
-                    data-dietary={dietJoin(m.dietary)}
-                    data-note={m.note ?? ""}
-                    data-tag={m.season ?? ""}
-                    data-href={foodHref(m.slug)}
-                    data-cta={foodCta(m.slug)}
-                    data-food="1"
-                  >
-                    <div class="tile-row">
-                      <h3>{m.name}</h3>
-                      {m.price_label && <span class="price mono">{m.price_label}</span>}
-                    </div>
-                    {m.blurb && <p class="tile-blurb">{m.blurb}</p>}
-                    {m.dietary.length > 0 && (
-                      <div class="chips">
-                        {m.dietary.map((d) => <span class="tag diet">{dietLabel(d)}</span>)}
-                      </div>
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+          ))}
 
           <div class="panel-cta" data-reveal>
             <a class="btn" href="/menu">See the full menu →</a>
@@ -374,11 +251,23 @@ const TABS = [
       hidden
     >
       {merch.length === 0 ? (
-        <article class="glass glass-ultra island" data-reveal style="text-align:center;">
-          <p class="mono" style="margin:0 0 .4rem;">wear the build</p>
-          <h2 class="t-h3" style="margin:.2rem 0 .5rem;"><span class="blend-text">Merch drops soon</span></h2>
-          <p style="color:var(--muted); max-width:38rem; margin:0 auto;">The mark, the colors, the build — on tees, caps, and stickers. Get on the list and you'll be first.</p>
-        </article>
+        <div class="waitlist" data-reveal>
+          <div class="waitlist-copy">
+            <p class="mono" style="margin:0 0 .4rem;">wear the build</p>
+            <h2 class="t-h3" style="margin:.2rem 0 .5rem;">Merch drops soon</h2>
+            <p style="color:var(--muted); max-width:34rem; margin:0 0 1.2rem;">The mark, the colors, the build — on tees, caps, and stickers. Get on the list and you'll be first to the drop.</p>
+            <LeadForm source="merch-waitlist" cta="Notify me →" placeholder="you@email.com" />
+          </div>
+          <div class="waitlist-preview" aria-hidden="true">
+            {["The Mark Tee", "Build-in-Public Cap"].map((t) => (
+              <div class="ghost-card">
+                <div class="ghost-media"><span class="ghost-mark"></span></div>
+                <span class="ghost-name">{t}</span>
+                <span class="ghost-price mono">soon</span>
+              </div>
+            ))}
+          </div>
+        </div>
       ) : (
         <div class="bento">
           {merch.map((p, i) => {
@@ -709,6 +598,33 @@ const TABS = [
   .tile-foot h3 { font-size: 1.25rem; margin: 0; }
   .tile-foot .price { color: var(--muted); margin: 0; }
 
+  /* ── FOOD menu-list — name · dotted leader · price · dietary (a real menu, not a card
+        grid). Each row is a true <a> link to the build/truck, never a modal. ─────────── */
+  .menu-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+  .menu-row { border-bottom: 1px solid color-mix(in oklab, var(--stroke) 80%, transparent); }
+  .menu-row:last-child { border-bottom: 0; }
+  .menu-link {
+    display: grid; gap: .35rem; padding: 1.05rem .2rem;
+    text-decoration: none; color: inherit;
+    transition: padding-inline var(--t-quick) var(--ease);
+  }
+  .menu-head { display: flex; align-items: baseline; gap: .6rem; }
+  .menu-name { font-family: var(--font-display); font-weight: 600; font-size: var(--step-1); color: var(--ink); }
+  .menu-leader { flex: 1; border-bottom: 1px dotted color-mix(in oklab, var(--muted) 55%, transparent); transform: translateY(-.18em); min-width: 1.5rem; }
+  .menu-price { font-family: var(--font-mono); font-size: 1rem; color: var(--ink); white-space: nowrap; }
+  .menu-blurb { color: var(--muted); max-width: 52rem; }
+  .menu-meta { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; }
+  .menu-meta .diet { font-size: .66rem; }
+  .menu-note { color: var(--muted); font-style: italic; font-size: .85rem; }
+  .menu-cta { color: var(--mark); opacity: 0; transform: translateY(2px); transition: opacity var(--t-quick), transform var(--t-quick); }
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .menu-link:hover { padding-inline: .55rem; }
+    .menu-link:hover .menu-cta { opacity: 1; transform: none; }
+    .menu-link:hover .menu-name { color: var(--ink); }
+  }
+  .menu-link:focus-visible { outline: 2px solid var(--mark); outline-offset: 2px; border-radius: 8px; }
+  @media (hover: none) { .menu-cta { opacity: 1; } }
+
   /* the hover signature — lift + a faint gradient edge from the spectrum */
   @media (prefers-reduced-motion: no-preference) {
     .tile {
@@ -726,6 +642,32 @@ const TABS = [
     .tile-prod:hover .tile-media img { transform: scale(1.04); }
   }
   .tile:focus-visible { outline: 2px solid var(--mark); outline-offset: 2px; }
+
+  /* ── waitlist (empty-merch) — a designed capture, never a barren grid. Ghost preview
+        cards use a BRANDED TEXTURED panel (faint spectrum bloom + the chevron tint), with
+        NO "image coming soon" text. ─────────────────────────────────────────────────── */
+  .waitlist { display: grid; gap: clamp(1.6rem, 4vw, 2.6rem); grid-template-columns: 1fr; align-items: center; }
+  @media (min-width: 820px) { .waitlist { grid-template-columns: 1.1fr .9fr; } }
+  .waitlist-copy form { justify-content: flex-start; }
+  .waitlist-preview { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .ghost-card { display: flex; flex-direction: column; gap: .4rem; }
+  .ghost-media {
+    aspect-ratio: 4 / 3; border-radius: var(--radius); border: 1px solid var(--stroke);
+    position: relative; overflow: hidden; display: grid; place-items: center;
+    background:
+      radial-gradient(60% 60% at 30% 20%, color-mix(in oklab, var(--coral) 14%, transparent), transparent 70%),
+      radial-gradient(70% 70% at 80% 90%, color-mix(in oklab, var(--blue) 14%, transparent), transparent 70%),
+      var(--bg-alt);
+  }
+  .ghost-mark {
+    width: 38%; aspect-ratio: 1; opacity: .35;
+    -webkit-mask: url("/slicedlabs-mark.svg") center / contain no-repeat;
+    mask: url("/slicedlabs-mark.svg") center / contain no-repeat;
+    background: var(--blend);
+  }
+  .ghost-name { font-family: var(--font-display); font-weight: 600; color: color-mix(in oklab, var(--ink) 70%, var(--muted)); }
+  .ghost-price { color: var(--muted); }
+  @media (max-width: 520px) { .waitlist-preview { grid-template-columns: 1fr; } }
 
   /* ── "where to find us" rows ───────────────────────────────────────────── */
   .rows { list-style: none; padding: 0; margin: 0; display: grid; gap: .7rem; }

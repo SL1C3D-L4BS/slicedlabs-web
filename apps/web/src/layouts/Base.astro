@@ -45,6 +45,7 @@ const ic = {
   shop: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.5 7V6a5.5 5.5 0 0 1 11 0v1H20a1 1 0 0 1 1 1.07l-.72 11A2 2 0 0 1 18.28 22H5.72a2 2 0 0 1-2-1.93l-.72-11A1 1 0 0 1 4 7h2.5Zm2 0h7V6a3.5 3.5 0 0 0-7 0v1Z"/></svg>`,
   workshops: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.6 2.9a1.2 1.2 0 0 1 .8 0l9 3.2a.9.9 0 0 1 0 1.7l-9 3.2a1.2 1.2 0 0 1-.8 0l-9-3.2a.9.9 0 0 1 0-1.7l9-3.2Z"/><path d="M6 11.2v3.6C6 16.6 8.7 18 12 18s6-1.4 6-3.2v-3.6l-5.4 1.9a2 2 0 0 1-1.2 0L6 11.2Z"/></svg>`,
   menu: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 2h6a1 1 0 0 1 1 1v1h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2V3a1 1 0 0 1 1-1Zm1 2v1h4V4h-4Zm-2 6h8v2H8v-2Zm0 4h8v2H8v-2Z"/></svg>`,
+  cart: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4h-.6a1 1 0 0 0 0 2H7l1.6 9.6A2 2 0 0 0 10.57 17.3H18.5a1 1 0 0 0 0-2h-7.93l-.27-1.6h8.2a2 2 0 0 0 1.96-1.6l1.02-5.1A1 1 0 0 0 20.5 4H8.86l-.2-1.16A1 1 0 0 0 7.67 2H6a1 1 0 0 0 0 2h.83L7 4Z"/><circle cx="10.5" cy="20" r="1.5"/><circle cx="17.5" cy="20" r="1.5"/></svg>`,
 };
 // nav order = purpose → fun → sell: Home, then the why (Manifesto) + the receipts
 // (The Build), then the show (Watch), then commerce (Truck, Shop) last.
@@ -125,6 +126,10 @@ const isActive = (href: string) => (href === "/" ? path === "/" : path === href 
           ))}
         </nav>
         <span class="pb-sep"></span>
+        <a href="/cart" class="pb-chip pb-cart" aria-label="Cart" title="Cart" style="--hue:#6C7BE8;">
+          <span class="pb-ico" set:html={ic.cart}></span>
+          <span class="pb-cart-count" data-cart-count hidden aria-hidden="true">0</span>
+        </a>
         <button id="temp" class="pb-chip pb-toggle" aria-label="Toggle light and dark" title="light ↔ dark">
           <span class="pb-ico" data-ico-moon set:html={ic.moon}></span>
           <span class="pb-ico" data-ico-sun set:html={ic.sun}></span>
@@ -386,6 +391,30 @@ const isActive = (href: string) => (href === "/" ? path === "/" : path === href 
       // so the home "where to next" row can lead with the visitor's interest on return.
       import { recordVisit } from "../scripts/affinity";
       recordVisit();
+    </script>
+
+    <script>
+      // Nav cart-count badge — reads the localStorage cart on load + listens for changes
+      // (cart.ts dispatches `sl-cart-change` on every add/setQty/clear). One-shot pop, no loop.
+      import { count } from "../scripts/cart";
+      const badge = document.querySelector("[data-cart-count]") as HTMLElement | null;
+      function render(n: number) {
+        if (!badge) return;
+        badge.textContent = String(n);
+        badge.hidden = n <= 0;
+        if (n > 0) {
+          badge.classList.remove("pop");
+          void badge.offsetWidth; // reflow → re-trigger the pop
+          badge.classList.add("pop");
+        }
+      }
+      render(count());
+      document.addEventListener("sl-cart-change", (e) => {
+        const n = (e as CustomEvent<{ count: number }>).detail?.count ?? count();
+        render(n);
+      });
+      // keep continuous across cross-document View Transitions (badge re-reads on pageshow)
+      window.addEventListener("pageshow", () => render(count()));
     </script>
 
     {/* Speculation Rules — prerender same-origin pages on hover/pointerdown so the card→detail

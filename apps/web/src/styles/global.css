@@ -372,6 +372,20 @@ dialog.gate::backdrop { background: rgba(0,0,0,.6); backdrop-filter: blur(4px); 
 .pb-chip.is-active .pb-ico { color: var(--hue); }
 .pb-chip.is-active .pb-label { color: var(--ink); }
 
+/* cart chip + count badge — the badge hides at zero, pops on change (one-shot) */
+.pb-cart { position: relative; padding:0 .6rem; }
+.pb-cart .pb-ico { color: var(--muted); }
+.pb-cart:hover .pb-ico { color: var(--ink); }
+.pb-cart-count {
+  position: absolute; top: -2px; right: -2px; min-width: 1.05rem; height: 1.05rem;
+  padding: 0 .25rem; border-radius: 999px; background: var(--blend); color: #0B0B0F;
+  font-family: var(--font-mono); font-size: .62rem; font-weight: 700; line-height: 1.05rem;
+  text-align: center; box-shadow: 0 0 0 2px var(--bg);
+}
+.pb-cart-count.pop { animation: sl-cart-pop var(--t-normal) var(--ease); }
+@keyframes sl-cart-pop { 0% { transform: scale(.6); } 60% { transform: scale(1.25); } 100% { transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .pb-cart-count.pop { animation: none; } }
+
 .pb-toggle { padding:0 .6rem; }
 .pb-toggle .pb-ico { color: var(--muted); }
 .pb-toggle:hover .pb-ico { color: var(--ink); }
