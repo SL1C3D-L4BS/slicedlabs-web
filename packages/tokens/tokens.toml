@@ -82,8 +82,8 @@ ultra-rim   = "0.24"
 
 [motion]
 t-quick  = "120ms"
-t-normal = "200ms"
-t-slow   = "380ms"
+t-normal = "220ms"
+t-slow   = "460ms"   # cinematic — more deliberate entrances/transitions (luxe upscale)
 ease     = "cubic-bezier(0.2, 0.8, 0.2, 1.0)"
 
 [font]

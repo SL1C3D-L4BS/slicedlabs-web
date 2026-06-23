@@ -109,7 +109,7 @@ a { color: inherit; text-decoration-color: color-mix(in oklab, var(--mark) 60%, 
 }
 .brass { color: var(--brass); }   /* solid metallic accent — readable luxe */
 .blend-rule { height: 3px; border: 0; border-radius: 3px; background: var(--blend); }
-.kinetic { font-size: clamp(2.8rem, 9vw, 7rem); line-height: .96; }  /* oversized hero — words are the design */
+.kinetic { font-size: clamp(3.1rem, 10vw, 8.5rem); line-height: .94; letter-spacing: -0.03em; }  /* oversized cinematic hero — words are the design */
 
 /* (Removed 2026-06-22: the per-header scroll-spectrum scrub — it read as busy and hurt
  * legibility. Headlines are now a STATIC spectrum gradient on dark, SOLID espresso ink on
@@ -179,19 +179,20 @@ main :is(h1, h2, h3, p, li) { text-shadow: var(--text-halo); }
   border-radius: var(--radius-lg);
   box-shadow:
     inset 0 1px 0 color-mix(in oklab, white calc(var(--focal-rim) * 100%), transparent),
-    inset 0 0 0 1px color-mix(in oklab, var(--mark) 9%, transparent),
-    0 24px 70px rgba(0,0,0,.38);
+    inset 0 0 0 1px color-mix(in oklab, var(--brass) 10%, transparent),  /* luxe brass hairline */
+    0 28px 80px rgba(0,0,0,.42);
 }
 /* ULTRA — the showpiece: deeper lensing feel + a faint chromatic edge (still). */
 .glass-ultra {
-  backdrop-filter: blur(calc(var(--blur) + 8px)) saturate(1.5) brightness(1.04);
-  -webkit-backdrop-filter: blur(calc(var(--blur) + 8px)) saturate(1.5) brightness(1.04);
+  backdrop-filter: blur(calc(var(--blur) + 10px)) saturate(1.6) brightness(1.05);
+  -webkit-backdrop-filter: blur(calc(var(--blur) + 10px)) saturate(1.6) brightness(1.05);
   border-radius: var(--radius-lg);
   box-shadow:
     inset 0 1px 0 color-mix(in oklab, white calc(var(--ultra-rim) * 100%), transparent),
-    inset  1px 0 0 color-mix(in oklab, var(--coral) 22%, transparent),  /* chromatic */
-    inset -1px 0 0 color-mix(in oklab, var(--teal)  22%, transparent),  /* rim */
-    0 32px 90px rgba(0,0,0,.46);
+    inset 0 0 0 1px color-mix(in oklab, var(--brass) 14%, transparent),  /* luxe brass hairline */
+    inset  1px 0 0 color-mix(in oklab, var(--coral) 24%, transparent),   /* chromatic */
+    inset -1px 0 0 color-mix(in oklab, var(--teal)  24%, transparent),   /* rim */
+    0 40px 110px rgba(0,0,0,.52);
 }
 /* Corners: plain rounded-rect (border-radius) everywhere — ONE consistent corner
  * language across cards, chips, fields, images, modal and nav. The superellipse(4)
