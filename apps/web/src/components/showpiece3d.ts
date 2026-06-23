@@ -73,9 +73,11 @@ export function initShowpiece(
   const BASE_Y = -0.5; // resting 3/4 view
 
   function buildPlaceholder() {
-    // a beveled board slab — brand-tinted walnut, gentle bevel via a rounded box feel.
+    // NEUTRALIZED (2026-06-23): a calm matte graphite slab, not a saturated brown box. This
+    // is only the rare error-fallback (the index renders the real chevron mark); keeping it
+    // a quiet, intentional surface — never a procedural-prop showpiece "we'd stake our name on."
     const geo = new THREE.BoxGeometry(2.5, 0.2, 1.6, 1, 1, 1);
-    const mat = new THREE.MeshStandardMaterial({ color: 0x6f4524, roughness: 0.5, metalness: 0.04 });
+    const mat = new THREE.MeshStandardMaterial({ color: 0x2a2b30, roughness: 0.82, metalness: 0.02 });
     const mesh = new THREE.Mesh(geo, mat);
     mesh.castShadow = true;
     group.add(mesh);
