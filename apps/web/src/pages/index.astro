@@ -4,7 +4,8 @@ import Base from "../layouts/Base.astro";
 import Newsletter from "../components/Newsletter.astro";
 import HeroPass from "../components/HeroPass.astro";
 import ScrollScene from "../components/ScrollScene.astro";
-import CraftInfographic from "../components/CraftInfographic.astro";
+import Infographic from "../components/Infographic.astro";
+import InfoFigure from "../components/InfoFigure.astro";
 import PersonalizedSections from "../components/PersonalizedSections.astro";
 import { organizationLd } from "../lib/brand";
 
@@ -29,20 +30,36 @@ const climb = ["Brand + the channel", "One truck", "The first lot", "Venue + own
 
   <ScrollScene />
 
-  <!-- WHAT WE STAND ON — the craft showpiece. A custom 3D craft-infographic (the product
-       lines + materials, charted) that leads the eye to the shop; pure CSS 3D, no island. -->
+  <!-- WHAT WE STAND ON — the craft infographic (Infographic shell → no-cutoff donut of the
+       3 real product lines, with an orbiting glow tracer). The caption/legend live in NORMAL
+       FLOW below the figure (never an overlay), so nothing is clipped or obscured. -->
   <section class="wrap section" aria-labelledby="craft">
     <h2 id="craft" class="mono" data-reveal style="color:var(--muted); margin-bottom:1rem;">what we stand on</h2>
-    <article
-      class="glass glass-ultra"
-      data-reveal
-      style="position:relative; overflow:hidden; padding:0; border-radius:var(--radius-lg);"
-    >
-      <CraftInfographic height="clamp(20rem,46vw,34rem)" />
-      <div style="position:absolute; inset:auto 0 0 0; padding:clamp(1.2rem,3vw,2rem); background:linear-gradient(to top, color-mix(in oklab, var(--bg) 94%, transparent) 0 45%, color-mix(in oklab, var(--bg) 70%, transparent) 72%, transparent);">
-        <h3 class="t-h2" style="margin:0 0 .3rem;">Tools we'd stake our name on.</h3>
-        <p style="color:var(--muted); margin:0; max-width:38rem;">Engraved boards, aprons, blades — the gear behind the build, made to outlast the trend cycle. <a href="/shop" style="color:var(--muted-strong); font-weight:600;">See the shop →</a></p>
-      </div>
+    <article class="glass glass-ultra craft-card" data-reveal>
+      <Infographic
+        ratio="3 / 2"
+        label="Three product lines in the works — engraved boards, forged blades, leather aprons"
+      >
+        <InfoFigure
+          variant="donut"
+          stat="3"
+          statLabel="lines, in the works"
+          segments={[
+            { label: "Boards", hue: "--coral" },
+            { label: "Blades", hue: "--teal" },
+            { label: "Aprons", hue: "--brass" },
+          ]}
+        />
+        <div slot="caption" class="craft-cap">
+          <h3 class="t-h2" style="margin:0;">Tools we'd stake our name on.</h3>
+          <ul class="craft-legend">
+            <li><span class="craft-dot" style="--h:var(--coral)"></span><b>Boards</b><span class="mono">black walnut · maple</span></li>
+            <li><span class="craft-dot" style="--h:var(--teal)"></span><b>Blades</b><span class="mono">forged steel</span></li>
+            <li><span class="craft-dot" style="--h:var(--brass)"></span><b>Aprons</b><span class="mono">full-grain leather</span></li>
+          </ul>
+          <p class="craft-sub">The gear behind the build, made to outlast the trend cycle. <a href="/shop" class="craft-link">See the shop →</a></p>
+        </div>
+      </Infographic>
     </article>
   </section>
 
@@ -116,4 +133,25 @@ const climb = ["Brand + the channel", "One truck", "The first lot", "Venue + own
     <hr class="blade center" data-reveal style="max-width:10rem; margin:2.6rem auto 1rem;" />
     <p class="mono">build it in public</p>
   </section>
+
+  <style>
+    /* "what we stand on" craft card — the Infographic shell flows the donut figure over a
+       caption/legend in normal flow (no overlay → no cutoffs). */
+    .craft-card { padding: clamp(1.4rem, 3.5vw, 2.4rem); }
+    .craft-cap { display: grid; gap: .9rem; justify-items: center; text-align: center; }
+    .craft-legend {
+      list-style: none; margin: 0; padding: 0;
+      display: flex; flex-wrap: wrap; justify-content: center; gap: .55rem 1.4rem;
+    }
+    .craft-legend li { display: inline-flex; align-items: center; gap: .5rem; }
+    .craft-legend b { font-family: var(--font-display); font-weight: 700; color: var(--ink); }
+    .craft-legend .mono { color: var(--muted-strong); }
+    .craft-dot {
+      width: .62rem; height: .62rem; border-radius: 50%; flex: none; background: var(--h);
+      box-shadow: 0 0 10px color-mix(in oklab, var(--h) 60%, transparent);
+    }
+    .craft-sub { color: var(--muted); margin: 0; max-width: 40rem; }
+    /* AA on both themes (raw --mark fails on cream); --mark underline comes from global a{} */
+    .craft-link { color: var(--ink); font-weight: 600; }
+  </style>
 </Base>

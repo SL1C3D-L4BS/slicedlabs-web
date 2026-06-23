@@ -1,0 +1,56 @@
+---
+// Infographic.astro — the no-cutoff infographic SHELL (the structural fix for the old
+// clipping infographic — a fixed overflow:hidden box with an absolute caption overlay).
+//
+// A `container-type: inline-size` query container holding a two-row grid:
+//   row 1 = an aspect-ratio-RESERVED, overflow-visible VIZ FRAME (CLS=0 — height is known
+//           before paint). The media layer is inset by a `--glow-safe` gutter so tracer
+//           bloom spills into the frame, never past it (no clip, no overflow:hidden).
+//   row 2 = the caption / legend / sources in NORMAL FLOW (never an absolute overlay — that
+//           was the bug where the caption sat on top of the lower panels). The card grows
+//           DOWN into already-reserved flow, so nothing overlaps.
+// Children size in container units (cqi/cqmin) so ONE component reflows in any bento slot
+// (.col-*/.feature) with no data-hiding mobile branch. Token-driven (tokens.toml reskins it).
+interface Props {
+  ratio?: string;      // viz aspect-ratio, e.g. "16 / 10" or "3 / 2"
+  glowSafe?: string;   // the bloom gutter inset (default 7%)
+  class?: string;
+  label?: string;      // accessible name for the whole figure region (the REAL message lives in the caption)
+}
+const { ratio = "3 / 2", glowSafe = "7%", class: cls = "", label } = Astro.props;
+const hasCaption = Astro.slots.has("caption");
+---
+<figure
+  class:list={["ig", cls]}
+  style={`--ig-ratio:${ratio}; --glow-safe:${glowSafe};`}
+  role={label ? "group" : undefined}
+  aria-label={label}
+>
+  <div class="ig-frame">
+    <div class="ig-media"><slot /></div>
+  </div>
+  {hasCaption && <figcaption class="ig-cap"><slot name="caption" /></figcaption>}
+</figure>
+
+<style>
+  .ig {
+    container-type: inline-size;
+    margin: 0; display: grid; gap: clamp(.9rem, 3cqi, 1.6rem);
+  }
+  /* row 1 — the viz frame. aspect-ratio reserves the exact height BEFORE paint (CLS=0);
+     overflow:visible so the glow is never clipped at the frame edge. */
+  .ig-frame {
+    position: relative;
+    aspect-ratio: var(--ig-ratio, 3 / 2);
+    width: 100%;
+    overflow: visible;
+  }
+  /* the media is inset by the glow gutter, so a figure's bloom spills into the gutter
+     (inside the frame) instead of clipping or overflowing the card. */
+  .ig-media { position: absolute; inset: var(--glow-safe, 7%); }
+  .ig-media > :global(*) { width: 100%; height: 100%; }
+  .ig-media :global(svg) { display: block; width: 100%; height: 100%; overflow: visible; }
+
+  /* row 2 — caption in normal flow (no overlay) */
+  .ig-cap { margin: 0; }
+</style>

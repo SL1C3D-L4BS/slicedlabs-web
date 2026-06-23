@@ -1,0 +1,129 @@
+---
+// InfoFigure.astro — the figure renderer for the Infographic shell. Emits ONE viewBox SVG
+// (preserveAspectRatio="xMidYMid meet" → the ENTIRE figure always fits, no clip) with a
+// PADDED glow filter (region x/y=-50% w/h=200% so bloom is never clipped at the path bbox),
+// brand-spectrum fills, and an owned "runner" tracer — a glowing comet that orbits the path
+// (pure transform rotation = compositor-friendly; freezes to a static highlight under
+// reduced-motion, full data parity). REAL numbers render as DOM text (selectable, AA,
+// themed), never baked into the SVG. The SVG is decorative → aria-hidden; the data the
+// tracer traces lives in adjacent DOM (the stat + the caption legend).
+//
+// v1 variant: "donut" (the home "what we stand on" card). bars / ladder / kpi-grid follow.
+interface Seg { label: string; hue: string }   // hue = a CSS var name, e.g. "--coral"
+interface Props {
+  variant?: "donut";
+  segments?: Seg[];
+  stat?: string;        // the big real number, e.g. "3" (count-up if numeric)
+  statLabel?: string;   // e.g. "lines, in the works"
+  class?: string;
+  id?: string;
+}
+const { variant = "donut", segments = [], stat, statLabel, class: cls = "", id } = Astro.props;
+const uid = id ?? "ig" + Math.random().toString(36).slice(2, 8);
+
+// donut geometry
+const R = 40;
+const C = 2 * Math.PI * R;                 // circumference (~251.33)
+const N = Math.max(segments.length, 1);
+const GAP = 8;                             // gap between segments (user units)
+const SEG = C / N - GAP;                   // each segment's arc length
+const TAIL = 20;                           // comet tail arc length
+const headDeg = (TAIL / C) * 360;          // leading-edge angle of the comet
+const hr = (headDeg * Math.PI) / 180;
+const headX = (50 + R * Math.cos(hr)).toFixed(2);
+const headY = (50 + R * Math.sin(hr)).toFixed(2);
+const statIsNum = stat != null && /^\d+(\.\d+)?$/.test(stat);
+---
+{variant === "donut" && (
+  <div class:list={["info-fig", "info-donut", cls]}>
+    <svg class="if-svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false">
+      <defs>
+        {/* static head halo — a radial GRADIENT, not an SVG filter, so the orbiting comet
+            rides the compositor transform with no per-frame blur re-raster (composite-only). */}
+        <radialGradient id={`${uid}-head`}>
+          <stop class="if-head-0" offset="0%" />
+          <stop class="if-head-1" offset="55%" />
+          <stop class="if-head-2" offset="100%" />
+        </radialGradient>
+      </defs>
+
+      {/* faint full track behind the segments */}
+      <circle class="if-track" cx="50" cy="50" r={R} />
+
+      {/* the real data — equal segments, true 2D (honest scale; no fake-3D tilt) */}
+      {segments.map((s, i) => (
+        <circle
+          class="if-seg"
+          cx="50" cy="50" r={R}
+          stroke={`var(${s.hue})`}
+          stroke-dasharray={`${SEG} ${C - SEG}`}
+          transform={`rotate(${-90 + i * (360 / N)} 50 50)`}
+        />
+      ))}
+
+      {/* the runner tracer — a glowing comet that orbits the ring (composite-only: a static
+          gradient halo + dots that the compositor transforms each frame, no filter recompute) */}
+      <g class="if-comet">
+        <circle class="if-comet-tail" cx="50" cy="50" r={R} stroke-dasharray={`${TAIL} ${C - TAIL}`} />
+        <circle class="if-comet-glow" cx={headX} cy={headY} r="7" fill={`url(#${uid}-head)`} />
+        <circle class="if-comet-head" cx={headX} cy={headY} r="2.6" />
+      </g>
+    </svg>
+
+    {stat && (
+      <div class="if-stat" aria-hidden="true">
+        <span class="if-stat-n" data-count-to={statIsNum ? stat : undefined}>{stat}</span>
+        {statLabel && <span class="if-stat-k">{statLabel}</span>}
+      </div>
+    )}
+  </div>
+)}
+
+<style>
+  .info-fig { position: relative; width: 100%; height: 100%; }
+  .if-svg { display: block; width: 100%; height: 100%; overflow: visible; }
+
+  .if-track { fill: none; stroke: color-mix(in oklab, var(--ink) 9%, var(--stroke)); stroke-width: 8; }
+  .if-seg {
+    fill: none; stroke-width: 8; stroke-linecap: round;
+    transition: stroke-width var(--t-quick, .18s) var(--ease);
+  }
+
+  /* the orbiting comet tracer + glow head */
+  .if-comet { transform-box: view-box; transform-origin: 50% 50%; animation: if-orbit 4.6s linear infinite; }
+  .if-comet-tail {
+    fill: none; stroke: var(--specular); stroke-width: 8; stroke-linecap: round;
+    opacity: .9;
+  }
+  .if-comet-head { fill: color-mix(in oklab, #fff 30%, var(--specular)); }
+  /* the head's soft halo gradient — theme-aware via --specular (brass on warm, blue on dark) */
+  .if-head-0 { stop-color: color-mix(in oklab, #fff 35%, var(--specular)); stop-opacity: 1; }
+  .if-head-1 { stop-color: var(--specular); stop-opacity: .5; }
+  .if-head-2 { stop-color: var(--specular); stop-opacity: 0; }
+  @keyframes if-orbit { to { transform: rotate(360deg); } }
+
+  /* the real number, centered on the donut (DOM text → selectable, AA, themed) */
+  .if-stat {
+    position: absolute; inset: 0; display: grid; place-content: center; text-align: center;
+    pointer-events: none;
+  }
+  .if-stat-n {
+    display: block; font-family: var(--font-display); font-weight: 800; line-height: 1;
+    font-size: clamp(2.4rem, 16cqi, 4rem); color: var(--ink);
+    font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1;
+    text-shadow: 0 2px 18px color-mix(in oklab, var(--bg) 60%, transparent);
+  }
+  .if-stat-k {
+    font-family: var(--font-mono); font-size: clamp(.6rem, 2.4cqi, .72rem);
+    letter-spacing: .14em; text-transform: uppercase; color: var(--muted-strong);
+  }
+
+  /* reduced-motion: freeze the comet to a static highlight (data fully readable) */
+  @media (prefers-reduced-motion: reduce) {
+    .if-comet { animation: none; }
+  }
+  /* reduced-transparency: drop the soft halo behind the number so it stays crisp */
+  @media (prefers-reduced-transparency: reduce) {
+    .if-stat-n { text-shadow: none; }
+  }
+</style>
