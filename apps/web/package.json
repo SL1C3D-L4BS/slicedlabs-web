@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "bake-models": "bun run scripts/bake-models.ts"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.18",
@@ -31,6 +32,7 @@
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
     "@types/three": "^0.184.1",
+    "@xmldom/xmldom": "^0.9.10",
     "typescript": "^6.0.3"
   }
 }

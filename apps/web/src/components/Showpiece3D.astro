@@ -8,11 +8,12 @@
 // drop a .glb in /public/models and pass its path to swap in with zero code change.
 interface Props {
   modelUrl?: string;
+  variant?: "mark" | "board";
   class?: string;
   height?: string;
   label?: string;
 }
-const { modelUrl, class: cls = "", height = "clamp(18rem, 42vw, 30rem)", label } = Astro.props;
+const { modelUrl, variant, class: cls = "", height = "clamp(18rem, 42vw, 30rem)", label } = Astro.props;
 ---
 <div
   class:list={["showpiece", cls]}
@@ -21,7 +22,7 @@ const { modelUrl, class: cls = "", height = "clamp(18rem, 42vw, 30rem)", label }
   aria-label={label}
 >
   <div class="showpiece-fallback"></div>
-  <canvas class="showpiece-canvas" data-showpiece data-model={modelUrl}></canvas>
+  <canvas class="showpiece-canvas" data-showpiece data-model={modelUrl} data-variant={variant}></canvas>
 </div>
 
 <style>
@@ -56,7 +57,12 @@ const { modelUrl, class: cls = "", height = "clamp(18rem, 42vw, 30rem)", label }
       .then(({ initShowpiece }) => {
         for (const canvas of nodes) {
           canvas.setAttribute("data-sp-on", "");
-          handles.push(initShowpiece(canvas, { modelUrl: canvas.dataset.model || undefined }));
+          handles.push(
+            initShowpiece(canvas, {
+              modelUrl: canvas.dataset.model || undefined,
+              variant: (canvas.dataset.variant as "mark" | "board" | undefined) || undefined,
+            }),
+          );
           canvas.classList.add("is-on");
         }
       })

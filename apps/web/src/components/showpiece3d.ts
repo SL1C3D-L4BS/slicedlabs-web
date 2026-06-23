@@ -7,32 +7,66 @@
 // ships green; drop a real .glb at the modelUrl to swap in zero code.
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
+import { loadMarkGroup } from "./markMesh";
 
 export type ShowpieceHandle = { dispose: () => void };
 
 export function initShowpiece(
   canvas: HTMLCanvasElement,
-  opts: { modelUrl?: string } = {},
+  opts: { modelUrl?: string; variant?: "mark" | "board" } = {},
 ): ShowpieceHandle {
+  // The gate (clientCaps.shouldRunHeavyFx) already excludes reduced-motion / low-power /
+  // save-data devices, so here we render for QUALITY: AA, ACES tone-mapping, IBL, one soft
+  // shadow. Still render-on-demand (no perpetual loop), so battery cost stays bounded.
   const renderer = new THREE.WebGLRenderer({
     canvas,
-    antialias: false,
+    antialias: true,
     alpha: true,
-    powerPreference: "low-power",
+    powerPreference: "high-performance",
   });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.1;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
   camera.position.set(0, 0.35, 4.4);
   camera.lookAt(0, 0, 0);
 
-  // soft key + a brand-blue rim — luxe, not theatrical.
-  const key = new THREE.DirectionalLight(0xfff4e6, 2.1);
-  key.position.set(2.5, 3.5, 3);
-  const rim = new THREE.DirectionalLight(0x38b6ff, 1.2); // brand mark blue
+  // PBR reflections from a soft studio room (no HDR download) — gives the metal its sheen.
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  const envRT = pmrem.fromScene(new RoomEnvironment(), 0.04);
+  scene.environment = envRT.texture;
+
+  // soft key (casts the contact shadow) + a brand-blue rim — luxe, not theatrical.
+  const key = new THREE.DirectionalLight(0xfff4e6, 2.4);
+  key.position.set(2.5, 3.8, 3);
+  key.castShadow = true;
+  key.shadow.mapSize.set(1024, 1024);
+  key.shadow.camera.near = 0.5;
+  key.shadow.camera.far = 20;
+  key.shadow.camera.left = -3;
+  key.shadow.camera.right = 3;
+  key.shadow.camera.top = 3;
+  key.shadow.camera.bottom = -3;
+  key.shadow.bias = -0.0005;
+  const rim = new THREE.DirectionalLight(0x38b6ff, 1.3); // brand mark blue
   rim.position.set(-3, 1.2, -2.5);
-  scene.add(key, rim, new THREE.AmbientLight(0xffffff, 0.55));
+  scene.add(key, rim, new THREE.AmbientLight(0xffffff, 0.4));
+
+  // ground shadow-catcher (static, under the rotating object) — transparent but receives.
+  const ground = new THREE.Mesh(
+    new THREE.PlaneGeometry(24, 24),
+    new THREE.ShadowMaterial({ opacity: 0.22 }),
+  );
+  ground.rotation.x = -Math.PI / 2;
+  ground.position.y = -1.45;
+  ground.receiveShadow = true;
+  scene.add(ground);
 
   const group = new THREE.Group();
   scene.add(group);
@@ -42,7 +76,9 @@ export function initShowpiece(
     // a beveled board slab — brand-tinted walnut, gentle bevel via a rounded box feel.
     const geo = new THREE.BoxGeometry(2.5, 0.2, 1.6, 1, 1, 1);
     const mat = new THREE.MeshStandardMaterial({ color: 0x6f4524, roughness: 0.5, metalness: 0.04 });
-    group.add(new THREE.Mesh(geo, mat));
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.castShadow = true;
+    group.add(mesh);
   }
 
   function frameModel(obj: THREE.Object3D) {
@@ -53,10 +89,27 @@ export function initShowpiece(
     obj.position.sub(center);
     const maxDim = Math.max(size.x, size.y, size.z) || 1;
     obj.scale.multiplyScalar(2.4 / maxDim);
+    obj.traverse((o) => {
+      if ((o as THREE.Mesh).isMesh) (o as THREE.Mesh).castShadow = true;
+    });
   }
 
   let disposed = false;
-  if (opts.modelUrl) {
+  if (opts.variant === "mark") {
+    // the OFFICIAL chevron-S mark, extruded from /slicedlabs-mark.svg (operator artwork).
+    loadMarkGroup()
+      .then((markGroup) => {
+        if (disposed) return;
+        group.add(markGroup);
+        kick();
+      })
+      .catch(() => {
+        if (!disposed && group.children.length === 0) {
+          buildPlaceholder();
+          kick();
+        }
+      });
+  } else if (opts.modelUrl) {
     new GLTFLoader().load(
       opts.modelUrl,
       (gltf) => {
@@ -163,6 +216,9 @@ export function initShowpiece(
         if (Array.isArray(mat)) mat.forEach((x) => x.dispose());
         else mat?.dispose();
       });
+      scene.environment = null;
+      envRT.dispose();
+      pmrem.dispose();
       renderer.dispose();
       renderer.forceContextLoss();
     },
