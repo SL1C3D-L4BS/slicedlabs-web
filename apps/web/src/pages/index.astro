@@ -4,7 +4,7 @@ import Base from "../layouts/Base.astro";
 import Newsletter from "../components/Newsletter.astro";
 import HeroPass from "../components/HeroPass.astro";
 import ScrollScene from "../components/ScrollScene.astro";
-import Showpiece3D from "../components/Showpiece3D.astro";
+import CraftInfographic from "../components/CraftInfographic.astro";
 import PersonalizedSections from "../components/PersonalizedSections.astro";
 import { organizationLd } from "../lib/brand";
 
@@ -29,9 +29,8 @@ const climb = ["Brand + the channel", "One truck", "The first lot", "Venue + own
 
   <ScrollScene />
 
-  <!-- WHAT WE STAND ON — the craft showpiece. Gated Three.js island (procedural board
-       until a real .glb is dropped in /public/models); static brand-gradient fallback
-       on no-JS / reduced-motion / lite devices. -->
+  <!-- WHAT WE STAND ON — the craft showpiece. A custom 3D craft-infographic (the product
+       lines + materials, charted) that leads the eye to the shop; pure CSS 3D, no island. -->
   <section class="wrap section" aria-labelledby="craft">
     <h2 id="craft" class="mono" data-reveal style="color:var(--muted); margin-bottom:1rem;">what we stand on</h2>
     <article
@@ -39,10 +38,10 @@ const climb = ["Brand + the channel", "One truck", "The first lot", "Venue + own
       data-reveal
       style="position:relative; overflow:hidden; padding:0; border-radius:var(--radius-lg);"
     >
-      <Showpiece3D variant="mark" height="clamp(20rem,46vw,34rem)" label="The SlicedLabs chevron mark, rendered in 3D" />
-      <div style="position:absolute; inset:auto 0 0 0; padding:clamp(1.2rem,3vw,2rem); background:linear-gradient(to top, color-mix(in oklab, var(--bg) 82%, transparent), transparent);">
+      <CraftInfographic height="clamp(20rem,46vw,34rem)" />
+      <div style="position:absolute; inset:auto 0 0 0; padding:clamp(1.2rem,3vw,2rem); background:linear-gradient(to top, color-mix(in oklab, var(--bg) 94%, transparent) 0 45%, color-mix(in oklab, var(--bg) 70%, transparent) 72%, transparent);">
         <h3 class="t-h2" style="margin:0 0 .3rem;">Tools we'd stake our name on.</h3>
-        <p style="color:var(--muted); margin:0; max-width:38rem;">Engraved boards, aprons, blades — the gear behind the build, made to outlast the trend cycle. <a href="/shop" style="color:var(--mark);">See the shop →</a></p>
+        <p style="color:var(--muted); margin:0; max-width:38rem;">Engraved boards, aprons, blades — the gear behind the build, made to outlast the trend cycle. <a href="/shop" style="color:var(--muted-strong); font-weight:600;">See the shop →</a></p>
       </div>
     </article>
   </section>

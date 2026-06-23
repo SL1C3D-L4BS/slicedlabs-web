@@ -1,0 +1,167 @@
+---
+// CraftInfographic.astro — "THE SPEC": a custom 3D craft-infographic that replaces the
+// rendered chevron showpiece on the home "what we stand on" card. A perspective scene — a
+// glowing brand grid floor receding into depth, a radial donut charting the three product
+// lines, upright glass spec panels floating at real Z-depth, and material chips — built to
+// spark curiosity for the shop (the card links to /shop).
+//
+// HONEST CONTENT ONLY (no fabricated metrics): the donut counts the 3 real product lines;
+// the spec panels + chips name real materials / craft. Pure CSS 3D (perspective + translateZ
+// + a CSS-only :hover tilt) — no Three.js, no JS, no network (the rendered-mark island it
+// replaces shipped `three`; this ships nothing). Decorative (aria-hidden): the card's own
+// heading + paragraph + "See the shop →" link carry the real message. CLS-safe (fixed
+// height). Motion = the parent's one-shot [data-reveal] + an input-only :hover tilt, both
+// reduced-motion gated → upholds the no-idle-shimmer law.
+interface Props { height?: string }
+const { height = "clamp(20rem, 46vw, 34rem)" } = Astro.props;
+const lines = [
+  { k: "Boards", m: "black walnut · maple", v: "--coral", pos: "top:12%; left:5%;",  tz: "70px" },
+  { k: "Blades", m: "forged steel",          v: "--teal",  pos: "top:17%; right:5%;", tz: "98px" },
+  { k: "Aprons", m: "full-grain leather",    v: "--brass", pos: "top:44%; right:9%;", tz: "46px" },
+];
+const chips = [
+  { t: "engraved by hand", pos: "top:40%; left:2%;",  tz: "120px" },
+  { t: "made to outlast",  pos: "top:8%;  left:39%;", tz: "30px"  },
+  { t: "for the long haul",pos: "top:54%; left:30%;", tz: "84px"  },
+];
+---
+<div class="fig" style={`--fig-h:${height}`} aria-hidden="true">
+  <div class="fig-scene">
+    <!-- receding grid floor (the data-viz ground) + brand glow -->
+    <div class="fig-floor"></div>
+    <div class="fig-glow"></div>
+
+    <!-- the donut chart — three real product lines, equal thirds -->
+    <svg class="fig-disc" viewBox="0 0 100 100" aria-hidden="true">
+      <circle class="disc-track" cx="50" cy="50" r="40" />
+      <circle class="disc-seg" cx="50" cy="50" r="40" stroke="var(--coral)" stroke-dasharray="75 176" transform="rotate(-90 50 50)" />
+      <circle class="disc-seg" cx="50" cy="50" r="40" stroke="var(--teal)"  stroke-dasharray="75 176" transform="rotate(30 50 50)" />
+      <circle class="disc-seg" cx="50" cy="50" r="40" stroke="var(--brass)" stroke-dasharray="75 176" transform="rotate(150 50 50)" />
+    </svg>
+    <div class="fig-core">
+      <span class="fig-core-n">3</span>
+      <span class="fig-core-k">lines, in the works</span>
+    </div>
+
+    <!-- upright glass spec panels at depth -->
+    {lines.map((l) => (
+      <div class="fig-spec" style={`${l.pos} --tz:${l.tz}`}>
+        <span class="fig-spec-dot" style={`--h:var(${l.v})`}></span>
+        <span class="fig-spec-txt">
+          <span class="fig-spec-k">{l.k}</span>
+          <span class="fig-spec-m">{l.m}</span>
+        </span>
+      </div>
+    ))}
+
+    <!-- floating craft chips -->
+    {chips.map((c) => (
+      <span class="fig-chip" style={`${c.pos} --tz:${c.tz}`}>{c.t}</span>
+    ))}
+  </div>
+</div>
+
+<style>
+  .fig {
+    position: relative; width: 100%; height: var(--fig-h);
+    overflow: hidden; border-radius: inherit;
+    perspective: 1200px;
+    background:
+      radial-gradient(60% 55% at 72% 16%, color-mix(in oklab, var(--blue) 16%, transparent), transparent 62%),
+      radial-gradient(56% 52% at 18% 26%, color-mix(in oklab, var(--coral) 12%, transparent), transparent 64%);
+  }
+  .fig-scene {
+    position: absolute; inset: 0;
+    transform-style: preserve-3d;
+    transform: rotateX(3deg) rotateY(0deg);
+    transition: transform 700ms var(--ease);
+  }
+  /* input-only parallax tilt — never idles, gated under reduced-motion */
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .fig:hover .fig-scene { transform: rotateX(6deg) rotateY(-9deg); }
+  }
+
+  /* receding grid floor — a perspective-tilted brand grid that fades into depth */
+  .fig-floor {
+    position: absolute; left: 50%; bottom: -6%; width: 150%; height: 78%;
+    transform: translateX(-50%) rotateX(64deg) translateZ(-40px);
+    transform-origin: bottom center;
+    background:
+      repeating-linear-gradient(90deg, transparent 0 calc(2.4rem - 1px), color-mix(in oklab, var(--mark) 26%, transparent) calc(2.4rem - 1px) 2.4rem),
+      repeating-linear-gradient(0deg,  transparent 0 calc(2.4rem - 1px), color-mix(in oklab, var(--mark) 18%, transparent) calc(2.4rem - 1px) 2.4rem);
+    -webkit-mask: radial-gradient(74% 78% at 50% 26%, #000, transparent 78%);
+    mask: radial-gradient(74% 78% at 50% 26%, #000, transparent 78%);
+    opacity: .5; pointer-events: none;
+  }
+  .fig-glow {
+    position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(46% 42% at 50% 40%, color-mix(in oklab, var(--blue) 22%, transparent), transparent 72%);
+  }
+
+  /* the donut chart */
+  .fig-disc {
+    position: absolute; top: 41%; left: 50%;
+    width: clamp(11rem, 26vw, 16rem); aspect-ratio: 1; overflow: visible;
+    transform: translate(-50%, -50%) translateZ(24px);
+    filter: drop-shadow(0 16px 34px color-mix(in oklab, var(--mark) 26%, transparent));
+  }
+  .fig-disc circle { fill: none; stroke-width: 7.5; }
+  .disc-track { stroke: color-mix(in oklab, var(--ink) 10%, var(--stroke)); }
+  .disc-seg { stroke-linecap: round; }
+
+  .fig-core {
+    position: absolute; top: 41%; left: 50%;
+    transform: translate(-50%, -50%) translateZ(46px); text-align: center;
+  }
+  .fig-core-n {
+    display: block; font-family: var(--font-display); font-weight: 800;
+    font-size: clamp(2.6rem, 7vw, 4rem); line-height: 1; color: var(--ink);
+    text-shadow: 0 2px 18px color-mix(in oklab, var(--bg) 60%, transparent);
+  }
+  .fig-core-k {
+    font-family: var(--font-mono); font-size: .64rem; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--muted-strong);
+  }
+
+  /* upright spec panels — FLAT opaque bloom panels (no backdrop-blur; matches the codebase's
+     flat-panel policy + improves contrast over the glass-ultra card behind them) */
+  .fig-spec {
+    position: absolute; display: flex; align-items: center; gap: .55rem;
+    padding: .55rem .7rem; border-radius: var(--radius);
+    transform: translateZ(var(--tz, 60px));
+    background: var(--bg-alt); border: 1px solid var(--stroke);
+    box-shadow: inset 0 1px 0 var(--rim), 0 8px 24px rgba(0,0,0,.22);
+  }
+  .fig-spec-dot {
+    width: .6rem; height: .6rem; border-radius: 50%; flex: none;
+    background: radial-gradient(circle at 32% 30%, color-mix(in oklab, #fff 45%, transparent), transparent 58%), var(--h);
+    box-shadow: 0 0 12px color-mix(in oklab, var(--h) 60%, transparent);
+  }
+  .fig-spec-txt { display: flex; flex-direction: column; gap: .08rem; }
+  .fig-spec-k { font-family: var(--font-display); font-weight: 700; font-size: .98rem; line-height: 1; color: var(--ink); }
+  .fig-spec-m { font-family: var(--font-mono); font-size: .58rem; letter-spacing: .04em; text-transform: uppercase; color: var(--muted-strong); }
+
+  /* floating craft chips */
+  .fig-chip {
+    position: absolute; transform: translateZ(var(--tz, 40px));
+    font-family: var(--font-mono); font-size: .58rem; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--muted-strong); padding: .2rem .5rem; border-radius: 999px;
+    background: color-mix(in oklab, var(--bg-alt) 80%, transparent);
+    border: 1px solid var(--stroke); white-space: nowrap;
+  }
+
+  /* tighten on phones: lift the chart above the caption band + shed the extras */
+  @media (max-width: 640px) {
+    .fig-disc, .fig-core { top: 33%; }
+    .fig-spec { padding: .45rem .55rem; }
+    .fig-spec-m { display: none; }
+    .fig-chip { display: none; }
+  }
+
+  /* reduced-transparency: glass flattens via the global rule; drop the translucent washes
+     + chip backing so everything stays legible as solid surfaces. */
+  @media (prefers-reduced-transparency: reduce) {
+    .fig-floor, .fig-glow { display: none; }
+    .fig-chip { background: var(--bg-alt); }
+  }
+</style>
