@@ -25,10 +25,11 @@ export function initGL(canvas: HTMLCanvasElement | OffscreenCanvas) {
   const vec3 TEAL=vec3(0.184,0.608,0.502);
   const vec3 BLUE=vec3(0.188,0.545,0.859);
   const vec3 MARK=vec3(0.298,0.714,1.0);
-  const vec3 L_TAN=vec3(0.73,0.47,0.25);    // rich caramel-brown (latte lows — more visible)
-  const vec3 L_MILK=vec3(0.90,0.75,0.55);   // warm steamed milk
-  const vec3 L_FOAM=vec3(0.975,0.93,0.83);  // warm foam
-  const vec3 TANGERINE=vec3(0.97,0.50,0.14);// brighter tangerine swirl accent
+  const vec3 L_ESPRESSO=vec3(0.20,0.11,0.06); // Italian espresso — the dark crema (latte lows)
+  const vec3 L_CARAMEL=vec3(0.60,0.38,0.20);  // caramel
+  const vec3 L_MILK=vec3(0.90,0.75,0.55);     // steamed milk
+  const vec3 L_FOAM=vec3(0.975,0.93,0.83);    // foam (highs stay light)
+  const vec3 TANGERINE=vec3(0.97,0.50,0.14);  // brighter tangerine swirl accent
   float hash(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }
   float noise(vec2 p){ vec2 i=floor(p), f=fract(p); vec2 u=f*f*(3.0-2.0*f);
     return mix(mix(hash(i),hash(i+vec2(1,0)),u.x), mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),u.x), u.y); }
@@ -40,8 +41,9 @@ export function initGL(canvas: HTMLCanvasElement | OffscreenCanvas) {
     if(t<0.75) return mix(TEAL,BLUE,(t-0.5)/0.25);
     return mix(BLUE,MARK,(t-0.75)/0.25); }
   vec3 latteRamp(float t){ t=clamp(t,0.0,1.0);
-    if(t<0.5) return mix(L_TAN,L_MILK,t/0.5);
-    return mix(L_MILK,L_FOAM,(t-0.5)/0.5); }
+    if(t<0.22) return mix(L_ESPRESSO,L_CARAMEL,t/0.22);   // deep espresso darks
+    if(t<0.55) return mix(L_CARAMEL,L_MILK,(t-0.22)/0.33);
+    return mix(L_MILK,L_FOAM,(t-0.55)/0.45); }            // cream stays light
   void main(){
     vec2 uv=(gl_FragCoord.xy-0.5*u_res)/min(u_res.x,u_res.y);
     float t=u_time*0.042;
