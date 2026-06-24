@@ -11,17 +11,21 @@
 // v1 variant: "donut" (the home "what we stand on" card). bars / ladder / kpi-grid follow.
 interface Seg { label: string; hue: string }   // hue = a CSS var name, e.g. "--coral"
 interface Row { label: string; material: string; hue: string; status: string; stage: 1 | 2 | 3 }
+// kpi-grid: a real number + label + source, with an honest CONFIDENCE state (sourced vs estimate).
+interface Cell { value: string; label: string; source: string; hue: string; confidence: "sourced" | "estimate"; count?: number; prefix?: string; suffix?: string }
 interface Props {
-  variant?: "donut" | "ledger";
+  variant?: "donut" | "ledger" | "kpi-grid" | "ladder";
   segments?: Seg[];     // donut variant
   rows?: Row[];         // ledger variant — a spec table of record
+  cells?: Cell[];       // kpi-grid variant
+  steps?: string[];     // ladder variant — a sequenced climb (you-are-here = step 0)
   stat?: string;        // the big real number, e.g. "3" (count-up if numeric)
   statLabel?: string;   // e.g. "lines on the bench"
   stamp?: string;       // a small pre-launch status pill, e.g. "pre-launch · on the bench"
   class?: string;
   id?: string;
 }
-const { variant = "donut", segments = [], rows = [], stat, statLabel, stamp, class: cls = "", id } = Astro.props;
+const { variant = "donut", segments = [], rows = [], cells = [], steps = [], stat, statLabel, stamp, class: cls = "", id } = Astro.props;
 const STAGE_FILL = [24, 54, 86];   // ledger: rail fill % by build stage (1 sketching / 2 in works / 3 on bench)
 const uid = id ?? "ig" + Math.random().toString(36).slice(2, 8);
 
@@ -117,13 +121,14 @@ const statIsNum = stat != null && /^\d+(\.\d+)?$/.test(stat);
   </div>
 )}
 
-{variant === "ledger" && (
+{(variant === "ledger" || variant === "kpi-grid" || variant === "ladder") && (
   <script is:inline>
-    // run the ledger rail-pulses only while on screen (no offscreen paint loop); never under
-    // reduced-motion. Static lit dashes render meanwhile, so the data reads with or without it.
+    // run the figure tracers (ledger pulse / kpi rail / climb runner) only while on screen
+    // (no offscreen loop); never under reduced-motion. The static rails/nodes carry the data
+    // meanwhile, so it reads fully with or without the motion.
     (function () {
       if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-      var els = document.querySelectorAll(".info-ledger");
+      var els = document.querySelectorAll(".info-ledger, .info-kpi, .info-climb");
       if (!els.length) return;
       if (!("IntersectionObserver" in window)) {
         els.forEach(function (e) { e.classList.add("is-live"); });
@@ -135,6 +140,40 @@ const statIsNum = stat != null && /^\d+(\.\d+)?$/.test(stat);
       els.forEach(function (e) { io.observe(e); });
     })();
   </script>
+)}
+
+{variant === "kpi-grid" && (
+  <div class:list={["info-fig", "info-kpi", cls]}>
+    <div class="ik-grid">
+      {cells.map((c, i) => (
+        <article class="ik-cell" style={`--i:${i}; --h:var(${c.hue});`} data-conf={c.confidence}>
+          <div class="ik-n">
+            {c.count != null
+              ? <span data-count-to={c.count} data-count-prefix={c.prefix ?? ""} data-count-suffix={c.suffix ?? ""}>{(c.prefix ?? "") + c.count + (c.suffix ?? "")}</span>
+              : c.value}
+          </div>
+          {/* confidence rail — solid + running tracer = sourced; dashed/ghost = estimate.
+              The rail is decorative; the state is announced to AT by the sr-only text below. */}
+          <span class="ik-rail" aria-hidden="true"></span>
+          <span class="sr-only">{c.confidence === "sourced" ? "Sourced figure." : "Estimate."}</span>
+          <p class="ik-k">{c.label}</p>
+          <span class="ik-src mono">{c.source}</span>
+        </article>
+      ))}
+    </div>
+  </div>
+)}
+
+{variant === "ladder" && (
+  <ol class:list={["info-fig", "info-climb", cls]}>
+    {steps.map((s, i) => (
+      <li class="ic-step" style={`--i:${i};`} data-here={i === 0 ? "" : undefined} aria-current={i === 0 ? "step" : undefined}>
+        <span class="ic-node" aria-hidden="true"></span>
+        <span class="ic-num mono">{String(i).padStart(2, "0")}</span>
+        <span class="ic-text">{s}</span>
+      </li>
+    ))}
+  </ol>
 )}
 
 <style>
@@ -228,10 +267,62 @@ const statIsNum = stat != null && /^\d+(\.\d+)?$/.test(stat);
     .il-mat { grid-area: mat; } .il-rail { grid-area: rail; }
   }
 
-  /* reduced-motion: freeze the comet + the rail pulses to static highlights (full data parity) */
+  /* ── KPI-GRID variant — sourced data cells on SOLID surfaces (AA), source chips + a
+        confidence rail (solid + running tracer = sourced · dashed/ghost = estimate) ── */
+  .info-kpi { width: 100%; }
+  .ik-grid { display: grid; gap: clamp(.7rem, 2.4cqi, 1.1rem); grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); }
+  .ik-cell {
+    background: var(--bg-alt); border: 1px solid var(--stroke); border-radius: var(--radius);
+    box-shadow: var(--shadow-1); padding: clamp(1rem, 3cqi, 1.6rem);
+    display: grid; justify-items: center; text-align: center; gap: .1rem;
+  }
+  .ik-n {
+    font-family: var(--font-display); font-weight: 800; line-height: 1; color: var(--ink);
+    font-size: clamp(1.7rem, 7cqi, 2.7rem); font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1;
+  }
+  .ik-rail { position: relative; display: block; width: 2.6rem; height: 3px; border-radius: 3px; margin: .55rem 0 .5rem; overflow: hidden; background: var(--h); }
+  .ik-cell[data-conf="estimate"] .ik-rail { background: repeating-linear-gradient(90deg, var(--h) 0 4px, transparent 4px 8px); opacity: .55; }
+  /* the running tracer renders only while the grid is on screen (.is-live); the static solid
+     rail already encodes the "sourced" state, so nothing is lost when it's idle/offscreen */
+  .info-kpi.is-live .ik-cell[data-conf="sourced"] .ik-rail::after {
+    content: ""; position: absolute; top: 0; bottom: 0; width: 45%;
+    background: linear-gradient(90deg, transparent, color-mix(in oklab, #fff 55%, var(--specular)), transparent);
+    transform: translateX(-120%); animation: ik-run 2.6s linear infinite; animation-delay: calc(var(--i) * .3s);
+  }
+  @keyframes ik-run { to { transform: translateX(240%); } }
+  .ik-k { font-weight: 600; color: var(--ink); font-size: clamp(.85rem, 2.6cqi, 1rem); line-height: 1.2; }
+  .ik-src { display: block; font-size: clamp(.58rem, 1.8cqi, .68rem); color: var(--muted-strong); margin-top: .15rem; }
+
+  /* ── LADDER variant — a sequenced climb rail with a running tracer + a you-are-here node ── */
+  .info-climb { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(6, 1fr); gap: clamp(.5rem, 2cqi, 1rem); position: relative; }
+  .info-climb::before { content: ""; position: absolute; left: 8%; right: 8%; top: .55rem; height: 2px; background: color-mix(in oklab, var(--ink) 12%, var(--stroke)); }
+  /* energy flows phase→phase — a bright segment sweeping the rail (composite transform),
+     gated to on-screen (.is-live); the static rail + nodes carry the sequence meanwhile */
+  .info-climb.is-live::after {
+    content: ""; position: absolute; left: 8%; top: .55rem; height: 2px; width: 26%;
+    background: linear-gradient(90deg, transparent, color-mix(in oklab, #fff 50%, var(--specular)), transparent);
+    transform: translateX(-60%); animation: ic-run 5s linear infinite;
+  }
+  @keyframes ic-run { to { transform: translateX(350%); } }
+  .ic-step { display: grid; justify-items: center; text-align: center; gap: .3rem; position: relative; }
+  .ic-node {
+    width: 1.1rem; height: 1.1rem; border-radius: 50%; background: var(--bg-alt);
+    border: 2px solid color-mix(in oklab, var(--mark) 50%, var(--stroke)); position: relative; z-index: 1;
+  }
+  .ic-step[data-here] .ic-node { background: var(--specular); border-color: var(--specular); box-shadow: 0 0 0 4px color-mix(in oklab, var(--specular) 22%, transparent); }
+  .ic-num { font-family: var(--font-mono); font-size: .62rem; letter-spacing: .06em; color: var(--muted-strong); }
+  .ic-text { font-size: clamp(.7rem, 2.2cqi, .86rem); color: var(--ink); font-weight: 600; line-height: 1.2; }
+  @container (max-width: 40rem) {
+    .info-climb { grid-template-columns: 1fr 1fr 1fr; row-gap: 1.3rem; }
+    .info-climb::before, .info-climb::after { display: none; }
+  }
+
+  /* reduced-motion: freeze the comet + the rail pulses + the kpi tracer + the climb runner */
   @media (prefers-reduced-motion: reduce) {
     .if-comet { animation: none; }
     .il-pulse { animation: none; opacity: .55; }
+    .ik-cell[data-conf="sourced"] .ik-rail::after { animation: none; display: none; }
+    .info-climb::after { animation: none; display: none; }
   }
   /* reduced-transparency: drop the soft halos so everything stays crisp */
   @media (prefers-reduced-transparency: reduce) {

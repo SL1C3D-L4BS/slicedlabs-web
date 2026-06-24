@@ -1,13 +1,17 @@
 ---
 // SlicedLabs · studio · © 2026 SlicedLabs — The Numbers (the data case)
 import Base from "../layouts/Base.astro";
-const stats = [
-  { v: "growing", k: "US food-truck market", sub: "~$1.5–2.5B · industry estimates (verify before print)" },
-  { v: "6–9%", k: "food-truck net margin", sub: "food-truck ~6–15% owner-run · restaurants ~3–5% · industry benchmarks" },
-  { v: "64%", k: "value local sourcing", sub: "the #1 2025 trend · Nat'l Restaurant Assoc." },
-  { v: "+32%", k: "YouTube food views YoY", sub: "4th-largest category, Q1 2025 · Pixability" },
-  { v: "99%", k: "top food channels are creators", sub: "1% are brands · Pixability" },
-  { v: "email ≫ social", k: "owned vs rented conversion", sub: "owned email converts several times better than rented social · industry benchmarks" },
+import Infographic from "../components/Infographic.astro";
+import InfoFigure from "../components/InfoFigure.astro";
+// The market case — REAL figures. Each carries its source + an honest CONFIDENCE state:
+// a solid rail + running tracer = sourced; a dashed/ghost rail = an estimate/benchmark.
+const cells: { value: string; label: string; source: string; hue: string; confidence: "sourced" | "estimate"; count?: number; prefix?: string; suffix?: string }[] = [
+  { value: "$2.8B", label: "US food-truck market", source: "13.2% CAGR 2020–2025 · IBISWorld", hue: "--coral", confidence: "sourced" },
+  { value: "6–9%", label: "food-truck net margin", source: "owner-run · vs restaurants ~1–3% · Toast / Harvest", hue: "--teal", confidence: "estimate" },
+  { value: "64%", count: 64, suffix: "%", label: "value local sourcing", source: "the #1 2025 trend · Nat'l Restaurant Assoc.", hue: "--brass", confidence: "sourced" },
+  { value: "+32%", count: 32, prefix: "+", suffix: "%", label: "YouTube food views YoY", source: "4th-largest category, Q1 2025 · Pixability", hue: "--blue", confidence: "sourced" },
+  { value: "99%", count: 99, suffix: "%", label: "top food channels are creators", source: "1% are brands · Pixability", hue: "--coral", confidence: "sourced" },
+  { value: "email ≫ social", label: "owned vs rented conversion", source: "owned email converts several × better · benchmarks", hue: "--teal", confidence: "estimate" },
 ];
 const why = [
   ["Why a truck", "Low startup vs brick-and-mortar, far better margins, and it moves to the crowd. The gold-rush phase is over — the truck count's flattened — so operator quality wins now. That's the opening."],
@@ -26,16 +30,13 @@ const why = [
     </p>
   </section>
 
-  <section class="wrap" aria-label="Key statistics" style="padding-block:1rem 2rem;">
-    <div class="bento">
-      {stats.map((s, i) => (
-        <article class="glass island col-2" data-reveal style={`--i:${i}; text-align:center;`}>
-          <div class="blend-text t-h2" style="font-family:var(--font-display); font-weight:800; line-height:1;">{s.v}</div>
-          <p style="margin:.5rem 0 .2rem; font-weight:600;">{s.k}</p>
-          <span class="mono" style="font-size:.7rem;">{s.sub}</span>
-        </article>
-      ))}
-    </div>
+  <section class="wrap" aria-label="Key statistics" style="padding-block:1rem 2rem;" data-reveal>
+    <Infographic ratio="auto" glowSafe="0%" label="The market case — sourced figures and honest estimates behind the bet">
+      <InfoFigure variant="kpi-grid" cells={cells} />
+      <p slot="caption" class="mono" style="text-align:center; color:var(--muted); margin:0;">
+        solid rail = sourced · dashed rail = estimate / benchmark
+      </p>
+    </Infographic>
   </section>
 
   <section class="wrap" aria-labelledby="why" style="padding-block:2rem;">

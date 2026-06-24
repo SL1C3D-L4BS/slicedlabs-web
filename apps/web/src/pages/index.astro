@@ -94,14 +94,11 @@ const climb = ["Brand + the channel", "One truck", "The first lot", "Venue + own
   <!-- THE CLIMB — the sequence -->
   <section class="wrap" aria-labelledby="climb" style="padding-block:2rem;">
     <h2 id="climb" class="mono" data-reveal style="color:var(--muted); margin-bottom:1rem;">the climb (you are here → phase 0)</h2>
-    <ol style="list-style:none; padding:0; margin:0; display:flex; gap:.6rem; flex-wrap:wrap;">
-      {climb.map((c, i) => (
-        <li class="glass" data-reveal style={`--i:${i}; padding:.7rem 1rem; display:flex; gap:.6rem; align-items:center;`}>
-          <span class="blend-text" style="font-family:var(--font-display); font-weight:800;">{String(i).padStart(2, "0")}</span>
-          <span>{c}</span>
-        </li>
-      ))}
-    </ol>
+    <div data-reveal>
+      <Infographic ratio="auto" glowSafe="0%" label="The build sequence — six phases; you are here at phase 0 (brand + the channel)">
+        <InfoFigure variant="ladder" steps={climb} />
+      </Infographic>
+    </div>
   </section>
 
   <!-- WHAT WE GIVE BACK — the mission arms (built as the business throws off cash) -->
