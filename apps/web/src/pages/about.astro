@@ -1,10 +1,16 @@
 ---
 // SlicedLabs · studio · © 2026 SlicedLabs — Manifesto / About
 import Base from "../layouts/Base.astro";
+import Showpiece3D from "../components/Showpiece3D.astro";
 ---
 <Base title="Manifesto — SlicedLabs" description="Own your slice. A food · media · marketing company building in public.">
   <section class="wrap section" style="max-width:48rem;">
-    <p class="mono" data-reveal>the manifesto</p>
+    {/* the mark, rendered in 3D — the brand's face opening the manifesto (Phase 4 Tier-3:
+        gated Three.js showpiece, render-on-demand, static brand-gradient fallback when gated). */}
+    <div data-reveal style="max-width:30rem; margin:0 auto 1.4rem;">
+      <Showpiece3D variant="mark" height="clamp(13rem, 32vw, 20rem)" />
+    </div>
+    <p class="mono" data-reveal style="--i:1;">the manifesto</p>
     <h1 class="kinetic t-display" data-reveal style="--i:1;"><span class="blend-text">Own your slice.</span></h1>
     <hr class="blade" data-reveal style="--i:2; max-width:18rem; margin:1.6rem 0 0;" />
 

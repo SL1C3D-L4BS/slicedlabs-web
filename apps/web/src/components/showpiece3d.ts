@@ -180,7 +180,8 @@ export function initShowpiece(
   // scroll adds a whisper of rotation (reads the shared Lenis velocity if present).
   function onScroll() {
     const vel = (window as unknown as { __slVel?: number }).__slVel || 0;
-    target.ry += vel * 0.02;
+    // clamp so the accumulated scroll-tilt can't drift the mark off its resting 3/4 view
+    target.ry = Math.max(-0.6, Math.min(0.6, target.ry + vel * 0.02));
     kick();
   }
 
