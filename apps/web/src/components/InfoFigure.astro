@@ -128,7 +128,7 @@ const statIsNum = stat != null && /^\d+(\.\d+)?$/.test(stat);
     // meanwhile, so it reads fully with or without the motion.
     (function () {
       if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-      var els = document.querySelectorAll(".info-ledger, .info-kpi, .info-climb");
+      var els = document.querySelectorAll(".info-ledger, .info-kpi, .info-climb, .info-connector");
       if (!els.length) return;
       if (!("IntersectionObserver" in window)) {
         els.forEach(function (e) { e.classList.add("is-live"); });
