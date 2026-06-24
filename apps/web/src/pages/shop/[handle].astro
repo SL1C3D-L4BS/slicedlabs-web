@@ -13,7 +13,7 @@ const supabase = getServerSupabase(Astro.cookies, Astro.request);
 const { data } = await supabase
   .from("products")
   .select(
-    "id, slug, title, subtitle, description, images, model_url, materials, fulfillment_type, variants(id, title, sku, price_cents, currency, printful_variant_id, position)",
+    "id, slug, title, subtitle, description, images, model_url, materials, fulfillment_type, metadata, variants(id, title, sku, price_cents, currency, printful_variant_id, position)",
   )
   .eq("slug", handle ?? "")
   .maybeSingle();
@@ -37,6 +37,7 @@ type Product = {
   model_url: string | null;
   materials: string[] | null;
   fulfillment_type: "pod" | "in_house" | "digital";
+  metadata: Record<string, any> | null;
   variants: Variant[];
 };
 
@@ -70,6 +71,13 @@ const variants = product
 const defaultVariant = variants.length
   ? variants.reduce((lo, v) => (v.price_cents < lo.price_cents ? v : lo), variants[0])
   : null;
+// A 0-variant product is a pre-launch "bench" line (no price/buy yet) — render an honest
+// coming-soon state, never a dead buy box or a fabricated ship promise.
+const buyable = defaultVariant != null;
+const statusFrame =
+  (product?.metadata && typeof product.metadata === "object"
+    ? (product.metadata.status_frame as string | undefined)
+    : undefined) ?? "on the bench";
 const images = product ? imageList(product.images) : [];
 ---
 {product ? (
@@ -117,14 +125,16 @@ const images = product ? imageList(product.images) : [];
         {/* ── sticky buy-box ── */}
         <div class="pdp-buy" data-reveal style="--i:1;">
           <div class="pdp-buy-inner">
-            <span class="tag">{FULFILL_LABEL[product.fulfillment_type]}</span>
+            <span class="tag">{buyable ? FULFILL_LABEL[product.fulfillment_type] : "pre-launch"}</span>
             <h1 class="t-h2" style="margin:.6rem 0 .2rem;">{product.title}</h1>
             {product.subtitle && (
               <p class="mono" style="margin:0 0 .6rem; color:var(--muted);">{product.subtitle}</p>
             )}
 
             <p id="price" class="pdp-price">
-              {defaultVariant ? formatMoney(defaultVariant.price_cents, defaultVariant.currency) : "—"}
+              {defaultVariant
+                ? formatMoney(defaultVariant.price_cents, defaultVariant.currency)
+                : <span class="tag-status" data-state="progress">{statusFrame}</span>}
             </p>
 
             {product.description && (
@@ -166,29 +176,41 @@ const images = product ? imageList(product.images) : [];
               </div>
             )}
 
-            <div class="pdp-field">
-              <span class="pdp-field-label mono">Quantity</span>
-              <div class="stepper" role="group" aria-label="Quantity">
-                <button type="button" class="stepper-btn" id="qty-dec" aria-label="Decrease quantity">−</button>
-                <input id="qty" class="stepper-input" type="number" min="1" max="99" value="1" inputmode="numeric" aria-label="Quantity" />
-                <button type="button" class="stepper-btn" id="qty-inc" aria-label="Increase quantity">+</button>
-              </div>
-            </div>
+            {buyable ? (
+              <>
+                <div class="pdp-field">
+                  <span class="pdp-field-label mono">Quantity</span>
+                  <div class="stepper" role="group" aria-label="Quantity">
+                    <button type="button" class="stepper-btn" id="qty-dec" aria-label="Decrease quantity">−</button>
+                    <input id="qty" class="stepper-input" type="number" min="1" max="99" value="1" inputmode="numeric" aria-label="Quantity" />
+                    <button type="button" class="stepper-btn" id="qty-inc" aria-label="Increase quantity">+</button>
+                  </div>
+                </div>
 
-            <div class="pdp-actions">
-              <button id="add" class="btn" type="button">Add to cart</button>
-              <button id="buy" class="btn btn-ghost" type="button">Buy now</button>
-            </div>
-            <span id="added" class="mono" role="status" aria-live="polite" hidden style="display:block; margin-top:.7rem; color:var(--teal);">Added to cart ✓</span>
+                <div class="pdp-actions">
+                  <button id="add" class="btn" type="button">Add to cart</button>
+                  <button id="buy" class="btn btn-ghost" type="button">Buy now</button>
+                </div>
+                <span id="added" class="mono" role="status" aria-live="polite" hidden style="display:block; margin-top:.7rem; color:var(--teal);">Added to cart ✓</span>
 
-            <ul class="pdp-trust">
-              <li>{FULFILL_LABEL[product.fulfillment_type] === "made to order" ? "Made to order · ships in 5–7 days" : FULFILL_LABEL[product.fulfillment_type] === "digital" ? "Instant access after checkout" : "Limited drop · ships in 3–5 days"}</li>
-              <li>Secure checkout · easy returns</li>
-            </ul>
+                <ul class="pdp-trust">
+                  <li>{FULFILL_LABEL[product.fulfillment_type] === "made to order" ? "Made to order · ships in 5–7 days" : FULFILL_LABEL[product.fulfillment_type] === "digital" ? "Instant access after checkout" : "Limited drop · ships in 3–5 days"}</li>
+                  <li>Secure checkout · easy returns</li>
+                </ul>
 
-            <p class="mono" style="margin-top:1rem; color:var(--muted);">
-              <a href="/cart" style="color:inherit; text-decoration:underline;">View cart →</a>
-            </p>
+                <p class="mono" style="margin-top:1rem; color:var(--muted);">
+                  <a href="/cart" style="color:inherit; text-decoration:underline;">View cart →</a>
+                </p>
+              </>
+            ) : (
+              <>
+                {/* pre-launch "bench" line — honest coming-soon, no buy controls, no ship promise */}
+                <a class="btn" href="/build" style="margin-top:.4rem;">Follow the build →</a>
+                <ul class="pdp-trust">
+                  <li>Not shipping yet — you'll watch it get made.</li>
+                </ul>
+              </>
+            )}
           </div>
         </div>
       </div>

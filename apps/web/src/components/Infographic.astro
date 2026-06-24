@@ -12,16 +12,19 @@
 // Children size in container units (cqi/cqmin) so ONE component reflows in any bento slot
 // (.col-*/.feature) with no data-hiding mobile branch. Token-driven (tokens.toml reskins it).
 interface Props {
-  ratio?: string;      // viz aspect-ratio, e.g. "16 / 10" or "3 / 2"
+  ratio?: string;      // viz aspect-ratio, e.g. "16 / 10" or "3 / 2"; or "auto" → size to content
   glowSafe?: string;   // the bloom gutter inset (default 7%)
   class?: string;
   label?: string;      // accessible name for the whole figure region (the REAL message lives in the caption)
 }
 const { ratio = "3 / 2", glowSafe = "7%", class: cls = "", label } = Astro.props;
 const hasCaption = Astro.slots.has("caption");
+// "auto" = a content-height figure (e.g. a DOM ledger table) — flows + sizes to its content
+// (CLS stays 0 because it's server-rendered, no lazy media); else an aspect-reserved frame.
+const auto = ratio === "auto";
 ---
 <figure
-  class:list={["ig", cls]}
+  class:list={["ig", { "ig-auto": auto }, cls]}
   style={`--ig-ratio:${ratio}; --glow-safe:${glowSafe};`}
   role={label ? "group" : undefined}
   aria-label={label}
@@ -49,6 +52,12 @@ const hasCaption = Astro.slots.has("caption");
      (inside the frame) instead of clipping or overflowing the card. */
   .ig-media { position: absolute; inset: var(--glow-safe, 7%); }
   .ig-media > :global(*) { width: 100%; height: 100%; }
+
+  /* auto mode — a content-height figure (DOM table): no aspect reservation, media flows in
+     normal layout with the glow gutter as padding. CLS=0 (it's server-rendered DOM). */
+  .ig-auto .ig-frame { aspect-ratio: auto; }
+  .ig-auto .ig-media { position: static; inset: auto; padding: var(--glow-safe, 7%); }
+  .ig-auto .ig-media > :global(*) { width: 100%; height: auto; }
   .ig-media :global(svg) { display: block; width: 100%; height: 100%; overflow: visible; }
 
   /* row 2 — caption in normal flow (no overlay) */

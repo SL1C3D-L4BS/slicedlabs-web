@@ -35,17 +35,19 @@ type MenuItem = {
 // ── MERCH + PLAYBOOKS (products) ───────────────────────────────────────────
 const { data: productRows } = await supabase
   .from("products")
-  .select("slug,title,description,images,fulfillment_type,status,variants(price_cents,currency)")
+  .select("slug,title,subtitle,description,images,fulfillment_type,status,metadata,variants(price_cents,currency)")
   .eq("status", "active");
 
 type Variant = { price_cents: number; currency: string };
 type Product = {
   slug: string;
   title: string;
+  subtitle: string | null;
   description: string | null;
   images: unknown;
   fulfillment_type: "pod" | "in_house" | "digital";
   status: string;
+  metadata: Record<string, any> | null;
   variants: Variant[];
 };
 
@@ -83,7 +85,11 @@ const drops = menuItems.filter((i) => i.section === "drop");
 const sides = menuItems.filter((i) => i.section === "side");
 const sweets = menuItems.filter((i) => i.section === "sweet");
 
-const merch = products.filter((p) => p.fulfillment_type === "pod");
+// Merch = print-on-demand goods + the hand-made "bench" lines (in_house: boards/aprons/coats);
+// the in_house gear leads (it's the craft hero the home card indexes), then the POD merch.
+const merch = products
+  .filter((p) => p.fulfillment_type === "pod" || p.fulfillment_type === "in_house")
+  .sort((a, b) => Number(b.fulfillment_type === "in_house") - Number(a.fulfillment_type === "in_house"));
 const playbooks = products.filter((p) => p.fulfillment_type === "digital");
 
 function firstImage(images: unknown): string {
@@ -273,6 +279,8 @@ const TABS = [
           {merch.map((p, i) => {
             const img = firstImage(p.images);
             const price = fromPrice(p.variants);
+            const statusFrame = p.metadata && typeof p.metadata === "object" ? (p.metadata.status_frame as string | undefined) : undefined;
+            const soon = !price;   // no variants/price yet = a coming-soon "bench" line
             return (
               <button
                 type="button"
@@ -282,17 +290,19 @@ const TABS = [
                 data-modal
                 data-title={p.title}
                 data-price={price ? `from ${price}` : ""}
-                data-body={p.description ?? ""}
+                data-body={p.description ?? p.subtitle ?? ""}
                 data-img={img}
                 data-href={`/shop/${p.slug}`}
-                data-cta="View & buy →"
+                data-cta={soon ? "Follow the build →" : "View & buy →"}
               >
                 <div class="tile-media">
                   <img src={img} alt={p.title} loading="lazy" />
                 </div>
                 <div class="tile-foot">
                   <h3><span class="blend-text">{p.title}</span></h3>
-                  {price && <p class="price mono">from {price}</p>}
+                  {price
+                    ? <p class="price mono">from {price}</p>
+                    : <span class="tag-status" data-state="progress">{statusFrame ?? "on the bench"}</span>}
                 </div>
               </button>
             );

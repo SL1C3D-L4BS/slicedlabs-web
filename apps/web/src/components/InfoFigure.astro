@@ -10,15 +10,19 @@
 //
 // v1 variant: "donut" (the home "what we stand on" card). bars / ladder / kpi-grid follow.
 interface Seg { label: string; hue: string }   // hue = a CSS var name, e.g. "--coral"
+interface Row { label: string; material: string; hue: string; status: string; stage: 1 | 2 | 3 }
 interface Props {
-  variant?: "donut";
-  segments?: Seg[];
+  variant?: "donut" | "ledger";
+  segments?: Seg[];     // donut variant
+  rows?: Row[];         // ledger variant — a spec table of record
   stat?: string;        // the big real number, e.g. "3" (count-up if numeric)
-  statLabel?: string;   // e.g. "lines, in the works"
+  statLabel?: string;   // e.g. "lines on the bench"
+  stamp?: string;       // a small pre-launch status pill, e.g. "pre-launch · on the bench"
   class?: string;
   id?: string;
 }
-const { variant = "donut", segments = [], stat, statLabel, class: cls = "", id } = Astro.props;
+const { variant = "donut", segments = [], rows = [], stat, statLabel, stamp, class: cls = "", id } = Astro.props;
+const STAGE_FILL = [24, 54, 86];   // ledger: rail fill % by build stage (1 sketching / 2 in works / 3 on bench)
 const uid = id ?? "ig" + Math.random().toString(36).slice(2, 8);
 
 // donut geometry
@@ -79,6 +83,60 @@ const statIsNum = stat != null && /^\d+(\.\d+)?$/.test(stat);
   </div>
 )}
 
+{variant === "ledger" && (
+  <div class:list={["info-fig", "info-ledger", cls]}>
+    <header class="il-head">
+      <span class="il-n" data-count-to={statIsNum ? stat : undefined}>{stat}</span>
+      {statLabel && <span class="il-k">{statLabel}</span>}
+      {stamp && <span class="il-stamp">{stamp}</span>}
+    </header>
+    <ul class="il-rows">
+      {rows.map((r, i) => {
+        const fill = STAGE_FILL[r.stage - 1] ?? 50;
+        return (
+          <li class="il-row" style={`--h:var(${r.hue}); --i:${i};`}>
+            <span class="il-dot" aria-hidden="true"></span>
+            <span class="il-name">{r.label}</span>
+            <span class="il-mat mono">{r.material}</span>
+            {/* the bench rail — decorative tracer (real status is the .il-status text) */}
+            <span class="il-rail" aria-hidden="true">
+              <svg viewBox="0 0 100 8" preserveAspectRatio="none" focusable="false">
+                <line class="il-track" x1="1" y1="4" x2="99" y2="4" />
+                <line class="il-fill" x1="1" y1="4" x2={fill} y2="4" />
+                {/* a short lit pulse that RUNS along the filled portion to the ship node */}
+                <line class="il-pulse" x1="1" y1="4" x2={fill} y2="4" pathLength="1" />
+                <circle class="il-node-halo" cx={fill} cy="4" r="5.5" />
+                <circle class="il-node" cx={fill} cy="4" r="2.2" />
+              </svg>
+            </span>
+            <span class="il-status mono">{r.status}</span>
+          </li>
+        );
+      })}
+    </ul>
+  </div>
+)}
+
+{variant === "ledger" && (
+  <script is:inline>
+    // run the ledger rail-pulses only while on screen (no offscreen paint loop); never under
+    // reduced-motion. Static lit dashes render meanwhile, so the data reads with or without it.
+    (function () {
+      if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      var els = document.querySelectorAll(".info-ledger");
+      if (!els.length) return;
+      if (!("IntersectionObserver" in window)) {
+        els.forEach(function (e) { e.classList.add("is-live"); });
+        return;
+      }
+      var io = new IntersectionObserver(function (ents) {
+        ents.forEach(function (en) { en.target.classList.toggle("is-live", en.isIntersecting); });
+      }, { rootMargin: "200px" });
+      els.forEach(function (e) { io.observe(e); });
+    })();
+  </script>
+)}
+
 <style>
   .info-fig { position: relative; width: 100%; height: 100%; }
   .if-svg { display: block; width: 100%; height: 100%; overflow: visible; }
@@ -118,12 +176,66 @@ const statIsNum = stat != null && /^\d+(\.\d+)?$/.test(stat);
     letter-spacing: .14em; text-transform: uppercase; color: var(--muted-strong);
   }
 
-  /* reduced-motion: freeze the comet to a static highlight (data fully readable) */
+  /* ── LEDGER variant — a spec table of record (real, accessible DOM text + tracer rails) ── */
+  .info-ledger { display: grid; grid-template-rows: auto 1fr; gap: clamp(.5rem, 2.4cqi, 1.1rem); align-content: center; }
+  .il-head { display: flex; align-items: baseline; gap: clamp(.4rem, 1.6cqi, .8rem); flex-wrap: wrap; }
+  .il-n {
+    font-family: var(--font-display); font-weight: 800; line-height: .85; color: var(--ink);
+    font-size: clamp(2rem, 9cqi, 3.4rem); font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1;
+  }
+  .il-k { font-family: var(--font-mono); font-size: clamp(.6rem, 2.4cqi, .74rem); letter-spacing: .12em; text-transform: uppercase; color: var(--muted-strong); }
+  .il-stamp {
+    margin-left: auto; font-family: var(--font-mono); font-size: clamp(.52rem, 1.9cqi, .62rem);
+    letter-spacing: .1em; text-transform: uppercase; color: var(--muted-strong); white-space: nowrap;
+    border: 1px solid color-mix(in oklab, var(--brass) 48%, var(--stroke)); border-radius: 999px; padding: .2rem .6rem;
+  }
+  .il-rows { list-style: none; margin: 0; padding: 0; display: grid; grid-auto-rows: 1fr; }
+  .il-row {
+    display: grid; align-items: center; gap: clamp(.5rem, 2cqi, 1.1rem);
+    grid-template-columns: auto minmax(0, 1fr) minmax(0, 1.3fr) minmax(0, 1.8fr) auto;
+    padding-block: clamp(.45rem, 1.8cqi, .9rem);
+    border-top: 1px solid color-mix(in oklab, var(--brass) 30%, transparent);
+  }
+  .il-row:last-child { border-bottom: 1px solid color-mix(in oklab, var(--brass) 30%, transparent); }
+  .il-dot { width: .62rem; height: .62rem; border-radius: 50%; flex: none; background: var(--h); box-shadow: 0 0 10px color-mix(in oklab, var(--h) 60%, transparent); }
+  .il-name { font-family: var(--font-display); font-weight: 700; font-size: clamp(.95rem, 3.4cqi, 1.3rem); color: var(--ink); line-height: 1.1; }
+  .il-mat { color: var(--muted-strong); font-size: clamp(.58rem, 2.1cqi, .72rem); }
+  .il-status { color: var(--muted-strong); font-size: clamp(.56rem, 1.9cqi, .68rem); white-space: nowrap; text-align: right; }
+  .il-rail { display: block; height: .55rem; min-width: 4rem; }
+  .il-rail svg { display: block; width: 100%; height: 100%; overflow: visible; }
+  .il-track { stroke: color-mix(in oklab, var(--ink) 10%, var(--stroke)); stroke-width: 2; }
+  .il-fill { stroke: var(--h); stroke-width: 2.5; stroke-linecap: round; }
+  .il-node-halo { fill: var(--h); opacity: .22; }
+  .il-node { fill: var(--h); }
+  /* the runner — a short lit pulse running along the filled rail to the ship node (staggered relay).
+     Animates ONLY while the ledger is on screen (.is-live, set by the observer below) so there's
+     no offscreen paint loop; renders as a static lit dash before/without activation. */
+  .il-pulse {
+    stroke: var(--specular); stroke-width: 2.5; stroke-linecap: round;
+    stroke-dasharray: .12 .88;
+  }
+  .info-ledger.is-live .il-pulse { animation: il-pulse 3s linear infinite; animation-delay: calc(var(--i) * .9s); }
+  @keyframes il-pulse { from { stroke-dashoffset: .12; } to { stroke-dashoffset: -.88; } }
+
+  /* narrow container → 2-line rows (no data hidden): name+status on top, material+rail below */
+  @container (max-width: 32rem) {
+    .il-row {
+      grid-template-columns: auto 1fr auto;
+      grid-template-areas: "dot name status" ". mat mat" ". rail rail";
+      row-gap: .35rem;
+    }
+    .il-dot { grid-area: dot; } .il-name { grid-area: name; } .il-status { grid-area: status; }
+    .il-mat { grid-area: mat; } .il-rail { grid-area: rail; }
+  }
+
+  /* reduced-motion: freeze the comet + the rail pulses to static highlights (full data parity) */
   @media (prefers-reduced-motion: reduce) {
     .if-comet { animation: none; }
+    .il-pulse { animation: none; opacity: .55; }
   }
-  /* reduced-transparency: drop the soft halo behind the number so it stays crisp */
+  /* reduced-transparency: drop the soft halos so everything stays crisp */
   @media (prefers-reduced-transparency: reduce) {
     .if-stat-n { text-shadow: none; }
+    .il-node-halo { display: none; }
   }
 </style>
